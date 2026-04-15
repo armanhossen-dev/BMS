@@ -308,7 +308,7 @@ INSERT INTO ADMIN_USER (Username, PasswordHash, Role, EmployeeID, IsActive) VALU
 
 -- Customer Categories
 INSERT INTO CUSTOMERCATEGORY (CategoryName) VALUES
-('Regular'), ('Premium'), ('NRI'), ('Senior Citizen'), ('Student');
+('Regular'), ('Premium'), ('Senior Citizen'), ('Student');
 
 -- Customers
 INSERT INTO CUSTOMER (FirstName, LastName, DateOfBirth, Gender, Email, Phone, Address, City, NationalID, CustomerCategoryID, PrimaryBranchID, CreatedAt, IsActive) VALUES
