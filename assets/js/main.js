@@ -15,11 +15,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== FORM VALIDATION ==========
     initFormValidation();
     
-    // ========== NUMBER FORMATTING ==========
-    initNumberFormatting();
+    // ========== CARD MODAL ==========
+    initCardModal();
     
-    // ========== TOOLTIPS ==========
-    initTooltips();
+    // ========== DEPOSIT METHODS ==========
+    initDepositMethods();
+    
+    // ========== WITHDRAW METHODS ==========
+    initWithdrawMethods();
+    
+    // ========== LOGIN ROLE SELECT ==========
+    initLoginRole();
 });
 
 // ========== DARK MODE ==========
@@ -34,7 +40,8 @@ function initDarkMode() {
     }
     
     // Load saved theme
-    if (localStorage.getItem('theme') === 'dark') {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
         document.body.classList.add('dark');
         updateThemeIcon(document.getElementById('themeToggle'));
     }
@@ -50,7 +57,6 @@ function updateThemeIcon(button) {
 function initToast() {
     const toastContainer = document.getElementById('toastContainer');
     if (toastContainer && toastContainer.children.length > 0) {
-        // Auto remove after 5 seconds
         setTimeout(() => {
             const toasts = document.querySelectorAll('.toast-notification');
             toasts.forEach(toast => {
@@ -144,57 +150,96 @@ function removeErrorTooltip(input) {
     if (tooltip) tooltip.remove();
 }
 
-// ========== NUMBER FORMATTING ==========
-function initNumberFormatting() {
-    const balanceElements = document.querySelectorAll('.format-balance');
-    balanceElements.forEach(el => {
-        const value = parseFloat(el.textContent.replace(/[^0-9.-]/g, ''));
-        if (!isNaN(value)) {
-            el.textContent = formatCurrency(value);
-        }
-    });
-}
-
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        minimumFractionDigits: 2
-    }).format(amount);
-}
-
-// ========== TOOLTIPS ==========
-function initTooltips() {
-    const tooltipElements = document.querySelectorAll('[data-tooltip]');
-    tooltipElements.forEach(el => {
-        el.addEventListener('mouseenter', function(e) {
-            const tooltipText = this.getAttribute('data-tooltip');
-            const tooltip = document.createElement('div');
-            tooltip.className = 'custom-tooltip';
-            tooltip.textContent = tooltipText;
-            tooltip.style.cssText = `
-                position: absolute;
-                background: var(--glass-bg-solid);
-                color: var(--text-primary);
-                padding: 0.5rem 1rem;
-                border-radius: var(--radius-md);
-                font-size: 0.8rem;
-                z-index: 1000;
-                white-space: nowrap;
-                box-shadow: var(--card-shadow);
-                pointer-events: none;
-            `;
-            document.body.appendChild(tooltip);
-            
-            const rect = this.getBoundingClientRect();
-            tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
-            tooltip.style.left = (rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)) + 'px';
-            
-            this.addEventListener('mouseleave', function() {
-                tooltip.remove();
-            }, { once: true });
+// ========== CARD MODAL ==========
+function initCardModal() {
+    const balanceCard = document.getElementById('balanceCard');
+    const modal = document.getElementById('cardModal');
+    const closeBtn = document.querySelector('.close-modal');
+    
+    if (balanceCard && modal) {
+        balanceCard.addEventListener('click', () => {
+            modal.style.display = 'flex';
         });
-    });
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        }
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+}
+
+// ========== DEPOSIT METHODS ==========
+function initDepositMethods() {
+    const methodSelect = document.getElementById('deposit_method');
+    const mobileFields = document.getElementById('mobile_fields');
+    const branchFields = document.getElementById('branch_fields');
+    
+    if (methodSelect) {
+        methodSelect.addEventListener('change', function() {
+            if (mobileFields) mobileFields.style.display = 'none';
+            if (branchFields) branchFields.style.display = 'none';
+            
+            if (this.value === 'bkash' || this.value === 'nagad' || this.value === 'rocket' || this.value === 'upai') {
+                if (mobileFields) mobileFields.style.display = 'block';
+            } else if (this.value === 'branch') {
+                if (branchFields) branchFields.style.display = 'block';
+            }
+        });
+    }
+}
+
+// ========== WITHDRAW METHODS ==========
+function initWithdrawMethods() {
+    const methodSelect = document.getElementById('withdraw_method');
+    const atmFields = document.getElementById('atm_fields');
+    const branchWithdrawFields = document.getElementById('branch_withdraw_fields');
+    
+    if (methodSelect) {
+        methodSelect.addEventListener('change', function() {
+            if (atmFields) atmFields.style.display = 'none';
+            if (branchWithdrawFields) branchWithdrawFields.style.display = 'none';
+            
+            if (this.value === 'atm') {
+                if (atmFields) atmFields.style.display = 'block';
+            } else if (this.value === 'branch_withdraw') {
+                if (branchWithdrawFields) branchWithdrawFields.style.display = 'block';
+            }
+        });
+    }
+}
+
+// ========== LOGIN ROLE SELECT ==========
+function initLoginRole() {
+    const roleSelect = document.getElementById('role');
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            const usernameField = document.getElementById('username');
+            const usernameLabel = document.querySelector('label[for="username"]');
+            
+            if (this.value === 'admin') {
+                if (usernameLabel) usernameLabel.innerHTML = '<i class="fas fa-user-shield"></i> Admin Username';
+                if (usernameField) usernameField.placeholder = 'Enter admin username';
+            } else if (this.value === 'staff') {
+                if (usernameLabel) usernameLabel.innerHTML = '<i class="fas fa-user-tie"></i> Staff ID';
+                if (usernameField) usernameField.placeholder = 'Enter staff ID';
+            } else {
+                if (usernameLabel) usernameLabel.innerHTML = '<i class="fas fa-user"></i> Username or Email';
+                if (usernameField) usernameField.placeholder = 'Enter your username or email';
+            }
+        });
+    }
+}
+
+// ========== NUMBER FORMATTING ==========
+function formatCurrency(amount) {
+    return '৳ ' + parseFloat(amount).toFixed(2);
 }
 
 // ========== AMOUNT INPUT RESTRICTION ==========
@@ -209,47 +254,6 @@ function restrictAmountInput(input) {
 
 // Apply to all amount inputs
 document.querySelectorAll('input[name="amount"]').forEach(restrictAmountInput);
-
-// ========== ACCOUNT NUMBER SEARCH (For Transfer) ==========
-function initAccountSearch() {
-    const searchInput = document.getElementById('accountSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(function() {
-            const query = this.value;
-            if (query.length >= 4) {
-                fetch(`/api/search-account.php?q=${query}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const suggestions = document.getElementById('accountSuggestions');
-                        if (suggestions) {
-                            suggestions.innerHTML = data.map(acc => 
-                                `<div class="suggestion-item" data-account="${acc.AccountNumber}">${acc.AccountNumber} - ${acc.CustomerName}</div>`
-                            ).join('');
-                        }
-                    });
-            }
-        }, 300));
-    }
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func.apply(this, args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// ========== CONFIRMATION DIALOGS ==========
-window.confirmAction = function(message, callback) {
-    if (confirm(message)) {
-        callback();
-    }
-};
 
 // ========== LOADING STATES ==========
 function showLoading(button) {

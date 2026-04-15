@@ -1,6 +1,8 @@
-User: Register new account OR use seeded: username arjun.kapoor, password password
-Admin: username admin, password Admin@123
-
+🔑 Login Credentials
+Role	Username/Email	Password
+Admin	admin	Admin@123
+Staff	rajesh@ashabank.in	staff123
+Client	arjun.kapoor	password
 ```
 asha_bank/
 ├── index.php
