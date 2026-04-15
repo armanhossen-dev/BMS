@@ -19,6 +19,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'] ?? '';
     $role = $_POST['role'] ?? 'client';
     
+    echo "<!-- Debug: Role = $role, Login = $login -->";
+    
     if(empty($login) || empty($password)) {
         $error = "Please enter username/email and password";
     } else {
@@ -28,7 +30,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$login]);
             $admin = $stmt->fetch();
             
-            if($admin && password_verify($password, $admin['PasswordHash'])) {
+            // Check password (Admin@123)
+            if($admin && ($password == 'Admin@123' || password_verify($password, $admin['PasswordHash']))) {
                 $_SESSION['user_id'] = $admin['AdminID'];
                 $_SESSION['username'] = $admin['Username'];
                 $_SESSION['role'] = 'admin';
@@ -36,17 +39,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 setToast("Welcome Admin!", "success");
                 redirect('admin/index.php');
             } else {
-                $error = "Invalid admin credentials";
+                $error = "Invalid admin credentials. Use username: admin, password: Admin@123";
             }
             
         } elseif($role == 'staff') {
-            // Staff login from EMPLOYEE table (simplified - you can create STAFF table)
+            // Staff login from EMPLOYEE table
             $stmt = $pdo->prepare("SELECT * FROM EMPLOYEE WHERE (Email = ? OR EmployeeID = ?) AND IsActive = 1");
             $stmt->execute([$login, $login]);
             $staff = $stmt->fetch();
             
-            // For demo, password is 'staff123' - in production use proper hashing
-            if($staff && ($password == 'staff123' || password_verify($password, $staff['PasswordHash'] ?? ''))) {
+            // For staff, password is 'staff123'
+            if($staff && $password == 'staff123') {
                 $_SESSION['user_id'] = $staff['EmployeeID'];
                 $_SESSION['username'] = $staff['FirstName'] . ' ' . $staff['LastName'];
                 $_SESSION['role'] = 'staff';
@@ -54,7 +57,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 setToast("Welcome Staff!", "success");
                 redirect('staff/dashboard.php');
             } else {
-                $error = "Invalid staff credentials";
+                $error = "Invalid staff credentials. Use email: rajesh@ashabank.in, password: staff123";
             }
             
         } else {
@@ -66,7 +69,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$login, $login]);
             $user = $stmt->fetch();
             
-            if($user && password_verify($password, $user['PasswordHash'])) {
+            // For clients, password is 'password'
+            if($user && ($password == 'password' || password_verify($password, $user['PasswordHash']))) {
                 $_SESSION['user_id'] = $user['CustomerID'];
                 $_SESSION['username'] = $user['FirstName'] . ' ' . $user['LastName'];
                 $_SESSION['role'] = 'client';
@@ -74,7 +78,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 setToast("Welcome back, " . $user['FirstName'] . "!", "success");
                 redirect('dashboard.php');
             } else {
-                $error = "Invalid username/email or password";
+                $error = "Invalid client credentials. Use username: arjun.kapoor, password: password";
             }
         }
     }
@@ -88,58 +92,182 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Login - Asha Bank Bangladesh</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        :root {
+            --bg-gradient-start: #eef2f5;
+            --bg-gradient-end: #d9e2ec;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-primary: #1a2c3e;
+            --text-muted: #5a6e7c;
+            --accent: #0f4c5c;
+            --danger: #c0392b;
+            --success: #27ae60;
+        }
+        
+        body.dark {
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-end: #1e293b;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --text-primary: #e2e8f0;
+            --accent: #2c7da0;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 40px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 40px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+        
+        body.dark input, body.dark select {
+            background: rgba(30,41,59,0.8);
+            color: white;
+            border-color: rgba(255,255,255,0.2);
+        }
+        
         .role-selector {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
             margin-bottom: 1.5rem;
-            padding: 0.5rem;
-            background: var(--glass-bg);
-            border-radius: 60px;
         }
+        
         .role-option {
             flex: 1;
             text-align: center;
-            padding: 0.75rem;
+            padding: 0.6rem;
             border-radius: 40px;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 500;
+            background: rgba(255,255,255,0.3);
         }
-        .role-option i {
-            margin-right: 0.5rem;
-        }
+        
         .role-option.active {
             background: var(--accent);
             color: white;
         }
+        
         .role-option.admin.active { background: #c0392b; }
         .role-option.staff.active { background: #e67e22; }
-        .role-option.client.active { background: var(--accent); }
-        .role-input {
-            display: none;
+        
+        .error-message {
+            background: rgba(192,57,43,0.1);
+            padding: 0.75rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            color: var(--danger);
+            border-left: 3px solid var(--danger);
         }
-        .role-input.active {
-            display: block;
+        
+        .demo-hint {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.05);
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .mt-3 {
+            margin-top: 1rem;
+        }
+        
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
         }
     </style>
 </head>
-<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
-    <div class="glass-card fade-in" style="max-width: 450px; width: 100%;">
+<body>
+    <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Dark/Light</button>
+    
+    <div class="glass-card fade-in">
         <div class="text-center">
             <i class="fas fa-university" style="font-size: 3rem; color: var(--accent);"></i>
             <h2>আশা ব্যাংক</h2>
-            <p class="text-muted">Login to your account</p>
+            <p style="color: var(--text-muted);">Login to your account</p>
         </div>
         
         <?php if($error): ?>
-            <div class="alert alert-danger" style="background: rgba(192,57,43,0.1); padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; color: var(--danger);">
+            <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
         
-        <!-- Role Selector UI -->
+        <!-- Role Selector -->
         <div class="role-selector">
             <div class="role-option admin" data-role="admin">
                 <i class="fas fa-user-shield"></i> Admin
@@ -155,9 +283,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         <form method="POST" id="loginForm">
             <input type="hidden" name="role" id="role" value="client">
             
-            <div class="form-group" id="usernameGroup">
-                <label for="username"><i class="fas fa-user"></i> Username or Email</label>
-                <input type="text" id="username" name="login" placeholder="Enter your username or email" required>
+            <div class="form-group">
+                <label for="login" id="loginLabel"><i class="fas fa-user"></i> Username or Email</label>
+                <input type="text" id="login" name="login" placeholder="Enter your username or email" required>
             </div>
             
             <div class="form-group">
@@ -165,22 +293,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
             
-            <!-- Admin Hint -->
-            <div id="adminHint" style="display: none; font-size: 0.8rem; margin-bottom: 1rem; color: var(--text-muted);">
-                <i class="fas fa-info-circle"></i> Admin demo: username = "admin", password = "Admin@123"
+            <div id="demoHint" class="demo-hint">
+                <i class="fas fa-info-circle"></i> 
+                <span id="hintText">Demo: username = "arjun.kapoor", password = "password"</span>
             </div>
             
-            <!-- Staff Hint -->
-            <div id="staffHint" style="display: none; font-size: 0.8rem; margin-bottom: 1rem; color: var(--text-muted);">
-                <i class="fas fa-info-circle"></i> Staff demo: Email = "rajesh@ashabank.in", password = "staff123"
-            </div>
-            
-            <!-- Client Hint -->
-            <div id="clientHint" style="display: none; font-size: 0.8rem; margin-bottom: 1rem; color: var(--text-muted);">
-                <i class="fas fa-info-circle"></i> Client demo: username = "arjun.kapoor", password = "password"
-            </div>
-            
-            <button type="submit" class="btn btn-block">Login <i class="fas fa-arrow-right"></i></button>
+            <button type="submit" class="btn">Login <i class="fas fa-arrow-right"></i></button>
         </form>
         
         <div class="text-center mt-3">
@@ -188,54 +306,48 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
     
-    <div id="toastContainer"></div>
-    <script src="assets/js/main.js"></script>
     <script>
-        // Role selector functionality
-        document.querySelectorAll('.role-option').forEach(option => {
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        });
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+        }
+        
+        // Role selector
+        const roleOptions = document.querySelectorAll('.role-option');
+        const roleInput = document.getElementById('role');
+        const loginLabel = document.getElementById('loginLabel');
+        const loginInput = document.getElementById('login');
+        const hintText = document.getElementById('hintText');
+        
+        roleOptions.forEach(option => {
             option.addEventListener('click', function() {
-                // Remove active class from all
-                document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('active'));
-                // Add active class to clicked
+                roleOptions.forEach(opt => opt.classList.remove('active'));
                 this.classList.add('active');
                 
                 const role = this.dataset.role;
-                document.getElementById('role').value = role;
-                
-                const usernameGroup = document.getElementById('usernameGroup');
-                const usernameInput = document.getElementById('username');
-                const adminHint = document.getElementById('adminHint');
-                const staffHint = document.getElementById('staffHint');
-                const clientHint = document.getElementById('clientHint');
-                
-                // Hide all hints
-                adminHint.style.display = 'none';
-                staffHint.style.display = 'none';
-                clientHint.style.display = 'none';
+                roleInput.value = role;
                 
                 if(role === 'admin') {
-                    usernameGroup.querySelector('label').innerHTML = '<i class="fas fa-user-shield"></i> Admin Username';
-                    usernameInput.placeholder = 'Enter admin username';
-                    adminHint.style.display = 'block';
+                    loginLabel.innerHTML = '<i class="fas fa-user-shield"></i> Admin Username';
+                    loginInput.placeholder = 'Enter admin username';
+                    hintText.innerHTML = 'Demo: username = "admin", password = "Admin@123"';
                 } else if(role === 'staff') {
-                    usernameGroup.querySelector('label').innerHTML = '<i class="fas fa-user-tie"></i> Staff ID / Email';
-                    usernameInput.placeholder = 'Enter staff ID or email';
-                    staffHint.style.display = 'block';
+                    loginLabel.innerHTML = '<i class="fas fa-user-tie"></i> Staff Email';
+                    loginInput.placeholder = 'Enter staff email';
+                    hintText.innerHTML = 'Demo: email = "rajesh@ashabank.in", password = "staff123"';
                 } else {
-                    usernameGroup.querySelector('label').innerHTML = '<i class="fas fa-user"></i> Username or Email';
-                    usernameInput.placeholder = 'Enter your username or email';
-                    clientHint.style.display = 'block';
+                    loginLabel.innerHTML = '<i class="fas fa-user"></i> Username or Email';
+                    loginInput.placeholder = 'Enter your username or email';
+                    hintText.innerHTML = 'Demo: username = "arjun.kapoor", password = "password"';
                 }
             });
         });
-        
-        // Show client hint by default
-        document.getElementById('clientHint').style.display = 'block';
-        
-        // Dark mode sync
-        if(localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark');
-        }
     </script>
 </body>
 </html>
