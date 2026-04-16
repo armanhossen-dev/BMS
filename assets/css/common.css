@@ -1,0 +1,172 @@
+/* ============================================
+   ASHA BANK - Common Styles for All Pages
+   Back Button, Language Switcher, Theme Toggle
+   ============================================ */
+
+/* Back Button Styles */
+.back-button-container {
+    margin-bottom: 20px;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 40px;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateX(-3px);
+}
+
+.back-button i {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.back-button:hover i {
+    transform: translateX(-3px);
+}
+
+/* Language Switcher Styles */
+.language-switcher {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 40px;
+    padding: 4px;
+}
+
+.lang-btn {
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.lang-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
+.lang-btn:hover:not(.active) {
+    background: var(--accent-bg);
+    color: var(--accent);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 40px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.theme-toggle:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+}
+
+/* Page Header */
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    color: var(--text-tertiary);
+    font-size: 13px;
+}
+
+/* Navbar Styles Update */
+.navbar {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.nav-menu a:hover {
+    background: var(--bg-secondary);
+    color: var(--accent);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+    }
+    
+    .navbar-right {
+        justify-content: center;
+    }
+    
+    .back-button {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+    
+    .language-switcher {
+        order: 1;
+    }
+}

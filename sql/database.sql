@@ -395,3 +395,195 @@ SELECT '👑 Admin: username = "admin", password = "Admin@123"' AS '';
 SELECT '👔 Staff: email = "rajesh@ashabank.bd", password = "staff123"' AS '';
 SELECT '👤 Client: username = "arjun.kapoor", password = "password"' AS '';
 SELECT '=========================================' AS '';
+
+
+
+-- Add these tables to your existing database
+
+-- ============================================================
+-- NOTIFICATIONS TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    title VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('info', 'success', 'warning', 'danger') DEFAULT 'info',
+    is_read TINYINT(1) DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- STAFF TABLE (Separate from EMPLOYEE)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS staff (
+    staff_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('manager', 'officer', 'teller', 'support') DEFAULT 'officer',
+    department VARCHAR(100),
+    join_date DATE,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
+-- KYC VERIFICATION TABLE (Enhanced)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS kyc_verifications (
+    kyc_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    nid_number VARCHAR(50),
+    passport_number VARCHAR(50),
+    birth_certificate VARCHAR(50),
+    address_proof VARCHAR(255),
+    photo VARCHAR(255),
+    status ENUM('pending', 'verified', 'rejected', 'resubmit') DEFAULT 'pending',
+    rejection_reason TEXT,
+    verified_by INT,
+    verified_at DATETIME,
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (verified_by) REFERENCES staff(staff_id)
+);
+
+-- Insert sample staff
+INSERT INTO staff (first_name, last_name, email, phone, username, password_hash, role, department, join_date) VALUES
+('Rajesh', 'Sharma', 'rajesh@ashabank.bd', '01710000001', 'rajesh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'manager', 'Operations', '2020-01-15'),
+('Priya', 'Mehta', 'priya@ashabank.bd', '01710000002', 'priya', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'officer', 'Customer Service', '2021-03-20'),
+('Amit', 'Verma', 'amit@ashabank.bd', '01710000003', 'amit', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'teller', 'Retail Banking', '2022-01-10');
+
+-- Insert sample notifications for existing customers
+INSERT INTO notifications (customer_id, title, message, type, created_at) VALUES
+(1, 'Welcome to Asha Bank!', 'Thank you for joining Asha Bank. Please complete your KYC verification to activate full account features.', 'info', NOW()),
+(1, 'KYC Verification Required', 'Your KYC verification is pending. Please submit your documents to complete verification.', 'warning', NOW()),
+(2, 'Special Offer', 'Get 5% cashback on all online transactions this month!', 'success', NOW());
+
+
+-- ============================================================
+-- ADD MISSING TABLES FOR ASHA BANK
+-- Run this SQL to fix all missing table errors
+-- ============================================================
+
+USE asha_bank;
+
+-- ============================================================
+-- 1. NOTIFICATIONS TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    title VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('info', 'success', 'warning', 'danger') DEFAULT 'info',
+    is_read TINYINT(1) DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- 2. STAFF TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS staff (
+    staff_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('manager', 'officer', 'teller', 'support') DEFAULT 'officer',
+    department VARCHAR(100),
+    join_date DATE,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
+-- 3. KYC VERIFICATIONS TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS kyc_verifications (
+    kyc_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    nid_number VARCHAR(50),
+    passport_number VARCHAR(50),
+    birth_certificate VARCHAR(50),
+    address_proof VARCHAR(255),
+    photo VARCHAR(255),
+    status ENUM('pending', 'verified', 'rejected', 'resubmit') DEFAULT 'pending',
+    rejection_reason TEXT,
+    verified_by INT,
+    verified_at DATETIME,
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (verified_by) REFERENCES staff(staff_id)
+);
+
+-- ============================================================
+-- 4. BENEFICIARY TABLE (if not exists)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS BENEFICIARY (
+    BeneficiaryID INT AUTO_INCREMENT PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    BeneficiaryName VARCHAR(150) NOT NULL,
+    BeneficiaryAccountNumber VARCHAR(50) NOT NULL,
+    BeneficiaryIFSC VARCHAR(20) NOT NULL,
+    BeneficiaryBankName VARCHAR(150),
+    IsActive TINYINT(1) DEFAULT 1,
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID)
+);
+
+-- ============================================================
+-- 5. CARDS TABLE (if not exists)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS CARDS (
+    CardID INT AUTO_INCREMENT PRIMARY KEY,
+    CardNumber VARCHAR(20) NOT NULL UNIQUE,
+    CustomerID INT NOT NULL,
+    ExpiryDate DATE NOT NULL,
+    CVV VARCHAR(4) NOT NULL,
+    CardType ENUM('Debit','Credit','Prepaid') DEFAULT 'Debit',
+    IsActive TINYINT(1) DEFAULT 1,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID)
+);
+
+-- ============================================================
+-- 6. INSERT SAMPLE STAFF DATA
+-- ============================================================
+INSERT IGNORE INTO staff (first_name, last_name, email, phone, username, password_hash, role, department, join_date) VALUES
+('Rajesh', 'Sharma', 'rajesh@ashabank.bd', '01710000001', 'rajesh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'manager', 'Operations', '2020-01-15'),
+('Priya', 'Mehta', 'priya@ashabank.bd', '01710000002', 'priya', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'officer', 'Customer Service', '2021-03-20'),
+('Amit', 'Verma', 'amit@ashabank.bd', '01710000003', 'amit', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'teller', 'Retail Banking', '2022-01-10');
+
+-- ============================================================
+-- 7. INSERT SAMPLE NOTIFICATIONS FOR EXISTING CUSTOMERS
+-- ============================================================
+INSERT IGNORE INTO notifications (customer_id, title, message, type, created_at) VALUES
+(1, 'Welcome to Asha Bank!', 'Thank you for joining Asha Bank. We are delighted to have you as our customer.', 'success', NOW()),
+(1, 'KYC Verification Required', 'Please complete your KYC verification to activate all banking features.', 'warning', NOW()),
+(2, 'Special Offer', 'Get 5% cashback on all online transactions this month!', 'success', NOW()),
+(2, 'Account Statement', 'Your monthly account statement is ready to download.', 'info', NOW()),
+(3, 'Loan Pre-approval', 'Congratulations! You are pre-approved for a personal loan up to 500,000 BDT.', 'success', NOW());
+
+-- ============================================================
+-- 8. INSERT SAMPLE KYC VERIFICATIONS
+-- ============================================================
+INSERT IGNORE INTO kyc_verifications (customer_id, nid_number, status, submitted_at) VALUES
+(1, '12345678901234567', 'pending', NOW()),
+(2, '98765432109876543', 'verified', NOW()),
+(3, '11122233344455566', 'pending', NOW());
+
+-- ============================================================
+-- 9. VERIFY ALL TABLES EXIST
+-- ============================================================
+SELECT '✅ All tables created successfully!' AS Status;
+SELECT 'Tables in database:' AS '';
+SHOW TABLES;

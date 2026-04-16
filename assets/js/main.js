@@ -2,6 +2,34 @@
 // ASHA BANK - Main JavaScript
 // ============================================
 
+// Theme Toggle
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('theme');
+const icon = themeToggle.querySelector('i');
+const text = themeToggle.querySelector('span');
+
+if (savedTheme === 'dark') {
+    document.body.classList.add('dark');
+    icon.className = 'fas fa-sun';
+    text.textContent = 'Light';
+}
+
+themeToggle.addEventListener('click', () => {
+    if (document.body.classList.contains('dark')) {
+        document.body.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        icon.className = 'fas fa-moon';
+        text.textContent = 'Dark';
+    } else {
+        document.body.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        icon.className = 'fas fa-sun';
+        text.textContent = 'Light';
+    }
+});
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
     initDarkMode();
     initCardModal();

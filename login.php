@@ -1,4 +1,5 @@
-<?php require_once 'config/db.php';
+<?php
+require_once 'config/db.php';
 
 if(isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     if($_SESSION['role'] == 'admin') redirect('admin/index.php');
@@ -11,29 +12,40 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $login = trim($_POST['login'] ?? '');
     $password = $_POST['password'] ?? '';
     $role = $_POST['role'] ?? 'client';
-    
+
     if($role == 'admin') {
         $stmt = $pdo->prepare("SELECT * FROM ADMIN_USER WHERE Username = ? AND IsActive = 1");
         $stmt->execute([$login]);
         $admin = $stmt->fetch();
         if($admin && ($password == 'Admin@123' || password_verify($password, $admin['PasswordHash']))) {
-            $_SESSION['user_id'] = $admin['AdminID']; $_SESSION['username'] = $admin['Username']; $_SESSION['role'] = 'admin';
-            setToast("Welcome Admin!", "success"); redirect('admin/index.php');
+            $_SESSION['user_id'] = $admin['AdminID']; 
+            $_SESSION['username'] = $admin['Username']; 
+            $_SESSION['role'] = 'admin';
+            setToast("Welcome Admin!", "success"); 
+            redirect('admin/index.php');
         } else $error = "Invalid admin credentials";
     } elseif($role == 'staff') {
         $stmt = $pdo->prepare("SELECT * FROM EMPLOYEE WHERE (Email = ? OR EmployeeID = ?) AND IsActive = 1");
-        $stmt->execute([$login, $login]); $staff = $stmt->fetch();
+        $stmt->execute([$login, $login]); 
+        $staff = $stmt->fetch();
         if($staff && $password == 'staff123') {
-            $_SESSION['user_id'] = $staff['EmployeeID']; $_SESSION['username'] = $staff['FirstName'] . ' ' . $staff['LastName']; $_SESSION['role'] = 'staff';
-            setToast("Welcome Staff!", "success"); redirect('staff/dashboard.php');
+            $_SESSION['user_id'] = $staff['EmployeeID']; 
+            $_SESSION['username'] = $staff['FirstName'] . ' ' . $staff['LastName']; 
+            $_SESSION['role'] = 'staff';
+            setToast("Welcome Staff!", "success"); 
+            redirect('staff/dashboard.php');
         } else $error = "Invalid staff credentials";
     } else {
         $stmt = $pdo->prepare("SELECT d.UserID, d.CustomerID, d.PasswordHash, c.FirstName, c.LastName FROM DIGITALBANKINGUSER d JOIN CUSTOMER c ON d.CustomerID = c.CustomerID WHERE d.Username = ? OR c.Email = ?");
-        $stmt->execute([$login, $login]); $user = $stmt->fetch();
+        $stmt->execute([$login, $login]); 
+        $user = $stmt->fetch();
         if($user && ($password == 'password' || password_verify($password, $user['PasswordHash']))) {
-            $_SESSION['user_id'] = $user['CustomerID']; $_SESSION['username'] = $user['FirstName'] . ' ' . $user['LastName']; $_SESSION['role'] = 'client';
-            setToast("Welcome back!", "success"); redirect('dashboard.php');
-        } else $error = "Invalid client credentials";
+            $_SESSION['user_id'] = $user['CustomerID']; 
+            $_SESSION['username'] = $user['FirstName'] . ' ' . $user['LastName']; 
+            $_SESSION['role'] = 'client';
+            setToast("Welcome back!", "success"); 
+            redirect('dashboard.php');
+        } else $error = "Invalid credentials. Please try again.";
     }
 }
 ?>
@@ -42,22 +54,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Asha Bank Bangladesh</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <title>Sign In — Asha Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/theme-switch.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         :root {
-            --font-sans: 'Inter', sans-serif;
             --bg-primary: #FFFFFF;
             --bg-secondary: #F8FAFC;
-            --bg-tertiary: #F1F5F9;
             --text-primary: #0F172A;
             --text-secondary: #475569;
             --text-tertiary: #94A3B8;
@@ -65,21 +75,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             --accent: #185FA5;
             --accent-dark: #0C447C;
             --accent-bg: #E6F1FB;
-            --accent-text: #0C447C;
-            --success: #3B6D11;
             --danger: #A32D2D;
             --danger-bg: #FCEBEB;
-            --warning: #BA7517;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --success: #3B6D11;
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
-        
+
         body.dark {
             --bg-primary: #0F172A;
             --bg-secondary: #1E293B;
-            --bg-tertiary: #334155;
             --text-primary: #F1F5F9;
             --text-secondary: #CBD5E1;
             --text-tertiary: #94A3B8;
@@ -87,11 +91,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             --accent: #3B82F6;
             --accent-dark: #2563EB;
             --accent-bg: #1E3A5F;
-            --accent-text: #93C5FD;
         }
-        
+
         body {
-            font-family: var(--font-sans);
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -100,23 +103,22 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             padding: 20px;
             position: relative;
         }
-        
+
         body.dark {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         }
-        
-        /* Home Button */
-        .home-button {
+
+        .home-btn {
             position: fixed;
             top: 24px;
             left: 24px;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 20px;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
             border-radius: 40px;
+            padding: 10px 20px;
             text-decoration: none;
             color: white;
             font-weight: 500;
@@ -125,115 +127,224 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             z-index: 100;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        
-        .home-button:hover {
+
+        .home-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
         }
-        
-        body.dark .home-button {
+
+        body.dark .home-btn {
             background: rgba(0, 0, 0, 0.4);
         }
-        
-        /* Theme Switch Position */
-        .theme-switch-wrapper {
+
+        /* Theme Toggle Button - Fixed Visibility */
+        .theme-toggle-btn {
             position: fixed;
             top: 24px;
             right: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 40px;
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: white;
+            transition: all 0.3s ease;
             z-index: 100;
         }
-        
-        /* Login Container */
+
+        body.dark .theme-toggle-btn {
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-2px);
+        }
+
         .login-container {
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
             background: var(--bg-primary);
             border-radius: 32px;
-            padding: 40px;
-            width: 100%;
-            max-width: 480px;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
-        
-        /* Logo Section */
-        .logo-section {
-            text-align: center;
-            margin-bottom: 32px;
+
+        .brand-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 50%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
         .logo-icon {
-            width: 64px;
-            height: 64px;
-            background: var(--accent-bg);
-            border-radius: 20px;
+            width: 40px;
+            height: 40px;
+            background: #3b82f6;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
         }
-        
-        .logo-icon svg {
-            width: 36px;
-            height: 36px;
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
         }
-        
-        .logo-section h1 {
-            font-size: 24px;
+
+        .brand-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .brand-content h2 span {
+            color: #3b82f6;
+        }
+
+        .brand-content p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .features-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+        }
+
+        .feature-dot {
+            width: 6px;
+            height: 6px;
+            background: #3b82f6;
+            border-radius: 50%;
+        }
+
+        .footer-note {
+            position: relative;
+            z-index: 1;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-panel {
+            flex: 1;
+            padding: 48px;
+            background: var(--bg-primary);
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+        }
+
+        .form-header h1 {
+            font-size: 28px;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 8px;
         }
-        
-        .logo-section p {
-            font-size: 13px;
+
+        .form-header p {
+            font-size: 14px;
             color: var(--text-tertiary);
         }
-        
-        /* Role Selector */
-        .role-selector {
+
+        .role-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 28px;
             background: var(--bg-secondary);
-            padding: 4px;
             border-radius: 60px;
+            padding: 4px;
+            margin-bottom: 28px;
         }
-        
-        .role-btn {
+
+        .role-tab {
             flex: 1;
-            text-align: center;
             padding: 10px;
             border-radius: 40px;
-            cursor: pointer;
+            border: none;
+            background: transparent;
             font-size: 13px;
             font-weight: 600;
             color: var(--text-secondary);
-            transition: all 0.2s ease;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
         }
-        
-        .role-btn.active {
-            background: var(--accent);
-            color: white;
+
+        .role-tab.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
-        
-        .role-btn.admin.active { background: #A32D2D; }
-        .role-btn.staff.active { background: #BA7517; }
-        .role-btn.client.active { background: var(--accent); }
-        
-        /* Form Fields */
-        .field-group {
+
+        .role-tab[data-role="admin"].active { color: #dc2626; }
+        .role-tab[data-role="staff"].active { color: #d97706; }
+        .role-tab[data-role="client"].active { color: #3b82f6; }
+
+        .input-group {
             margin-bottom: 20px;
         }
-        
-        .field-label {
+
+        .input-group label {
+            display: block;
             font-size: 12px;
             font-weight: 600;
             color: var(--text-secondary);
             margin-bottom: 8px;
-            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        
-        .field-input {
+
+        .input-group input {
             width: 100%;
             height: 48px;
             border-radius: 12px;
@@ -241,39 +352,46 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             background: var(--bg-secondary);
             padding: 0 16px;
             font-size: 14px;
-            color: var(--text-primary);
+            transition: all 0.2s;
             outline: none;
-            transition: all 0.2s ease;
+            color: var(--text-primary);
         }
-        
-        .field-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-bg);
+
+        .input-group input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        
-        /* Submit Button */
+
         .submit-btn {
             width: 100%;
             height: 48px;
-            border-radius: 12px;
-            background: var(--accent);
+            background: #0f172a;
             color: white;
             border: none;
-            font-weight: 600;
+            border-radius: 12px;
             font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             margin-top: 8px;
         }
-        
+
         .submit-btn:hover {
+            background: #1e293b;
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
         }
-        
-        /* Error Message */
-        .error-message {
+
+        body.dark .submit-btn {
+            background: var(--accent);
+        }
+
+        body.dark .submit-btn:hover {
+            background: var(--accent-dark);
+        }
+
+        .error-box {
             background: var(--danger-bg);
+            border: 1px solid #fecaca;
             color: var(--danger);
             padding: 12px 16px;
             border-radius: 12px;
@@ -281,188 +399,198 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
-        
-        /* Hint */
-        .hint {
-            text-align: center;
-            margin-top: 20px;
-            padding: 12px;
-            background: var(--bg-secondary);
+
+        .hint-box {
+            background: var(--accent-bg);
             border-radius: 12px;
+            padding: 14px 16px;
             font-size: 12px;
+            color: var(--accent-dark);
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+
+        body.dark .hint-box {
+            color: var(--accent-text);
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
             color: var(--text-tertiary);
         }
-        
-        .hint i {
-            margin-right: 6px;
-        }
-        
-        /* Register Link */
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-        
-        .register-link a {
-            color: var(--accent);
+
+        .form-footer a {
+            color: #3b82f6;
             text-decoration: none;
             font-weight: 600;
         }
-        
-        /* Responsive */
-        @media (max-width: 640px) {
+
+        @media (max-width: 768px) {
             .login-container {
-                padding: 28px;
-                margin-top: 60px;
+                flex-direction: column;
+                max-width: 450px;
             }
-            
-            .home-button {
+            .brand-panel {
+                padding: 32px;
+                text-align: center;
+            }
+            .brand-content h2 {
+                font-size: 24px;
+            }
+            .features-list {
+                display: none;
+            }
+            .form-panel {
+                padding: 32px;
+            }
+            .home-btn, .theme-toggle-btn {
                 top: 16px;
-                left: 16px;
                 padding: 8px 16px;
                 font-size: 12px;
             }
-            
-            .theme-switch-wrapper {
-                top: 16px;
-                right: 16px;
-            }
+            .home-btn { left: 16px; }
+            .theme-toggle-btn { right: 16px; }
         }
     </style>
 </head>
 <body>
-    <a href="index.php" class="home-button">
-        <i class="fas fa-home"></i> Home
-    </a>
-    
-    <div class="theme-switch-wrapper">
-        <label class="theme-switch">
-            <input type="checkbox" class="theme-switch__checkbox" id="themeCheckbox">
-            <div class="theme-switch__container">
-                <div class="theme-switch__clouds"></div>
-                <div class="theme-switch__stars-container">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"></path>
-                    </svg>
-                </div>
-                <div class="theme-switch__circle-container">
-                    <div class="theme-switch__sun-moon-container">
-                        <div class="theme-switch__moon">
-                            <div class="theme-switch__spot"></div>
-                            <div class="theme-switch__spot"></div>
-                            <div class="theme-switch__spot"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </label>
-    </div>
-    
-    <div class="login-container">
-        <div class="logo-section">
+
+<a href="index.php" class="home-btn">
+    <i class="fas fa-home"></i> Back to Home
+</a>
+
+<button class="theme-toggle-btn" id="themeToggleBtn">
+    <i class="fas fa-moon"></i> <span id="themeText">Dark</span>
+</button>
+
+<div class="login-container">
+    <div class="brand-panel">
+        <div class="logo">
             <div class="logo-icon">
-                <svg width="36" height="36" viewBox="0 0 16 16" fill="none">
-                    <rect x="1" y="6" width="14" height="9" rx="1.5" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-                    <path d="M4 6V4a4 4 0 0 1 8 0v2" stroke="var(--accent)" stroke-width="1.2"/>
-                    <circle cx="8" cy="10.5" r="1.5" fill="var(--accent)"/>
+                <svg viewBox="0 0 18 18" fill="none">
+                    <rect x="1" y="7" width="16" height="10" rx="2" stroke="white" stroke-width="1.4"/>
+                    <path d="M5 7V5a4 4 0 0 1 8 0v2" stroke="white" stroke-width="1.4"/>
+                    <circle cx="9" cy="12" r="1.5" fill="white"/>
                 </svg>
             </div>
-            <h1>Welcome Back</h1>
-            <p>Login to your Asha Bank account</p>
+            <span class="logo-text">Asha Bank</span>
+        </div>
+        
+        <div class="brand-content">
+            <h2>Welcome <span>back</span></h2>
+            <p>Access your accounts, track transactions, and manage your finances securely.</p>
+            
+            <div class="features-list">
+                <div class="feature-item"><div class="feature-dot"></div>256-bit SSL encryption</div>
+                <div class="feature-item"><div class="feature-dot"></div>Multi-factor authentication</div>
+                <div class="feature-item"><div class="feature-dot"></div>Real-time fraud monitoring</div>
+            </div>
+        </div>
+        
+        <div class="footer-note">Secured by Asha Bank © 2024</div>
+    </div>
+    
+    <div class="form-panel">
+        <div class="form-header">
+            <h1>Sign in</h1>
+            <p>Enter your credentials to access your account</p>
         </div>
         
         <?php if($error): ?>
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?>
-            </div>
+        <div class="error-box">
+            <i class="fas fa-exclamation-circle"></i>
+            <?= htmlspecialchars($error) ?>
+        </div>
         <?php endif; ?>
         
-        <div class="role-selector">
-            <div class="role-btn admin" data-role="admin">👑 Admin</div>
-            <div class="role-btn staff" data-role="staff">👔 Staff</div>
-            <div class="role-btn client active" data-role="client">👤 Client</div>
+        <div class="role-tabs">
+            <button class="role-tab" data-role="admin">👑 Admin</button>
+            <button class="role-tab" data-role="staff">👔 Staff</button>
+            <button class="role-tab active" data-role="client">👤 Client</button>
         </div>
         
         <form method="POST">
-            <input type="hidden" name="role" id="role" value="client">
+            <input type="hidden" name="role" id="roleInput" value="client">
             
-            <div class="field-group">
-                <label class="field-label" id="loginLabel">Username / Email</label>
-                <input type="text" name="login" id="login" class="field-input" placeholder="Enter your username or email" required>
+            <div class="input-group">
+                <label id="loginLabel">Username or Email</label>
+                <input type="text" name="login" id="loginInput" placeholder="Enter your username or email" required>
             </div>
             
-            <div class="field-group">
-                <label class="field-label">Password</label>
-                <input type="password" name="password" class="field-input" placeholder="Enter your password" required>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
             </div>
             
-            <button type="submit" class="submit-btn">Login →</button>
+            <button type="submit" class="submit-btn">Sign In →</button>
         </form>
         
-        <div class="hint" id="hint">
-            <i class="fas fa-info-circle"></i> 
-            Demo: username = "arjun.kapoor", password = "password"
+        <div class="hint-box" id="hintBox">
+            <i class="fas fa-info-circle"></i>
+            <strong>Demo credentials:</strong> username = "arjun.kapoor" / password = "password"
         </div>
         
-        <div class="register-link">
-            Don't have an account? <a href="register.php">Create Account</a>
+        <div class="form-footer">
+            No account yet? <a href="register.php">Open one free →</a>
         </div>
     </div>
+</div>
+
+<script>
+    // Theme Toggle for Login Page
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeText = document.getElementById('themeText');
+    const themeIcon = themeToggleBtn.querySelector('i');
     
-    <script>
-        // Theme Toggle
-        const themeCheckbox = document.getElementById('themeCheckbox');
-        const savedTheme = localStorage.getItem('theme');
-        
-        if (savedTheme === 'dark') {
+    if(localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+        themeIcon.className = 'fas fa-sun';
+        themeText.textContent = 'Light';
+    }
+    
+    themeToggleBtn.addEventListener('click', () => {
+        if(document.body.classList.contains('dark')) {
+            document.body.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+            themeIcon.className = 'fas fa-moon';
+            themeText.textContent = 'Dark';
+        } else {
             document.body.classList.add('dark');
-            themeCheckbox.checked = true;
+            localStorage.setItem('theme', 'dark');
+            themeIcon.className = 'fas fa-sun';
+            themeText.textContent = 'Light';
         }
-        
-        themeCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                document.body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.body.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            }
+    });
+    
+    // Role tabs
+    const tabs = document.querySelectorAll('.role-tab');
+    const roleInput = document.getElementById('roleInput');
+    const loginLabel = document.getElementById('loginLabel');
+    const loginInput = document.getElementById('loginInput');
+    const hintBox = document.getElementById('hintBox');
+    
+    const hints = {
+        admin: { label: 'Admin Username', placeholder: 'Enter admin username', hint: '<i class="fas fa-info-circle"></i> <strong>Demo:</strong> username = "admin" / password = "Admin@123"' },
+        staff: { label: 'Staff Email', placeholder: 'Enter staff email', hint: '<i class="fas fa-info-circle"></i> <strong>Demo:</strong> email = "rajesh@ashabank.bd" / password = "staff123"' },
+        client: { label: 'Username or Email', placeholder: 'Enter your username or email', hint: '<i class="fas fa-info-circle"></i> <strong>Demo:</strong> username = "arjun.kapoor" / password = "password"' }
+    };
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const role = tab.dataset.role;
+            roleInput.value = role;
+            const h = hints[role];
+            loginLabel.textContent = h.label;
+            loginInput.placeholder = h.placeholder;
+            hintBox.innerHTML = h.hint;
         });
-        
-        // Role Selector
-        const roleBtns = document.querySelectorAll('.role-btn');
-        const roleInput = document.getElementById('role');
-        const loginLabel = document.getElementById('loginLabel');
-        const loginInput = document.getElementById('login');
-        const hintDiv = document.getElementById('hint');
-        
-        roleBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                roleBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                const role = this.dataset.role;
-                roleInput.value = role;
-                
-                if(role === 'admin') {
-                    loginLabel.innerHTML = 'Admin Username';
-                    loginInput.placeholder = 'Enter admin username';
-                    hintDiv.innerHTML = '<i class="fas fa-info-circle"></i> Demo: username = "admin", password = "Admin@123"';
-                } else if(role === 'staff') {
-                    loginLabel.innerHTML = 'Staff Email';
-                    loginInput.placeholder = 'Enter staff email';
-                    hintDiv.innerHTML = '<i class="fas fa-info-circle"></i> Demo: email = "rajesh@ashabank.bd", password = "staff123"';
-                } else {
-                    loginLabel.innerHTML = 'Username / Email';
-                    loginInput.placeholder = 'Enter your username or email';
-                    hintDiv.innerHTML = '<i class="fas fa-info-circle"></i> Demo: username = "arjun.kapoor", password = "password"';
-                }
-            });
-        });
-    </script>
+    });
+</script>
 </body>
 </html>

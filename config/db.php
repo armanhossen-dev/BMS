@@ -1,5 +1,8 @@
 <?php
-session_start();
+// Start session only if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Error reporting for debugging
 error_reporting(E_ALL);
@@ -34,11 +37,6 @@ try {
     } catch(PDOException $e2) {
         die("Connection failed: " . $e2->getMessage());
     }
-}
-
-// Set default language to English
-if (!isset($_SESSION['language'])) {
-    $_SESSION['language'] = 'en';
 }
 
 function formatBDT($amount) {

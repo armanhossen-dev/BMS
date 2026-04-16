@@ -1,839 +1,821 @@
-<?php require_once 'config/db.php'; ?>
+<?php
+require_once 'config/db.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asha Bank - Modern Digital Banking in Bangladesh</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/theme-switch.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Asha Bank | Modern Digital Banking in Bangladesh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
         :root {
-            --font-sans: 'Inter', sans-serif;
-            --bg-primary: #FFFFFF;
-            --bg-secondary: #F8FAFC;
-            --bg-tertiary: #F1F5F9;
-            --text-primary: #0F172A;
-            --text-secondary: #475569;
-            --text-tertiary: #94A3B8;
-            --border-color: #E2E8F0;
-            --accent: #185FA5;
-            --accent-dark: #0C447C;
-            --accent-bg: #E6F1FB;
-            --accent-text: #0C447C;
-            --success: #3B6D11;
-            --success-bg: #EAF3DE;
-            --danger: #A32D2D;
-            --warning: #BA7517;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --ink: #0e1117;
+            --ink-muted: #4a5162;
+            --ink-faint: #8a8f9e;
+            --paper: #fafaf8;
+            --paper-2: #f2f1ed;
+            --paper-3: #e8e7e1;
+            --accent: #1a5c9e;
+            --accent-light: #e8f0f9;
+            --accent-mid: #3d7cc7;
+            --gold: #b8913a;
+            --gold-light: #f5edda;
+            --sans: 'DM Sans', sans-serif;
+            --serif: 'DM Serif Display', serif;
+            --r: 12px;
+            --r-lg: 20px;
         }
-        
-        body.dark {
-            --bg-primary: #0F172A;
-            --bg-secondary: #1E293B;
-            --bg-tertiary: #334155;
-            --text-primary: #F1F5F9;
-            --text-secondary: #CBD5E1;
-            --text-tertiary: #94A3B8;
-            --border-color: #334155;
-            --accent: #3B82F6;
-            --accent-dark: #2563EB;
-            --accent-bg: #1E3A5F;
-            --accent-text: #93C5FD;
-        }
-        
+
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: var(--font-sans);
-            background: var(--bg-secondary);
-            color: var(--text-primary);
+            font-family: var(--sans);
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
             overflow-x: hidden;
         }
-        
-        /* Theme Switch Position */
-        .theme-switch-wrapper {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 1000;
+
+        /* Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        
-        /* Navbar */
-        .navbar {
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* Nav */
+        nav {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 16px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            top: 0; left: 0; right: 0;
             z-index: 100;
-            transition: all 0.3s ease;
+            background: rgba(250, 250, 248, 0.88);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--paper-3);
+            transition: background 0.3s;
         }
-        
-        body.dark .navbar {
-            background: rgba(15, 23, 42, 0.95);
+        .nav-inner {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 0 28px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            text-decoration: none;
         }
-        
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--accent-bg);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .logo-mark {
+            width: 34px; height: 34px;
+            background: var(--accent);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
         }
-        
-        .logo-icon svg {
-            width: 24px;
-            height: 24px;
+        .logo-mark svg { width: 18px; height: 18px; }
+        .logo-name {
+            font-family: var(--serif);
+            font-size: 19px;
+            color: var(--ink);
+            letter-spacing: -0.3px;
         }
-        
-        .logo-text h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        
-        .logo-text p {
-            font-size: 11px;
-            color: var(--text-tertiary);
-        }
-        
         .nav-links {
             display: flex;
-            gap: 32px;
             align-items: center;
+            gap: 36px;
+            list-style: none;
         }
-        
         .nav-links a {
             text-decoration: none;
-            color: var(--text-secondary);
-            font-weight: 500;
             font-size: 14px;
+            font-weight: 500;
+            color: var(--ink-muted);
             transition: color 0.2s;
+            letter-spacing: 0.01em;
         }
-        
-        .nav-links a:hover {
-            color: var(--accent);
+        .nav-links a:hover { color: var(--ink); }
+        .nav-cta {
+            background: var(--ink) !important;
+            color: var(--paper) !important;
+            padding: 9px 20px;
+            border-radius: 100px;
+            font-size: 13px !important;
+            transition: background 0.2s, transform 0.15s !important;
         }
-        
-        .nav-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .btn-outline-nav {
-            padding: 8px 20px;
-            border-radius: 40px;
-            border: 1.5px solid var(--accent);
-            background: transparent;
-            color: var(--accent);
-            font-weight: 600;
-            font-size: 13px;
+        .nav-cta:hover { background: var(--accent) !important; transform: translateY(-1px); }
+        .mobile-btn {
+            display: none;
+            background: none;
+            border: none;
             cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s;
+            padding: 4px;
         }
-        
-        .btn-outline-nav:hover {
-            background: var(--accent);
-            color: white;
-        }
-        
-        .btn-primary-nav {
-            padding: 8px 20px;
-            border-radius: 40px;
-            background: var(--accent);
-            color: white;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary-nav:hover {
-            background: var(--accent-dark);
-            transform: translateY(-2px);
-        }
-        
-        /* Hero Section */
+        .mobile-btn svg { width: 22px; height: 22px; stroke: var(--ink); }
+
+        /* Hero */
         .hero {
-            min-height: 100vh;
-            display: flex;
+            padding: 140px 28px 100px;
+            max-width: 1160px;
+            margin: 0 auto;
+        }
+        .hero-eyebrow {
+            display: inline-flex;
             align-items: center;
-            padding: 120px 5% 80px;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-        }
-        
-        .hero-content {
-            flex: 1;
-            max-width: 600px;
-        }
-        
-        .hero-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            background: var(--accent-bg);
-            color: var(--accent-text);
-            border-radius: 40px;
+            gap: 8px;
             font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
-        
-        .hero-content h1 {
-            font-size: 56px;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .hero-content p {
-            font-size: 18px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 32px;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 48px;
-        }
-        
-        .btn-hero-primary {
-            padding: 14px 32px;
-            border-radius: 48px;
-            background: var(--accent);
-            color: white;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .btn-hero-primary:hover {
-            background: var(--accent-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .btn-hero-secondary {
-            padding: 14px 32px;
-            border-radius: 48px;
-            border: 1.5px solid var(--border-color);
-            background: transparent;
-            color: var(--text-primary);
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .btn-hero-secondary:hover {
-            border-color: var(--accent);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             color: var(--accent);
+            background: var(--accent-light);
+            padding: 5px 14px;
+            border-radius: 100px;
+            margin-bottom: 28px;
         }
-        
+        .hero-eyebrow span { width: 5px; height: 5px; background: var(--accent-mid); border-radius: 50%; display: block; }
+        .hero-title {
+            font-family: var(--serif);
+            font-size: clamp(44px, 6vw, 76px);
+            line-height: 1.07;
+            letter-spacing: -1.5px;
+            color: var(--ink);
+            max-width: 780px;
+            margin-bottom: 24px;
+        }
+        .hero-title em { font-style: italic; color: var(--accent); }
+        .hero-sub {
+            font-size: 18px;
+            color: var(--ink-muted);
+            max-width: 500px;
+            line-height: 1.65;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 72px;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--ink);
+            color: var(--paper);
+            border-radius: 100px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: transparent;
+            color: var(--ink);
+            border: 1.5px solid var(--paper-3);
+            border-radius: 100px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .btn-secondary:hover { border-color: var(--ink-muted); }
+
+        /* Hero Stats */
         .hero-stats {
             display: flex;
-            gap: 48px;
+            gap: 0;
+            border-top: 1px solid var(--paper-3);
+            padding-top: 36px;
         }
-        
-        .stat-item h3 {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--accent);
-        }
-        
-        .stat-item p {
-            font-size: 13px;
-            color: var(--text-tertiary);
-            margin: 0;
-        }
-        
-        .hero-image {
+        .stat {
             flex: 1;
-            display: flex;
-            justify-content: center;
+            padding-right: 36px;
         }
-        
-        .hero-image img {
-            max-width: 100%;
-            height: auto;
+        .stat + .stat {
+            padding-left: 36px;
+            border-left: 1px solid var(--paper-3);
         }
-        
-        /* Features Section */
-        .features {
-            padding: 80px 5%;
-            background: var(--bg-primary);
+        .stat-num {
+            font-family: var(--serif);
+            font-size: 42px;
+            color: var(--ink);
+            line-height: 1;
+            margin-bottom: 6px;
         }
-        
-        .section-header {
-            text-align: center;
-            max-width: 600px;
-            margin: 0 auto 48px;
+        .stat-label {
+            font-size: 13px;
+            color: var(--ink-faint);
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
-        
-        .section-header h2 {
-            font-size: 36px;
-            font-weight: 700;
+
+        /* Section base */
+        section { padding: 96px 28px; }
+        .container { max-width: 1160px; margin: 0 auto; }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
             margin-bottom: 16px;
         }
-        
-        .section-header p {
-            color: var(--text-secondary);
-            font-size: 16px;
+        .section-title {
+            font-family: var(--serif);
+            font-size: clamp(30px, 3.5vw, 46px);
+            letter-spacing: -0.8px;
+            line-height: 1.12;
+            color: var(--ink);
+            margin-bottom: 16px;
         }
-        
+        .section-body {
+            font-size: 17px;
+            color: var(--ink-muted);
+            font-weight: 300;
+            line-height: 1.7;
+            max-width: 540px;
+        }
+
+        /* Features */
+        .features-bg { background: var(--paper-2); }
+        .features-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+        }
+        .features-text { }
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            background: var(--paper-3);
+            border-radius: var(--r-lg);
+            overflow: hidden;
         }
-        
-        .feature-card {
-            background: var(--bg-secondary);
-            border-radius: 24px;
-            padding: 32px;
-            text-align: center;
-            transition: all 0.3s;
-            border: 1px solid var(--border-color);
+        .feat-card {
+            background: var(--paper);
+            padding: 28px 24px;
+            transition: background 0.2s;
         }
-        
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-xl);
+        .feat-card:hover { background: var(--accent-light); }
+        .feat-card:first-child { border-radius: var(--r-lg) 0 0 0; }
+        .feat-card:nth-child(2) { border-radius: 0 var(--r-lg) 0 0; }
+        .feat-card:nth-child(5) { border-radius: 0 0 0 var(--r-lg); }
+        .feat-card:last-child { border-radius: 0 0 var(--r-lg) 0; }
+        .feat-icon {
+            width: 38px; height: 38px;
+            background: var(--accent-light);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 14px;
         }
-        
-        .feature-icon {
-            width: 64px;
-            height: 64px;
-            background: var(--accent-bg);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-        }
-        
-        .feature-icon i {
-            font-size: 28px;
-            color: var(--accent);
-        }
-        
-        .feature-card h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        
-        .feature-card p {
-            color: var(--text-secondary);
+        .feat-icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+        .feat-title {
             font-size: 14px;
-            line-height: 1.6;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 6px;
         }
-        
-        /* Products Section */
-        .products {
-            padding: 80px 5%;
-            background: var(--bg-secondary);
+        .feat-desc {
+            font-size: 13px;
+            color: var(--ink-muted);
+            line-height: 1.55;
+            font-weight: 400;
         }
-        
+
+        /* Products */
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 32px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            background: var(--paper-3);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            margin-top: 52px;
         }
-        
-        .product-card {
-            background: var(--bg-primary);
-            border-radius: 24px;
-            padding: 32px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s;
+        .prod-card {
+            background: var(--paper);
+            padding: 36px 28px;
+            transition: background 0.2s;
         }
-        
-        .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .product-icon {
-            width: 56px;
-            height: 56px;
-            background: var(--success-bg);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .prod-card:hover { background: var(--gold-light); }
+        .prod-card:first-child { border-radius: var(--r-lg) 0 0 var(--r-lg); }
+        .prod-card:last-child { border-radius: 0 var(--r-lg) var(--r-lg) 0; }
+        .prod-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: var(--gold-light);
+            display: flex; align-items: center; justify-content: center;
             margin-bottom: 20px;
         }
-        
-        .product-icon i {
-            font-size: 24px;
-            color: var(--success);
+        .prod-icon svg { width: 22px; height: 22px; stroke: var(--gold); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+        .prod-name { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+        .prod-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 20px; line-height: 1.55; }
+        .prod-rate {
+            font-family: var(--serif);
+            font-size: 26px;
+            color: var(--gold);
+            display: block;
         }
-        
-        .product-card h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        
-        .product-card p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        
-        .product-rate {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--accent);
-        }
-        
-        /* CTA Section */
-        .cta {
-            padding: 80px 5%;
-            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        .prod-rate-label { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.05em; }
+
+        /* Trust strip */
+        .trust-strip {
+            background: var(--ink);
+            padding: 64px 28px;
             text-align: center;
         }
-        
-        .cta h2 {
-            font-size: 36px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 16px;
-        }
-        
-        .cta p {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 32px;
-        }
-        
-        .btn-cta {
-            display: inline-block;
-            padding: 14px 40px;
-            border-radius: 48px;
-            background: white;
-            color: var(--accent);
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .btn-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        /* Footer */
-        .footer {
-            background: var(--bg-primary);
-            padding: 60px 5% 30px;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        .trust-strip .container {
+            display: flex;
+            align-items: center;
             gap: 48px;
-            margin-bottom: 48px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        
-        .footer-col h4 {
-            font-size: 16px;
+        .trust-item {
+            color: rgba(255,255,255,0.55);
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .trust-item svg { width: 16px; height: 16px; stroke: rgba(255,255,255,0.4); fill: none; stroke-width: 1.5; }
+        .trust-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.15); }
+
+        /* CTA */
+        .cta-section { background: var(--paper-2); }
+        .cta-inner {
+            background: var(--ink);
+            border-radius: 28px;
+            padding: 72px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+        .cta-text .section-title { color: #fafaf8; margin-bottom: 10px; }
+        .cta-text p { color: rgba(250,250,248,0.55); font-size: 16px; font-weight: 300; }
+        .btn-cta {
+            white-space: nowrap;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            background: var(--paper);
+            color: var(--ink);
+            border-radius: 100px;
+            font-size: 15px;
             font-weight: 600;
-            margin-bottom: 20px;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.15s;
         }
-        
+        .btn-cta:hover { background: var(--accent-light); transform: translateY(-2px); }
+
+        /* Footer */
+        footer {
+            background: var(--ink);
+            color: rgba(250,250,248,0.45);
+            padding: 72px 28px 36px;
+        }
+        .footer-top {
+            max-width: 1160px;
+            margin: 0 auto 56px;
+            display: grid;
+            grid-template-columns: 1.6fr 1fr 1fr 1fr;
+            gap: 48px;
+        }
+        .footer-brand .logo-name { color: var(--paper); margin-top: 10px; display: block; margin-bottom: 14px; }
+        .footer-brand p { font-size: 13px; line-height: 1.65; max-width: 240px; }
+        .footer-col h5 {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(250,250,248,0.7);
+            margin-bottom: 18px;
+        }
         .footer-col a {
             display: block;
-            color: var(--text-secondary);
+            font-size: 14px;
+            color: rgba(250,250,248,0.45);
             text-decoration: none;
-            font-size: 13px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             transition: color 0.2s;
         }
-        
-        .footer-col a:hover {
-            color: var(--accent);
-        }
-        
-        .social-links {
-            display: flex;
-            gap: 16px;
-        }
-        
-        .social-links a {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--bg-secondary);
+        .footer-col a:hover { color: rgba(250,250,248,0.85); }
+        .footer-contact p {
+            font-size: 13px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
+            gap: 8px;
         }
-        
-        .social-links a:hover {
-            background: var(--accent);
-            color: white;
-        }
-        
+        .footer-contact svg { width: 14px; height: 14px; stroke: rgba(250,250,248,0.3); fill: none; stroke-width: 1.5; flex-shrink: 0; }
         .footer-bottom {
-            text-align: center;
-            padding-top: 30px;
-            border-top: 1px solid var(--border-color);
-            font-size: 12px;
-            color: var(--text-tertiary);
-        }
-        
-        /* Mobile Menu */
-        .mobile-menu-btn {
-            display: none;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .mobile-menu-btn {
-                display: block;
-            }
-            
-            .hero {
-                flex-direction: column;
-                text-align: center;
-                padding-top: 100px;
-            }
-            
-            .hero-content h1 {
-                font-size: 36px;
-            }
-            
-            .hero-buttons {
-                justify-content: center;
-            }
-            
-            .hero-stats {
-                justify-content: center;
-            }
-            
-            .section-header h2 {
-                font-size: 28px;
-            }
-            
-            .features-grid, .products-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Mobile Menu Active */
-        .nav-links.active {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding-top: 28px;
+            border-top: 1px solid rgba(250,250,248,0.08);
             display: flex;
-            flex-direction: column;
-            position: absolute;
-            top: 70px;
-            left: 0;
-            right: 0;
-            background: var(--bg-primary);
-            padding: 20px;
-            gap: 16px;
-            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .footer-bottom p { font-size: 12px; }
+        .social-row { display: flex; gap: 14px; }
+        .social-row a {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(250,250,248,0.12);
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(250,250,248,0.4);
+            text-decoration: none;
+            font-size: 11px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .social-row a:hover { border-color: rgba(250,250,248,0.35); color: rgba(250,250,248,0.8); }
+
+        /* Mobile nav */
+        @media (max-width: 860px) {
+            .nav-links { display: none; }
+            .mobile-btn { display: block; }
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                position: fixed;
+                top: 64px; left: 0; right: 0;
+                background: var(--paper);
+                border-bottom: 1px solid var(--paper-3);
+                padding: 16px 0;
+            }
+            .nav-links.open li { padding: 0 28px; }
+            .nav-links.open a { padding: 12px 0; display: block; border-bottom: 1px solid var(--paper-2); }
+            .nav-cta { display: inline-block; margin: 12px 28px 4px; }
+            .features-layout { grid-template-columns: 1fr; gap: 40px; }
+            .products-grid { grid-template-columns: 1fr 1fr; }
+            .prod-card:first-child { border-radius: var(--r-lg) 0 0 0; }
+            .prod-card:last-child { border-radius: 0 0 var(--r-lg) 0; }
+            .prod-card:nth-child(2) { border-radius: 0 var(--r-lg) 0 0; }
+            .prod-card:nth-child(3) { border-radius: 0 0 0 var(--r-lg); }
+            .cta-inner { flex-direction: column; text-align: center; padding: 48px 32px; }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .hero { padding: 110px 20px 80px; }
+            section { padding: 72px 20px; }
+            .hero-stats { flex-direction: column; gap: 28px; }
+            .stat + .stat { padding-left: 0; border-left: none; border-top: 1px solid var(--paper-3); padding-top: 28px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .products-grid { grid-template-columns: 1fr; }
+            .prod-card { border-radius: 0 !important; }
+            .prod-card:first-child { border-radius: var(--r-lg) var(--r-lg) 0 0 !important; }
+            .prod-card:last-child { border-radius: 0 0 var(--r-lg) var(--r-lg) !important; }
+            .footer-top { grid-template-columns: 1fr; gap: 36px; }
+            .footer-bottom { flex-direction: column; text-align: center; }
+            .trust-divider { display: none; }
+            .hero-actions { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
-    <div class="theme-switch-wrapper">
-        <label class="theme-switch">
-            <input type="checkbox" class="theme-switch__checkbox" id="themeCheckbox">
-            <div class="theme-switch__container">
-                <div class="theme-switch__clouds"></div>
-                <div class="theme-switch__stars-container">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"></path>
-                    </svg>
-                </div>
-                <div class="theme-switch__circle-container">
-                    <div class="theme-switch__sun-moon-container">
-                        <div class="theme-switch__moon">
-                            <div class="theme-switch__spot"></div>
-                            <div class="theme-switch__spot"></div>
-                            <div class="theme-switch__spot"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </label>
-    </div>
-    
-    <nav class="navbar">
-        <div class="logo">
-            <div class="logo-icon">
-                <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
-                    <rect x="1" y="6" width="14" height="9" rx="1.5" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-                    <path d="M4 6V4a4 4 0 0 1 8 0v2" stroke="var(--accent)" stroke-width="1.2"/>
-                    <circle cx="8" cy="10.5" r="1.5" fill="var(--accent)"/>
+
+<!-- Navigation -->
+<nav id="mainNav">
+    <div class="nav-inner">
+        <a href="#" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 18 18" fill="none">
+                    <rect x="1" y="7" width="16" height="10" rx="2" stroke="white" stroke-width="1.4"/>
+                    <path d="M5 7V5a4 4 0 0 1 8 0v2" stroke="white" stroke-width="1.4"/>
+                    <circle cx="9" cy="12" r="1.5" fill="white"/>
                 </svg>
             </div>
-            <div class="logo-text">
-                <h1>Asha Bank</h1>
-                <p>Bangladesh</p>
+            <span class="logo-name">Asha Bank</span>
+        </a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#products">Products</a></li>
+            <li><a href="#footer">Contact</a></li>
+            <li><a href="login.php">Sign In</a></li>
+            <li><a href="register.php" class="nav-cta">Open Account</a></li>
+        </ul>
+        <button class="mobile-btn" id="mobileBtn" aria-label="Toggle menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
+    </div>
+</nav>
+
+<!-- Hero -->
+<main>
+<section class="hero">
+    <div class="reveal">
+        <div class="hero-eyebrow">
+            <span></span> Regulated by Bangladesh Bank
+        </div>
+    </div>
+    <h1 class="hero-title reveal reveal-delay-1">
+        Banking built for<br><em>modern lives</em>
+    </h1>
+    <p class="hero-sub reveal reveal-delay-2">
+        Open a full-service account in minutes. Send money, save smarter, and manage your finances entirely from your phone.
+    </p>
+    <div class="hero-actions reveal reveal-delay-3">
+        <a href="register.php" class="btn-primary">Open Account Free →</a>
+        <a href="login.php" class="btn-secondary">Sign Into Dashboard</a>
+    </div>
+    <div class="hero-stats reveal reveal-delay-4">
+        <div class="stat">
+            <div class="stat-num"><span id="statCustomers">0</span>K+</div>
+            <div class="stat-label">Happy customers</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num">৳<span id="statDeposits">0</span>Cr+</div>
+            <div class="stat-label">Total deposits held</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num"><span id="statSupport">0</span>/7</div>
+            <div class="stat-label">Customer support</div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features-bg" id="features">
+    <div class="container">
+        <div class="features-layout">
+            <div class="features-text">
+                <div class="section-label reveal">Why Asha Bank</div>
+                <h2 class="section-title reveal reveal-delay-1">Everything your money needs, in one place</h2>
+                <p class="section-body reveal reveal-delay-2">Modern banking solutions built with the people of Bangladesh in mind. Secure, fast, and genuinely easy to use.</p>
+            </div>
+            <div class="features-grid reveal reveal-delay-1">
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+                    </div>
+                    <div class="feat-title">Mobile Banking</div>
+                    <div class="feat-desc">Full account access from anywhere, at any time.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="feat-title">Bank-Grade Security</div>
+                    <div class="feat-desc">256-bit encryption and multi-factor authentication.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="feat-title">24/7 Support</div>
+                    <div class="feat-desc">Round-the-clock human assistance via call or chat.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </div>
+                    <div class="feat-title">Instant Transfers</div>
+                    <div class="feat-desc">Send money to any bank instantly. Zero hidden fees.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <div class="feat-title">Competitive Rates</div>
+                    <div class="feat-desc">High-interest savings and low-rate loan products.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div class="feat-title">বাংলা সাপোর্ট</div>
+                    <div class="feat-desc">Full Bangla language support across all services.</div>
+                </div>
             </div>
         </div>
-        <div class="mobile-menu-btn" id="mobileMenuBtn">
-            <i class="fas fa-bars"></i>
+    </div>
+</section>
+
+<!-- Trust strip -->
+<div class="trust-strip">
+    <div class="container">
+        <div class="trust-item reveal">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Scheduled Bank under Bangladesh Bank
         </div>
-        <div class="nav-links" id="navLinks">
-            <a href="#home">Home</a>
-            <a href="#features">Features</a>
-            <a href="#products">Products</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
+        <div class="trust-divider reveal reveal-delay-1"></div>
+        <div class="trust-item reveal reveal-delay-1">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            256-bit SSL Encryption
         </div>
-        <div class="nav-buttons">
-            <a href="login.php" class="btn-outline-nav">Login</a>
-            <a href="register.php" class="btn-primary-nav">Open Account</a>
+        <div class="trust-divider reveal reveal-delay-2"></div>
+        <div class="trust-item reveal reveal-delay-2">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            BFIU Compliant KYC
         </div>
-    </nav>
-    
-    <!-- Hero Section -->
-    <section class="hero" id="home">
-        <div class="hero-content">
-            <span class="hero-badge">
-                <i class="fas fa-shield-alt"></i> Secure Digital Banking
-            </span>
-            <h1>Banking That<br>Works For You</h1>
-            <p>Experience modern banking with Asha Bank. Open an account in minutes, send money instantly, and manage your finances 24/7 from anywhere in Bangladesh.</p>
-            <div class="hero-buttons">
-                <a href="register.php" class="btn-hero-primary">Open Account Free →</a>
-                <a href="login.php" class="btn-hero-secondary">Login to Dashboard</a>
-            </div>
-            <div class="hero-stats">
-                <div class="stat-item">
-                    <h3>50K+</h3>
-                    <p>Happy Customers</p>
-                </div>
-                <div class="stat-item">
-                    <h3>৳500Cr+</h3>
-                    <p>Total Deposits</p>
-                </div>
-                <div class="stat-item">
-                    <h3>24/7</h3>
-                    <p>Customer Support</p>
-                </div>
-            </div>
+        <div class="trust-divider reveal reveal-delay-3"></div>
+        <div class="trust-item reveal reveal-delay-3">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            16479 Helpline — 24/7
         </div>
-        <div class="hero-image">
-            <div style="width: 400px; height: 400px; background: linear-gradient(135deg, var(--accent-bg), transparent); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-mobile-alt" style="font-size: 120px; color: var(--accent); opacity: 0.8;"></i>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Features Section -->
-    <section class="features" id="features">
-        <div class="section-header">
-            <h2>Why Choose Asha Bank?</h2>
-            <p>We provide modern banking solutions tailored for the people of Bangladesh</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <h3>Mobile Banking</h3>
-                <p>Access your account anytime, anywhere with our mobile app. Support for bKash, Nagad, Rocket, and Upai.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h3>Bank-Level Security</h3>
-                <p>Your money and data are protected with 256-bit encryption and multi-factor authentication.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <h3>24/7 Support</h3>
-                <p>Our customer support team is available round the clock to assist you with any issues.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-                <h3>Instant Transfers</h3>
-                <p>Send money to any bank account in Bangladesh instantly with zero hidden fees.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-percent"></i>
-                </div>
-                <h3>Competitive Rates</h3>
-                <p>Enjoy high-interest savings accounts and low-interest loan options.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-language"></i>
-                </div>
-                <h3>বাংলা সাপোর্ট</h3>
-                <p>Full Bangla language support for our local customers across Bangladesh.</p>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Products Section -->
-    <section class="products" id="products">
-        <div class="section-header">
-            <h2>Our Banking Products</h2>
-            <p>Choose the account that fits your needs</p>
-        </div>
+    </div>
+</div>
+
+<!-- Products -->
+<section id="products">
+    <div class="container">
+        <div class="section-label reveal">Our Products</div>
+        <h2 class="section-title reveal reveal-delay-1">Accounts designed for every goal</h2>
         <div class="products-grid">
-            <div class="product-card">
-                <div class="product-icon">
-                    <i class="fas fa-piggy-bank"></i>
+            <div class="prod-card reveal">
+                <div class="prod-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19 11c0 5-7 10-7 10S5 16 5 11a7 7 0 0 1 14 0z"/><circle cx="12" cy="11" r="2.5"/></svg>
                 </div>
-                <h3>Savings Account</h3>
-                <p>Perfect for daily banking with competitive interest rates and zero maintenance fees.</p>
-                <div class="product-rate">3.50% p.a.</div>
+                <div class="prod-name">Savings Account</div>
+                <div class="prod-desc">Perfect for everyday banking with competitive interest returns on your balance.</div>
+                <span class="prod-rate">3.50%</span>
+                <span class="prod-rate-label">PER ANNUM</span>
             </div>
-            <div class="product-card">
-                <div class="product-icon">
-                    <i class="fas fa-chart-line"></i>
+            <div class="prod-card reveal reveal-delay-1">
+                <div class="prod-icon">
+                    <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                 </div>
-                <h3>Premium Savings</h3>
-                <p>Higher interest rates and exclusive benefits for premium customers.</p>
-                <div class="product-rate">4.00% p.a.</div>
+                <div class="prod-name">Premium Savings</div>
+                <div class="prod-desc">Exclusive benefits and higher interest for members who save more.</div>
+                <span class="prod-rate">4.00%</span>
+                <span class="prod-rate-label">PER ANNUM</span>
             </div>
-            <div class="product-card">
-                <div class="product-icon">
-                    <i class="fas fa-briefcase"></i>
+            <div class="prod-card reveal reveal-delay-2">
+                <div class="prod-icon">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
                 </div>
-                <h3>Current Account</h3>
-                <p>Designed for businesses with unlimited transactions and overdraft facility.</p>
-                <div class="product-rate">0% p.a.</div>
+                <div class="prod-name">Current Account</div>
+                <div class="prod-desc">Designed for businesses with unlimited daily transactions.</div>
+                <span class="prod-rate">0.00%</span>
+                <span class="prod-rate-label">TRANSACTION FEE</span>
             </div>
-            <div class="product-card">
-                <div class="product-icon">
-                    <i class="fas fa-home"></i>
+            <div class="prod-card reveal reveal-delay-3">
+                <div class="prod-icon">
+                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 </div>
-                <h3>Home Loan</h3>
-                <p>Affordable home loans with flexible EMI options up to 25 years.</p>
-                <div class="product-rate">8.50% p.a.</div>
+                <div class="prod-name">Home Loan</div>
+                <div class="prod-desc">Affordable home financing with flexible repayment plans.</div>
+                <span class="prod-rate">8.50%</span>
+                <span class="prod-rate-label">PER ANNUM</span>
             </div>
         </div>
-    </section>
-    
-    <!-- CTA Section -->
-    <section class="cta">
-        <h2>Ready to start banking with us?</h2>
-        <p>Join thousands of satisfied customers who trust Asha Bank for their financial needs.</p>
-        <a href="register.php" class="btn-cta">Open Account Now →</a>
-    </section>
-    
-    <!-- Footer -->
-    <footer class="footer" id="contact">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4>Asha Bank</h4>
-                <a href="#home">About Us</a>
-                <a href="#features">Careers</a>
-                <a href="#contact">Contact Us</a>
-                <a href="#products">Blog</a>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-inner reveal">
+            <div class="cta-text">
+                <h2 class="section-title">Start banking with Asha today</h2>
+                <p>Join thousands who've already made the switch to modern digital banking.</p>
             </div>
-            <div class="footer-col">
-                <h4>Banking</h4>
-                <a href="login.php">Internet Banking</a>
-                <a href="register.php">Open Account</a>
-                <a href="#">Loan Application</a>
-                <a href="#">Credit Cards</a>
-            </div>
-            <div class="footer-col">
-                <h4>Support</h4>
-                <a href="#">Help Center</a>
-                <a href="#">FAQs</a>
-                <a href="#">Branch Locator</a>
-                <a href="#">ATM Locations</a>
-            </div>
-            <div class="footer-col">
-                <h4>Connect With Us</h4>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="register.php" class="btn-cta">Open Account Free →</a>
+        </div>
+    </div>
+</section>
+</main>
+
+<!-- Footer -->
+<footer id="footer">
+    <div class="footer-top">
+        <div class="footer-brand reveal">
+            <div class="logo">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 18 18" fill="none">
+                        <rect x="1" y="7" width="16" height="10" rx="2" stroke="white" stroke-width="1.4"/>
+                        <path d="M5 7V5a4 4 0 0 1 8 0v2" stroke="white" stroke-width="1.4"/>
+                        <circle cx="9" cy="12" r="1.5" fill="white"/>
+                    </svg>
                 </div>
-                <p style="margin-top: 20px; font-size: 12px; color: var(--text-tertiary);">
-                    <i class="fas fa-phone"></i> 16479 (24/7 Helpline)<br>
-                    <i class="fas fa-envelope"></i> support@ashabank.bd
+                <span class="logo-name">Asha Bank</span>
+            </div>
+            <p>A fully digital, full-service scheduled bank under Bangladesh Bank. Serving individuals and businesses across Bangladesh.</p>
+            <div class="footer-contact" style="margin-top: 20px;">
+                <p>
+                    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.49a2 2 0 0 1 1.99-2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.09 6.09l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    16479 (24/7 Helpline)
+                </p>
+                <p>
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    support@ashabank.bd
+                </p>
+                <p>
+                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Dhaka, Bangladesh
                 </p>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 Asha Bank. All rights reserved. A Scheduled Bank under Bangladesh Bank.</p>
+        <div class="footer-col reveal reveal-delay-1">
+            <h5>Company</h5>
+            <a href="#">About Us</a>
+            <a href="#">Careers</a>
+            <a href="#">Press</a>
+            <a href="#">Blog</a>
         </div>
-    </footer>
-    
-    <script>
-        // Theme Toggle
-        const themeCheckbox = document.getElementById('themeCheckbox');
-        const savedTheme = localStorage.getItem('theme');
-        
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark');
-            themeCheckbox.checked = true;
+        <div class="footer-col reveal reveal-delay-2">
+            <h5>Banking</h5>
+            <a href="login.php">Internet Banking</a>
+            <a href="register.php">Open Account</a>
+            <a href="#">Loan Application</a>
+            <a href="#">Credit Cards</a>
+        </div>
+        <div class="footer-col reveal reveal-delay-3">
+            <h5>Support</h5>
+            <a href="#">Help Center</a>
+            <a href="#">FAQs</a>
+            <a href="#">Branch Locator</a>
+            <a href="#">ATM Locations</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 Asha Bank. All rights reserved. A Scheduled Bank under Bangladesh Bank.</p>
+        <div class="social-row">
+            <a href="#" aria-label="Facebook">f</a>
+            <a href="#" aria-label="Twitter">𝕏</a>
+            <a href="#" aria-label="LinkedIn">in</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Mobile nav
+    const btn = document.getElementById('mobileBtn');
+    const links = document.getElementById('navLinks');
+    btn.addEventListener('click', () => links.classList.toggle('open'));
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => io.observe(el));
+
+    // Counter animation
+    function countUp(el, target, duration) {
+        let start = 0, startTime = null;
+        function step(ts) {
+            if (!startTime) startTime = ts;
+            const p = Math.min((ts - startTime) / duration, 1);
+            el.textContent = Math.floor(p * target);
+            if (p < 1) requestAnimationFrame(step);
+            else el.textContent = target;
         }
-        
-        themeCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                document.body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.body.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            }
+        requestAnimationFrame(step);
+    }
+
+    const statsSection = document.querySelector('.hero-stats');
+    let statsTriggered = false;
+    const statsObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !statsTriggered) {
+            statsTriggered = true;
+            countUp(document.getElementById('statCustomers'), 50, 1800);
+            countUp(document.getElementById('statDeposits'), 500, 2000);
+            countUp(document.getElementById('statSupport'), 24, 1400);
+        }
+    }, { threshold: 0.4 });
+    if (statsSection) statsObserver.observe(statsSection);
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
         });
-        
-        // Mobile Menu
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const navLinks = document.getElementById('navLinks');
-        
-        mobileMenuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-        
-        // Smooth Scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener
+    });
+</script>
+</body>
+</html>
