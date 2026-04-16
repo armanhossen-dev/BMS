@@ -587,3 +587,75 @@ INSERT IGNORE INTO kyc_verifications (customer_id, nid_number, status, submitted
 SELECT '✅ All tables created successfully!' AS Status;
 SELECT 'Tables in database:' AS '';
 SHOW TABLES;
+
+
+-- ============================================================
+-- FEEDBACK & MESSAGING SYSTEM TABLES
+-- Run this SQL to add messaging features
+-- ============================================================
+
+USE asha_bank;
+
+-- ============================================================
+-- FEEDBACK TABLE (Client to Staff)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS feedback (
+    feedback_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('feedback', 'complaint', 'suggestion', 'issue') DEFAULT 'feedback',
+    status ENUM('pending', 'read', 'replied', 'resolved') DEFAULT 'pending',
+    staff_reply TEXT,
+    replied_by INT,
+    replied_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (replied_by) REFERENCES staff(staff_id) ON DELETE SET NULL
+);
+
+-- ============================================================
+-- STAFF TO ADMIN MESSAGES TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS staff_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    staff_id INT NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('suggestion', 'request', 'report', 'issue') DEFAULT 'request',
+    status ENUM('pending', 'read', 'approved', 'rejected') DEFAULT 'pending',
+    admin_reply TEXT,
+    replied_by INT,
+    replied_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (staff_id) REFERENCES staff(staff_id) ON DELETE CASCADE,
+    FOREIGN KEY (replied_by) REFERENCES ADMIN_USER(AdminID) ON DELETE SET NULL
+);
+
+-- ============================================================
+-- CLIENT NOTIFICATIONS FOR REPLIES
+-- ============================================================
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS feedback_id INT;
+ALTER TABLE notifications ADD FOREIGN KEY (feedback_id) REFERENCES feedback(feedback_id) ON DELETE CASCADE;
+
+-- Insert sample staff for testing if not exists
+INSERT IGNORE INTO staff (first_name, last_name, email, phone, username, password_hash, role, department, join_date) VALUES
+('Rajesh', 'Sharma', 'rajesh@ashabank.bd', '01710000001', 'rajesh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'manager', 'Operations', '2020-01-15'),
+('Priya', 'Mehta', 'priya@ashabank.bd', '01710000002', 'priya', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'officer', 'Customer Service', '2021-03-20');
+
+SELECT '✅ Messaging system tables created successfully!' AS Status;
+
+
+-- Fix missing columns in feedback table
+USE asha_bank;
+
+-- Add is_read column to feedback table if not exists
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS is_read TINYINT(1) DEFAULT 0;
+
+-- Add replied_at column if not exists
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS replied_at DATETIME;
+
+-- Update existing records
+UPDATE feedback SET is_read = 1 WHERE status = 'resolved';
+
+SELECT '✅ Database fixed successfully!' AS Status;

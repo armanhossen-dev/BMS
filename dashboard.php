@@ -37,12 +37,14 @@ function getCardTier($balance) {
         return [
             'name' => 'Black Edition',
             'level' => 5,
+            'stars' => 5,
             'bg' => 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 40%, #2a2a2a 100%)',
             'accent' => '#d4af37',
             'accent2' => '#ffd700',
             'text' => '#ffffff',
             'icon' => 'crown',
-            'badge' => '👑'
+            'badge' => '👑',
+            'card_bg' => 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
         ];
     }
     // Platinum - 500,000 - 999,999 BDT
@@ -50,12 +52,14 @@ function getCardTier($balance) {
         return [
             'name' => 'Platinum',
             'level' => 4,
+            'stars' => 4,
             'bg' => 'linear-gradient(135deg, #1a2a3a 0%, #2a3a4a 50%, #3a4a5a 100%)',
             'accent' => '#c0c0c0',
             'accent2' => '#e8e8e8',
             'text' => '#ffffff',
             'icon' => 'gem',
-            'badge' => '💎'
+            'badge' => '💎',
+            'card_bg' => 'linear-gradient(145deg, #2a3a4a 0%, #3a4a5a 50%, #2a3a4a 100%)'
         ];
     }
     // Gold - 100,000 - 499,999 BDT
@@ -63,12 +67,14 @@ function getCardTier($balance) {
         return [
             'name' => 'Gold',
             'level' => 3,
+            'stars' => 3,
             'bg' => 'linear-gradient(135deg, #2a1a0a 0%, #3a2a1a 50%, #4a3a2a 100%)',
             'accent' => '#ffd700',
             'accent2' => '#ffed4a',
             'text' => '#ffffff',
             'icon' => 'star',
-            'badge' => '⭐'
+            'badge' => '⭐',
+            'card_bg' => 'linear-gradient(145deg, #3a2a1a 0%, #4a3a2a 50%, #3a2a1a 100%)'
         ];
     }
     // Silver - 10,000 - 99,999 BDT
@@ -76,12 +82,14 @@ function getCardTier($balance) {
         return [
             'name' => 'Silver',
             'level' => 2,
+            'stars' => 2,
             'bg' => 'linear-gradient(135deg, #1a2a2a 0%, #2a3a3a 50%, #3a4a4a 100%)',
             'accent' => '#c0c0c0',
             'accent2' => '#d8d8d8',
             'text' => '#ffffff',
             'icon' => 'shield',
-            'badge' => '🛡️'
+            'badge' => '🛡️',
+            'card_bg' => 'linear-gradient(145deg, #2a3a3a 0%, #3a4a4a 50%, #2a3a3a 100%)'
         ];
     }
     // Bronze / Classic - Below 10,000 BDT
@@ -89,12 +97,14 @@ function getCardTier($balance) {
         return [
             'name' => 'Classic',
             'level' => 1,
+            'stars' => 1,
             'bg' => 'linear-gradient(135deg, #185FA5 0%, #0C447C 50%, #0a3a6a 100%)',
             'accent' => '#ffd700',
             'accent2' => '#ffed4a',
             'text' => '#ffffff',
             'icon' => 'credit-card',
-            'badge' => '💳'
+            'badge' => '💳',
+            'card_bg' => 'linear-gradient(145deg, #185FA5 0%, #0C447C 50%, #185FA5 100%)'
         ];
     }
 }
@@ -178,15 +188,15 @@ $totalReceivedAmount = $totalReceived->fetchColumn();
 // Next tier info
 function getNextTierInfo($balance) {
     if($balance < 10000) {
-        return ['name' => 'Silver', 'amount' => 10000 - $balance, 'percentage' => ($balance / 10000) * 100];
+        return ['name' => 'Silver', 'amount' => 10000 - $balance, 'percentage' => ($balance / 10000) * 100, 'stars' => 2];
     } elseif($balance < 100000) {
-        return ['name' => 'Gold', 'amount' => 100000 - $balance, 'percentage' => ($balance / 100000) * 100];
+        return ['name' => 'Gold', 'amount' => 100000 - $balance, 'percentage' => ($balance / 100000) * 100, 'stars' => 3];
     } elseif($balance < 500000) {
-        return ['name' => 'Platinum', 'amount' => 500000 - $balance, 'percentage' => ($balance / 500000) * 100];
+        return ['name' => 'Platinum', 'amount' => 500000 - $balance, 'percentage' => ($balance / 500000) * 100, 'stars' => 4];
     } elseif($balance < 1000000) {
-        return ['name' => 'Black Edition', 'amount' => 1000000 - $balance, 'percentage' => ($balance / 1000000) * 100];
+        return ['name' => 'Black Edition', 'amount' => 1000000 - $balance, 'percentage' => ($balance / 1000000) * 100, 'stars' => 5];
     } else {
-        return ['name' => 'Black Edition', 'amount' => 0, 'percentage' => 100];
+        return ['name' => 'Black Edition', 'amount' => 0, 'percentage' => 100, 'stars' => 5];
     }
 }
 $nextTier = getNextTierInfo($balance);
@@ -222,6 +232,9 @@ $nextTier = getNextTierInfo($balance);
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --platinum: #e5e4e2;
         }
         
         body.dark {
@@ -368,6 +381,24 @@ $nextTier = getNextTierInfo($balance);
             gap: 6px;
         }
         
+        /* Star Rating System */
+        .star-rating {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .star {
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+        .star.filled {
+            color: <?= $cardTier['accent'] ?>;
+            text-shadow: 0 0 5px <?= $cardTier['accent'] ?>;
+        }
+        .star.empty {
+            color: rgba(255,255,255,0.3);
+        }
+        
         /* Tier Progress */
         .tier-progress {
             margin-top: 16px;
@@ -394,6 +425,18 @@ $nextTier = getNextTierInfo($balance);
             width: <?= $nextTier['percentage'] ?>%;
             transition: width 0.5s ease;
         }
+        
+        /* Next Tier Stars Preview */
+        .next-tier-stars {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+            font-size: 11px;
+            align-items: center;
+        }
+        .next-tier-stars span { opacity: 0.6; margin-right: 6px; }
+        .next-star { font-size: 11px; color: rgba(255,255,255,0.3); }
+        .next-star.filled { color: <?= $cardTier['accent'] ?>; }
         
         /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
@@ -426,7 +469,7 @@ $nextTier = getNextTierInfo($balance);
         .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 16px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
         .theme-toggle:hover { background: var(--accent-bg); }
         
-        /* Credit Card Modal */
+        /* Premium Credit Card Modal */
         .card-modal {
             display: none;
             position: fixed;
@@ -463,78 +506,90 @@ $nextTier = getNextTierInfo($balance);
             box-shadow: var(--shadow-md);
             z-index: 10;
             transition: transform 0.2s;
+            font-weight: bold;
         }
         .close-card-modal:hover { transform: scale(1.1); }
         
-        /* Premium Credit Card Design */
+        /* Premium Realistic Credit Card Styling */
         .premium-card {
             width: 450px;
             height: 280px;
-            background: <?= $cardTier['bg'] ?>;
-            border-radius: 24px;
-            padding: 24px;
+            background: <?= $cardTier['card_bg'] ?? $cardTier['bg'] ?>;
+            border-radius: 20px;
+            padding: 30px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 25px 40px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            
+            /* Layered shadows for depth */
+            box-shadow: 
+                0 30px 60px -12px rgba(0,0,0,0.6), 
+                inset 0 1px 1px rgba(255,255,255,0.2),
+                inset 0 -1px 1px rgba(0,0,0,0.3);
+            
+            color: white;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
         }
-        .premium-card:hover { transform: translateY(-5px); box-shadow: 0 30px 50px -15px rgba(0,0,0,0.6); }
         
+        .premium-card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 40px 70px -15px rgba(0,0,0,0.7);
+        }
+        
+        /* Texture Overlay */
         .card-bg-pattern {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 70%, rgba(<?= $cardTier['accent'] == '#ffd700' ? '255,215,0' : '192,192,192' ?>,0.08) 0%, transparent 60%);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 10%, rgba(255,255,255,0.1) 0%, transparent 40%),
+                linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.05) 100%);
+            opacity: 0.8;
             pointer-events: none;
         }
         
+        /* Chip Styling - Realistic Gold/Silver Mix */
         .card-chip {
             position: absolute;
-            top: 24px;
-            left: 24px;
+            top: 30px;
+            left: 30px;
         }
         
-        .card-brand {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
+        /* Holographic/Metallic Tier Label */
         .card-tier-name {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 3px;
             color: <?= $cardTier['accent'] ?>;
-            text-transform: uppercase;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+            opacity: 0.9;
         }
         
+        /* The "Embossed" Number Look */
         .card-number {
             position: absolute;
-            bottom: 100px;
-            left: 24px;
-            right: 24px;
+            top: 140px;
+            left: 30px;
+            width: 100%;
             font-family: 'Courier New', monospace;
-            font-size: 22px;
-            font-weight: 600;
+            font-size: 24px;
             letter-spacing: 3px;
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            word-spacing: 6px;
+            color: #eee;
+            text-shadow: 
+                -1px -1px 1px rgba(255,255,255,0.2),
+                1px 1px 1px rgba(0,0,0,0.5);
         }
         
+        /* Details Section */
         .card-details {
             position: absolute;
-            bottom: 40px;
-            left: 24px;
-            right: 24px;
+            bottom: 30px;
+            left: 30px;
+            right: 30px;
             display: flex;
             justify-content: space-between;
-            color: white;
+            align-items: flex-end;
         }
         
         .card-detail {
@@ -544,67 +599,71 @@ $nextTier = getNextTierInfo($balance);
         }
         
         .card-detail-label {
-            font-size: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.6;
+            display: block;
+            font-size: 9px;
+            font-family: 'Arial', sans-serif;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+            opacity: 0.7;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
         }
         
         .card-detail-value {
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         
-        .card-cvv {
+        .card-brand {
             position: absolute;
-            bottom: 100px;
-            right: 24px;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-family: monospace;
-            color: white;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .card-network {
             position: absolute;
-            bottom: 24px;
-            right: 24px;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: <?= $cardTier['accent'] ?>;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            bottom: 30px;
+            right: 30px;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
         }
         
-        /* Level indicator */
-        .level-indicator {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .level-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transition: all 0.3s;
-        }
-        .level-dot.active {
-            background: <?= $cardTier['accent'] ?>;
-            box-shadow: 0 0 8px <?= $cardTier['accent'] ?>;
-        }
-        
+        /* Responsive Scaling */
         @media (max-width: 550px) {
-            .premium-card { width: 95%; height: auto; min-height: 240px; }
-            .card-number { font-size: 16px; bottom: 80px; }
-            .card-details { bottom: 25px; }
+            .premium-card {
+                width: 340px;
+                height: 210px;
+                padding: 20px;
+            }
+            .card-number {
+                font-size: 16px;
+                top: 100px;
+                left: 20px;
+                letter-spacing: 2px;
+            }
+            .card-chip {
+                top: 20px;
+                left: 20px;
+            }
+            .card-chip svg { width: 35px; height: 28px; }
+            .card-detail-value { font-size: 10px; }
+            .card-detail-label { font-size: 7px; }
+            .card-details { bottom: 20px; left: 20px; right: 20px; }
+            .card-network { bottom: 20px; right: 20px; }
+            .card-network i { font-size: 30px !important; }
+            .card-brand { top: 20px; right: 20px; }
+            .card-tier-name { font-size: 9px; letter-spacing: 2px; }
             .notification-dropdown { width: 320px; right: -50px; }
+        }
+        
+        @media (max-width: 380px) {
+            .premium-card { width: 300px; height: 190px; }
+            .card-number { font-size: 14px; top: 90px; }
         }
     </style>
 </head>
@@ -663,12 +722,12 @@ $nextTier = getNextTierInfo($balance);
             
             <span><i class="fas fa-user"></i> <?= htmlspecialchars($account['FirstName']) ?></span>
             <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Dark</button>
-            <a href="logout.php" style="background: var(--danger); color: white; padding: 8px 16px; border-radius: 40px;"><?= __('logout') ?></a>
+            <a href="logout.php" style="background: var(--danger); color: white; padding: 8px 16px; border-radius: 40px; text-decoration: none;"><?= __('logout') ?></a>
         </div>
     </nav>
     
     <div class="container">
-        <!-- Clickable Balance Card with Tier Badge -->
+        <!-- Clickable Balance Card with Tier Badge and Stars -->
         <div class="balance-card" id="balanceCard">
             <div class="card-tier-badge">
                 <?= $cardTier['badge'] ?> <?= $cardTier['name'] ?>
@@ -677,36 +736,56 @@ $nextTier = getNextTierInfo($balance);
             <div class="balance-amount"><?= formatBDT($balance) ?></div>
             <div class="balance-acct"><?= __('account_number') ?>: <?= $account['AccountNumber'] ?></div>
             
+            <!-- Star Rating System - 5 Stars based on tier -->
+            <div class="star-rating">
+                <?php for($i = 1; $i <= 5; $i++): ?>
+                    <?php if($i <= $cardTier['stars']): ?>
+                        <i class="fas fa-star star filled"></i>
+                    <?php else: ?>
+                        <i class="far fa-star star empty"></i>
+                    <?php endif; ?>
+                <?php endfor; ?>
+            </div>
+            
             <!-- Tier Progress Bar -->
             <?php if($nextTier['amount'] > 0): ?>
             <div class="tier-progress">
                 <div class="tier-progress-label">
-                    <span>Next tier: <?= $nextTier['name'] ?></span>
+                    <span>Next tier: <?= $nextTier['name'] ?> <i class="fas fa-arrow-right"></i></span>
                     <span>Need <?= formatBDT($nextTier['amount']) ?> more</span>
                 </div>
                 <div class="tier-progress-bar">
                     <div class="tier-progress-fill"></div>
                 </div>
+                <div class="next-tier-stars">
+                    <span>Next tier rewards:</span>
+                    <?php for($i = 1; $i <= 5; $i++): ?>
+                        <?php if($i <= $nextTier['stars']): ?>
+                            <i class="fas fa-star next-star filled" style="font-size: 10px;"></i>
+                        <?php else: ?>
+                            <i class="far fa-star next-star" style="font-size: 10px;"></i>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+                </div>
             </div>
             <?php else: ?>
             <div class="tier-progress">
                 <div class="tier-progress-label">
-                    <span>🎉 Maximum Tier Achieved!</span>
+                    <span>🏆 Maximum Tier Achieved! 🏆</span>
                     <span>Black Edition Member</span>
                 </div>
                 <div class="tier-progress-bar">
                     <div class="tier-progress-fill" style="width: 100%;"></div>
                 </div>
+                <div class="next-tier-stars">
+                    <span>All rewards unlocked:</span>
+                    <?php for($i = 1; $i <= 5; $i++): ?>
+                        <i class="fas fa-star next-star filled" style="color: <?= $cardTier['accent'] ?>; font-size: 10px;"></i>
+                    <?php endfor; ?>
+                    <span style="margin-left: 8px;">✨ Premium Benefits Active ✨</span>
+                </div>
             </div>
             <?php endif; ?>
-            
-            <div class="level-indicator">
-                <div class="level-dot <?= $cardTier['level'] >= 1 ? 'active' : '' ?>"></div>
-                <div class="level-dot <?= $cardTier['level'] >= 2 ? 'active' : '' ?>"></div>
-                <div class="level-dot <?= $cardTier['level'] >= 3 ? 'active' : '' ?>"></div>
-                <div class="level-dot <?= $cardTier['level'] >= 4 ? 'active' : '' ?>"></div>
-                <div class="level-dot <?= $cardTier['level'] >= 5 ? 'active' : '' ?>"></div>
-            </div>
             
             <div class="balance-acct" style="margin-top: 12px;"><i class="fas fa-credit-card"></i> Click to view your premium card</div>
         </div>
@@ -792,7 +871,7 @@ $nextTier = getNextTierInfo($balance);
         </div>
     </div>
     
-    <!-- Premium Credit Card Modal -->
+ <!-- Premium Credit Card Modal -->
   <div id="cardModal" class="card-modal">
     <div class="card-modal-content">
         <div class="close-card-modal" onclick="closeCardModal()">&times;</div>
@@ -808,7 +887,8 @@ $nextTier = getNextTierInfo($balance);
                 </svg>
             </div>
             <div class="card-brand">
-                <div class="card-tier-name"><?= strtoupper($cardTier['name']) ?></div>
+                <div class="card-tier-name"><?= strtoupper($cardTier['name']) ?>
+            </div>
                 <i class="fas fa-<?= $cardTier['icon'] ?>" style="color: <?= $cardTier['accent'] ?>; font-size: 20px;"></i>
             </div>
             <div class="card-number">
@@ -828,125 +908,155 @@ $nextTier = getNextTierInfo($balance);
                     <span class="card-detail-value"><?= $card ? date('m/y', strtotime($card['ExpiryDate'])) : '12/28' ?></span>
                 </div>
                 <div class="card-detail">
-                    <span class="card-detail-label">CVV</span>
-                    <span class="card-detail-value">***</span>
+                    <!-- <span class="card-detail-label">CVV</span>
+                    <span class="card-detail-value">***</span> -->
                 </div>
             </div>
             <div class="card-network">
-                <i class="fab fa-cc-visa" style="font-size: 28px;"></i>
+                <i class="fab fa-cc-visa" style="font-size: 40px;"></i>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-/* Updated Card CSS - Fixed positioning */
+/* Premium Realistic Credit Card Styling */
 .premium-card {
     width: 450px;
     height: 280px;
     background: <?= $cardTier['bg'] ?>;
-    border-radius: 24px;
-    padding: 24px;
+    border-radius: 20px;
+    padding: 30px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 25px 40px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-    transition: transform 0.3s, box-shadow 0.3s;
+    
+    /* Layered shadows for depth: 1. Soft drop shadow, 2. Inner highlight for edge thickness */
+    box-shadow: 
+        0 30px 60px -12px rgba(0,0,0,0.6), 
+        inset 0 1px 1px rgba(255,255,255,0.2),
+        inset 0 -1px 1px rgba(0,0,0,0.3);
+    
+    color: white;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    user-select: none;
 }
-.premium-card:hover { transform: translateY(-5px); }
 
+.premium-card:hover {
+    transform: translateY(-10px) rotateX(5deg);
+    box-shadow: 0 40px 70px -15px rgba(0,0,0,0.7);
+}
+
+/* Texture Overlay */
 .card-bg-pattern {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(255,215,0,0.06) 0%, transparent 60%);
+    top: 0; left: 0; right: 0; bottom: 0;
+    /* Subtle noise and light reflection */
+    background: 
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,0.1) 0%, transparent 40%),
+        linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.05) 100%);
+    opacity: 0.8;
     pointer-events: none;
 }
 
+/* Chip Styling - Realistic Gold/Silver Mix */
 .card-chip {
     position: absolute;
-    top: 24px;
-    left: 24px;
+    top: 60px;
+    left: 40px;
+    width: 55px;
+    height: 40px;
+    background: linear-gradient(135deg, #f0d07a 0%, #b8960c 100%);
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    overflow: hidden;
 }
 
-.card-brand {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
+/* Holographic/Metallic Tier Label */
 .card-tier-name {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 4px;
     color: <?= $cardTier['accent'] ?>;
-    text-transform: uppercase;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+    opacity: 0.9;
 }
 
+/* The "Embossed" Number Look */
 .card-number {
     position: absolute;
-    bottom: 110px;
-    left: 24px;
-    right: 24px;
-    font-family: 'Courier New', monospace;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    top: 145px;
+    left: 40px;
+    width: 100%;
+    font-family: 'OCR A Std', 'Courier New', monospace; /* Use OCR A for realism if available */
+    font-size: 26px;
+    letter-spacing: 3.5px;
+    word-spacing: 8px;
+    color: #eee;
+    /* This creates the 'embossed' shadow effect */
+    text-shadow: 
+        -1px -1px 1px rgba(255,255,255,0.2),
+        1px 1px 1px rgba(0,0,0,0.5);
 }
 
+/* Details Section */
 .card-details {
     position: absolute;
-    bottom: 35px;
-    left: 24px;
-    right: 24px;
+    bottom: 30px;
+    left: 40px;
+    right: 40px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-}
-
-.card-detail {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: flex-end;
 }
 
 .card-detail-label {
-    font-size: 8px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    opacity: 0.6;
+    display: block;
+    font-size: 9px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+    opacity: 0.7;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 .card-detail-value {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .card-network {
     position: absolute;
-    bottom: 35px;
-    right: 24px;
+    bottom: 30px;
+    right: 40px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
 
+/* Responsive Scaling */
 @media (max-width: 550px) {
-    .premium-card { width: 95%; height: auto; min-height: 250px; }
-    .card-number { font-size: 14px; bottom: 90px; letter-spacing: 1px; }
-    .card-details { bottom: 25px; flex-wrap: wrap; gap: 10px; }
-    .card-detail { min-width: 80px; }
+    .premium-card {
+        width: 340px;
+        height: 210px;
+        padding: 20px;
+    }
+    .card-number {
+        font-size: 18px;
+        top: 110px;
+        left: 25px;
+    }
+    .card-chip {
+        width: 45px;
+        height: 32px;
+        top: 45px;
+        left: 25px;
+    }
+    .card-detail-value { font-size: 12px; }
 }
 </style>
-
-
-
+    
     <div id="toastContainer">
         <?php $toast = getToast(); if($toast): ?>
             <div style="position: fixed; bottom: 20px; right: 20px; background: var(--bg-primary); border-left: 4px solid var(--success); padding: 12px 20px; border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 1000;">
@@ -1062,5 +1172,362 @@ $nextTier = getNextTierInfo($balance);
             if(e.target === document.getElementById('notificationModal')) closeNotificationModal();
         });
     </script>
+
+            <!-- Floating Message Bubble -->
+<style>
+    /* Floating Message Button */
+    .message-bubble {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: var(--accent);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        z-index: 999;
+        color: white;
+    }
+    .message-bubble:hover {
+        transform: scale(1.1);
+        background: var(--accent-dark);
+    }
+    .message-bubble i {
+        font-size: 24px;
+    }
+    .message-bubble .badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--danger);
+        color: white;
+        border-radius: 50%;
+        padding: 4px 8px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+    
+    /* Feedback Modal */
+    .feedback-modal {
+        display: none;
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 380px;
+        background: var(--bg-primary);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        z-index: 1000;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+    .feedback-modal.show {
+        display: block;
+    }
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .feedback-header {
+        background: var(--accent);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .feedback-header h3 {
+        font-size: 16px;
+        margin: 0;
+    }
+    .close-feedback {
+        cursor: pointer;
+        font-size: 20px;
+        transition: transform 0.2s;
+    }
+    .close-feedback:hover {
+        transform: scale(1.1);
+    }
+    .feedback-body {
+        padding: 20px;
+    }
+    .feedback-body textarea {
+        width: 100%;
+        height: 150px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-family: inherit;
+        resize: none;
+        margin-bottom: 12px;
+    }
+    .feedback-body select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+    .feedback-body input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+    .char-counter {
+        font-size: 11px;
+        color: var(--text-tertiary);
+        text-align: right;
+        margin-bottom: 12px;
+    }
+    .send-feedback {
+        width: 100%;
+        padding: 12px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .send-feedback:hover {
+        background: var(--accent-dark);
+        transform: translateY(-2px);
+    }
+    .feedback-footer {
+        padding: 12px 20px;
+        border-top: 1px solid var(--border-color);
+        font-size: 11px;
+        color: var(--text-tertiary);
+        text-align: center;
+    }
+    
+    /* My Feedback History */
+    .my-feedback-link {
+        text-align: center;
+        margin-top: 10px;
+    }
+    .my-feedback-link a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 12px;
+    }
+    .feedback-history {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .feedback-item {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .feedback-item .subject {
+        font-weight: 600;
+        font-size: 13px;
+    }
+    .feedback-item .message {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+    .feedback-item .reply {
+        background: var(--accent-bg);
+        padding: 8px;
+        border-radius: 10px;
+        margin-top: 8px;
+        font-size: 11px;
+    }
+    .feedback-item .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 10px;
+        margin-top: 6px;
+    }
+    .status-pending { background: var(--warning-bg); color: var(--warning); }
+    .status-replied { background: var(--success-bg); color: var(--success); }
+    .status-resolved { background: var(--accent-bg); color: var(--accent); }
+</style>
+
+<?php
+// Count unread feedback replies (without is_read column, just check status)
+$unreadReplies = $pdo->prepare("SELECT COUNT(*) FROM feedback WHERE customer_id = ? AND status = 'replied'");
+$unreadReplies->execute([$userId]);
+$replyCount = $unreadReplies->fetchColumn();
+?>
+
+<!-- Floating Message Bubble -->
+<div class="message-bubble" id="messageBubble">
+    <i class="fas fa-comment-dots"></i>
+    <?php if($replyCount > 0): ?>
+        <span class="badge"><?= $replyCount ?></span>
+    <?php endif; ?>
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="feedback-modal">
+    <div class="feedback-header">
+        <h3><i class="fas fa-comment"></i> Share Your Feedback</h3>
+        <span class="close-feedback" onclick="closeFeedbackModal()">&times;</span>
+    </div>
+    <div class="feedback-body">
+        <select id="feedbackType">
+            <option value="feedback">💬 Feedback</option>
+            <option value="complaint">⚠️ Complaint</option>
+            <option value="suggestion">💡 Suggestion</option>
+            <option value="issue">🔧 Technical Issue</option>
+        </select>
+        <input type="text" id="feedbackSubject" placeholder="Subject" required>
+        <textarea id="feedbackMessage" placeholder="Write your message here... (Max 500 characters)" maxlength="500"></textarea>
+        <div class="char-counter"><span id="charCount">0</span>/500 characters</div>
+        <button class="send-feedback" onclick="sendFeedback()">Send Feedback <i class="fas fa-paper-plane"></i></button>
+        
+        <div class="my-feedback-link">
+            <a href="#" onclick="toggleFeedbackHistory()">📋 View my previous feedback</a>
+        </div>
+        <div id="feedbackHistory" style="display: none; margin-top: 15px;">
+            <div class="feedback-history" id="feedbackHistoryList">
+                <!-- History will load here -->
+            </div>
+        </div>
+    </div>
+    <div class="feedback-footer">
+        We'll respond within 24 hours
+    </div>
+</div>
+
+<script>
+    // Character counter
+    const messageInput = document.getElementById('feedbackMessage');
+    const charCountSpan = document.getElementById('charCount');
+    
+    if(messageInput) {
+        messageInput.addEventListener('input', function() {
+            charCountSpan.textContent = this.value.length;
+        });
+    }
+    
+    // Toggle feedback modal
+    const messageBubble = document.getElementById('messageBubble');
+    const feedbackModal = document.getElementById('feedbackModal');
+    
+    if(messageBubble) {
+        messageBubble.addEventListener('click', function(e) {
+            e.stopPropagation();
+            feedbackModal.classList.toggle('show');
+            loadFeedbackHistory();
+        });
+    }
+    
+    function closeFeedbackModal() {
+        feedbackModal.classList.remove('show');
+    }
+    
+    document.addEventListener('click', function(e) {
+        if(feedbackModal && !feedbackModal.contains(e.target) && messageBubble && !messageBubble.contains(e.target)) {
+            feedbackModal.classList.remove('show');
+        }
+    });
+    
+    // Send feedback
+    function sendFeedback() {
+        const type = document.getElementById('feedbackType').value;
+        const subject = document.getElementById('feedbackSubject').value;
+        const message = document.getElementById('feedbackMessage').value;
+        
+        if(!subject || !message) {
+            alert('Please fill in both subject and message');
+            return;
+        }
+        
+        fetch('send_feedback.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `type=${type}&subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert('Feedback sent successfully! We will respond shortly.');
+                document.getElementById('feedbackSubject').value = '';
+                document.getElementById('feedbackMessage').value = '';
+                if(charCountSpan) charCountSpan.textContent = '0';
+                closeFeedbackModal();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error sending feedback: ' + error);
+        });
+    }
+    
+    // Load feedback history
+    function loadFeedbackHistory() {
+        fetch('get_feedback.php')
+            .then(response => response.json())
+            .then(data => {
+                const historyDiv = document.getElementById('feedbackHistoryList');
+                if(historyDiv) {
+                    if(data.length === 0) {
+                        historyDiv.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-tertiary);">No feedback yet</div>';
+                    } else {
+                        historyDiv.innerHTML = data.map(f => `
+                            <div class="feedback-item">
+                                <div class="subject">${escapeHtml(f.subject)}</div>
+                                <div class="message">${escapeHtml(f.message.substring(0, 100))}${f.message.length > 100 ? '...' : ''}</div>
+                                <span class="status status-${f.status}">${f.status.toUpperCase()}</span>
+                                ${f.staff_reply ? `<div class="reply"><strong>Staff Reply:</strong> ${escapeHtml(f.staff_reply)}</div>` : ''}
+                                <small style="font-size:10px; color:var(--text-tertiary);">${f.created_at}</small>
+                            </div>
+                        `).join('');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading feedback:', error);
+            });
+    }
+    
+    function toggleFeedbackHistory() {
+        const historyDiv = document.getElementById('feedbackHistory');
+        if(historyDiv) {
+            if(historyDiv.style.display === 'none') {
+                historyDiv.style.display = 'block';
+                loadFeedbackHistory();
+            } else {
+                historyDiv.style.display = 'none';
+            }
+        }
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+
+
+
 </body>
 </html>

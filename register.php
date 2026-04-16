@@ -136,6 +136,34 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8FAFC;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --text-tertiary: #94A3B8;
+            --border-color: #E2E8F0;
+            --accent: #185FA5;
+            --accent-dark: #0C447C;
+            --accent-bg: #E6F1FB;
+            --danger: #A32D2D;
+            --danger-bg: #FCEBEB;
+            --success: #3B6D11;
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #CBD5E1;
+            --text-tertiary: #94A3B8;
+            --border-color: #334155;
+            --accent: #3B82F6;
+            --accent-dark: #2563EB;
+            --accent-bg: #1E3A5F;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -147,7 +175,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             position: relative;
         }
 
-        /* Back to Home Button */
+        body.dark {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
         .home-btn {
             position: fixed;
             top: 24px;
@@ -173,18 +204,49 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             transform: translateY(-2px);
         }
 
-        /* Main Container */
+        body.dark .home-btn {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .theme-toggle-btn {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 40px;
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        body.dark .theme-toggle-btn {
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-2px);
+        }
+
         .register-container {
             display: flex;
             max-width: 1100px;
             width: 100%;
-            background: white;
+            background: var(--bg-primary);
             border-radius: 32px;
             overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        /* Left Panel - Branding */
         .brand-panel {
             flex: 1;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -234,11 +296,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .logo-icon svg {
-            width: 24px;
-            height: 24px;
         }
 
         .logo-text {
@@ -314,11 +371,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: rgba(255, 255, 255, 0.4);
         }
 
-        /* Right Panel - Form */
         .form-panel {
             flex: 1.2;
             padding: 48px;
-            background: white;
+            background: var(--bg-primary);
             overflow-y: auto;
             max-height: 90vh;
         }
@@ -330,16 +386,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         .form-header h1 {
             font-size: 28px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text-primary);
             margin-bottom: 8px;
         }
 
         .form-header p {
             font-size: 14px;
-            color: #64748b;
+            color: var(--text-tertiary);
         }
 
-        /* Form Fields */
         .input-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -354,7 +409,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             display: block;
             font-size: 12px;
             font-weight: 600;
-            color: #475569;
+            color: var(--text-secondary);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -364,12 +419,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 100%;
             height: 44px;
             border-radius: 12px;
-            border: 1.5px solid #e2e8f0;
-            background: #f8fafc;
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-secondary);
             padding: 0 14px;
             font-size: 14px;
             transition: all 0.2s;
             outline: none;
+            color: var(--text-primary);
         }
 
         .input-group input:focus {
@@ -388,7 +444,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            color: #94a3b8;
+            color: var(--text-tertiary);
             letter-spacing: 1px;
         }
 
@@ -396,10 +452,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             content: '';
             flex: 1;
             height: 1px;
-            background: #e2e8f0;
+            background: var(--border-color);
         }
 
-        /* Submit Button */
         .submit-btn {
             width: 100%;
             height: 48px;
@@ -419,11 +474,18 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             transform: translateY(-2px);
         }
 
-        /* Error Box */
+        body.dark .submit-btn {
+            background: var(--accent);
+        }
+
+        body.dark .submit-btn:hover {
+            background: var(--accent-dark);
+        }
+
         .error-box {
-            background: #fef2f2;
+            background: var(--danger-bg);
             border: 1px solid #fecaca;
-            color: #dc2626;
+            color: var(--danger);
             padding: 12px 16px;
             border-radius: 12px;
             font-size: 13px;
@@ -433,10 +495,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             gap: 10px;
         }
 
-        /* Terms Note */
         .terms-note {
             font-size: 11px;
-            color: #94a3b8;
+            color: var(--text-tertiary);
             text-align: center;
             margin-top: 16px;
         }
@@ -446,12 +507,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             text-decoration: none;
         }
 
-        /* Footer Link */
         .form-footer {
             text-align: center;
             margin-top: 20px;
             font-size: 13px;
-            color: #64748b;
+            color: var(--text-tertiary);
         }
 
         .form-footer a {
@@ -474,7 +534,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .kyc-modal {
-            background: white;
+            background: var(--bg-primary);
             border-radius: 28px;
             padding: 40px;
             max-width: 420px;
@@ -513,13 +573,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         .kyc-modal h2 {
             font-size: 24px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text-primary);
             margin-bottom: 12px;
         }
 
         .kyc-modal p {
             font-size: 14px;
-            color: #64748b;
+            color: var(--text-tertiary);
             line-height: 1.6;
             margin-bottom: 28px;
         }
@@ -551,17 +611,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             background: #1e293b;
         }
 
+        body.dark .kyc-btn-primary {
+            background: var(--accent);
+        }
+
         .kyc-btn-secondary {
-            background: #f1f5f9;
-            color: #0f172a;
-            border: 1px solid #e2e8f0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
         }
 
         .kyc-btn-secondary:hover {
-            background: #e2e8f0;
+            background: var(--accent-bg);
         }
 
-        /* Responsive */
         @media (max-width: 900px) {
             .register-container {
                 flex-direction: column;
@@ -586,12 +649,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 max-height: none;
             }
             
-            .home-btn {
+            .home-btn, .theme-toggle-btn {
                 top: 16px;
-                left: 16px;
                 padding: 8px 16px;
                 font-size: 12px;
             }
+            .home-btn { left: 16px; }
+            .theme-toggle-btn { right: 16px; }
         }
 
         @media (max-width: 520px) {
@@ -611,6 +675,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 <a href="index.php" class="home-btn">
     <i class="fas fa-home"></i> Back to Home
 </a>
+
+<button class="theme-toggle-btn" id="themeToggleBtn">
+    <i class="fas fa-moon"></i> <span id="themeText">Dark</span>
+</button>
 
 <div class="register-container">
     <!-- Left Brand Panel -->
@@ -739,5 +807,31 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 <?php endif; ?>
 
+<script>
+    // Theme Toggle for Register Page
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeText = document.getElementById('themeText');
+    const themeIcon = themeToggleBtn.querySelector('i');
+    
+    if(localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+        themeIcon.className = 'fas fa-sun';
+        themeText.textContent = 'Light';
+    }
+    
+    themeToggleBtn.addEventListener('click', () => {
+        if(document.body.classList.contains('dark')) {
+            document.body.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+            themeIcon.className = 'fas fa-moon';
+            themeText.textContent = 'Dark';
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            themeIcon.className = 'fas fa-sun';
+            themeText.textContent = 'Light';
+        }
+    });
+</script>
 </body>
 </html>
