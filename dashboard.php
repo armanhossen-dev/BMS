@@ -8,8 +8,18 @@ if(!isLoggedIn() || !isClient()) {
 
 $userId = $_SESSION['user_id'];
 
+// Check if account is active
+$statusMessage = getAccountStatusMessage($pdo, $userId);
+if ($statusMessage) {
+    // Account is deactivated/frozen - only show message and feedback option
+    $accountActive = false;
+    setToast($statusMessage, 'warning');
+} else {
+    $accountActive = true;
+}
+
 // Get user account
-$stmt = $pdo->prepare("SELECT a.*, c.FirstName, c.LastName, c.Email, c.Phone, c.Address, c.DateOfBirth 
+$stmt = $pdo->prepare("SELECT a.*, c.FirstName, c.LastName, c.Email, c.Phone, c.Address, c.DateOfBirth, c.IsActive 
                        FROM ACCOUNT a 
                        JOIN CUSTOMER c ON a.CustomerID = c.CustomerID 
                        WHERE c.CustomerID = ?");
@@ -249,7 +259,12 @@ $nextTier = getNextTierInfo($balance);
             --accent-bg: #1E3A5F;
         }
         
-        body { font-family: var(--font-sans); background: var(--bg-secondary); color: var(--text-primary); transition: all 0.3s ease; }
+        body { 
+            font-family: var(--font-sans); 
+            background: var(--bg-secondary); 
+            color: var(--text-primary); 
+            transition: all 0.3s ease; 
+        }
         
         /* Navbar */
         .navbar {
@@ -515,10 +530,40 @@ $nextTier = getNextTierInfo($balance);
         .stat-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .stat-value { font-size: 20px; font-weight: 700; }
         
-        /* Glass Card */
-        .glass-card { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; margin-bottom: 24px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
-        
+
+        /* Glass Card - Ensure content is centered and full width */
+        .glass-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        /* Card Header - Centered */
+        .card-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-header span {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .card-header span i {
+            margin-right: 8px;
+            color: var(--accent);
+        }
+
+
+       
         /* Table */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
@@ -530,11 +575,154 @@ $nextTier = getNextTierInfo($balance);
         .badge-success { background: var(--success-bg); color: var(--success); }
         .badge-warning { background: var(--warning-bg); color: var(--warning); }
         
-        /* Quick Actions */
-        .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-top: 16px; }
-        .action-btn { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 40px; padding: 10px; text-align: center; text-decoration: none; color: var(--text-primary); font-size: 12px; font-weight: 500; transition: all 0.2s; }
-        .action-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
-        
+
+        /* Quick Actions Container - Full Width Centered */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        /* Action Button Styling - Full Width */
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .action-btn i {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Disabled Action Button */
+        .action-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--danger-bg);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .action-btn.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .action-btn.disabled:hover i {
+            transform: none;
+        }
+
+        /* Contact Support Button Specific */
+        .action-btn.contact-support {
+            background: var(--warning-bg);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .action-btn.contact-support:hover {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .quick-actions {
+                gap: 12px;
+            }
+            
+            .action-btn {
+                padding: 12px 12px;
+                font-size: 13px;
+            }
+            
+            .action-btn i {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .action-btn {
+                padding: 12px 12px;
+                font-size: 13px;
+            }
+            
+            .action-btn i {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-actions {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .action-btn {
+                padding: 14px 16px;
+                font-size: 14px;
+                justify-content: center;
+            }
+        }
+
+
+
+        /* Container Centering - 1200px max width */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            width: 100%;
+        }
+
+        /* Ensure content stays centered */
+        .glass-card {
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* For very large screens, keep centered */
+        @media (min-width: 1200px) {
+            .container {
+                padding: 24px 0;
+            }
+        }
         /* Theme Toggle */
         .theme-toggle { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 16px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
         .theme-toggle:hover { background: var(--accent-bg); }
@@ -738,6 +926,7 @@ $nextTier = getNextTierInfo($balance);
     </style>
 </head>
 <body>
+
     <nav class="navbar">
         <div class="logo">
             <div class="logo-icon">
@@ -795,8 +984,274 @@ $nextTier = getNextTierInfo($balance);
             <a href="logout.php" style="background: var(--danger); color: white; padding: 8px 16px; border-radius: 40px; text-decoration: none;"><?= __('logout') ?></a>
         </div>
     </nav>
-    
+
     <div class="container">
+
+        <div class="glass-card">
+    <div class="card-header">
+        <span><i class="fas fa-bolt"></i> <?= __('quick_actions') ?></span>
+    </div>
+    <div class="quick-actions">
+        <?php if($accountActive): ?>
+            <a href="transfer.php" class="action-btn">
+                <i class="fas fa-exchange-alt"></i> 
+                <span><?= __('transfer') ?></span>
+            </a>
+            <a href="deposit.php" class="action-btn">
+                <i class="fas fa-plus-circle"></i> 
+                <span><?= __('deposit') ?></span>
+            </a>
+            <a href="withdraw.php" class="action-btn">
+                <i class="fas fa-minus-circle"></i> 
+                <span><?= __('withdraw') ?></span>
+            </a>
+            <a href="profile.php" class="action-btn">
+                <i class="fas fa-user-edit"></i> 
+                <span><?= __('profile') ?></span>
+            </a>
+        <?php else: ?>
+            <div class="action-btn disabled">
+                <i class="fas fa-lock"></i> 
+                <span>Account Deactivated</span>
+            </div>
+            <a href="#" class="action-btn contact-support" onclick="openContactSupport(); return false;">
+                <i class="fas fa-headset"></i> 
+                <span>Contact Support</span>
+            </a>
+            <div class="action-btn disabled" style="visibility: hidden;"></div>
+            <div class="action-btn disabled" style="visibility: hidden;"></div>
+        <?php endif; ?>
+    </div>
+</div>
+    
+
+<!-- Reactivation Request Modal -->
+<div id="reactivationModal" class="reactivation-modal">
+    <div class="reactivation-modal-content">
+        <div class="reactivation-modal-header">
+            <h3><i class="fas fa-sync-alt"></i> Request Account Reactivation</h3>
+            <span class="close-reactivation" onclick="closeReactivationModal()">&times;</span>
+        </div>
+        <div class="reactivation-modal-body">
+            <p>Your account has been deactivated. Please provide a reason for reactivation request.</p>
+            <textarea id="reactivationReason" rows="4" placeholder="Explain why your account should be reactivated..."></textarea>
+            <div class="char-counter-reactivation"><span id="reactivationCharCount">0</span>/500 characters</div>
+            <button class="send-reactivation" onclick="sendReactivationRequest()">Submit Request <i class="fas fa-paper-plane"></i></button>
+            
+            <div id="existingRequestStatus" style="display: none; margin-top: 20px; padding: 15px; background: var(--accent-bg); border-radius: 12px;">
+                <h4><i class="fas fa-clock"></i> Your Request Status</h4>
+                <div id="requestStatusInfo"></div>
+            </div>
+        </div>
+        <div class="reactivation-modal-footer">
+            Our team will review your request within 24-48 hours
+        </div>
+    </div>
+</div>
+
+<style>
+/* Reactivation Modal Styles */
+.reactivation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 1001;
+    justify-content: center;
+    align-items: center;
+}
+.reactivation-modal-content {
+    background: var(--bg-primary);
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 500px;
+    width: 90%;
+    animation: modalSlideIn 0.3s ease;
+}
+.reactivation-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+.reactivation-modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+.close-reactivation {
+    cursor: pointer;
+    font-size: 24px;
+    transition: transform 0.2s;
+}
+.close-reactivation:hover {
+    transform: scale(1.1);
+}
+.reactivation-modal-body textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: inherit;
+    resize: vertical;
+    margin: 12px 0;
+}
+.char-counter-reactivation {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: right;
+    margin-bottom: 12px;
+}
+.send-reactivation {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.send-reactivation:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+}
+.reactivation-modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 16px;
+}
+.request-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.status-pending { background: var(--warning-bg); color: var(--warning); }
+.status-approved { background: var(--success-bg); color: var(--success); }
+.status-rejected { background: var(--danger-bg); color: var(--danger); }
+</style>
+
+<script>
+// Reactivation Request Functions
+function openReactivationModal() {
+    const modal = document.getElementById('reactivationModal');
+    modal.style.display = 'flex';
+    checkExistingRequest();
+}
+
+function closeReactivationModal() {
+    document.getElementById('reactivationModal').style.display = 'none';
+}
+
+// Character counter for reactivation reason
+const reactivationReason = document.getElementById('reactivationReason');
+const reactivationCharCount = document.getElementById('reactivationCharCount');
+if(reactivationReason) {
+    reactivationReason.addEventListener('input', function() {
+        reactivationCharCount.textContent = this.value.length;
+    });
+}
+
+function sendReactivationRequest() {
+    const reason = document.getElementById('reactivationReason').value;
+    
+    if(!reason || reason.length < 10) {
+        showToastMessage('Please provide a detailed reason (at least 10 characters)', 'error');
+        return;
+    }
+    
+    const formData = new URLSearchParams();
+    formData.append('reason', reason);
+    
+    fetch('reactivation_request.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            showToastMessage(data.message, 'success');
+            document.getElementById('reactivationReason').value = '';
+            reactivationCharCount.textContent = '0';
+            closeReactivationModal();
+            checkExistingRequest();
+        } else {
+            showToastMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToastMessage('Error sending request. Please try again.', 'error');
+    });
+}
+
+function checkExistingRequest() {
+    fetch('get_reactivation_status.php')
+        .then(response => response.json())
+        .then(data => {
+            if(data.has_request) {
+                const statusDiv = document.getElementById('existingRequestStatus');
+                const infoDiv = document.getElementById('requestStatusInfo');
+                
+                let statusText = '';
+                let statusClass = '';
+                switch(data.status) {
+                    case 'pending':
+                        statusText = 'Pending Review';
+                        statusClass = 'status-pending';
+                        break;
+                    case 'approved':
+                        statusText = 'Approved';
+                        statusClass = 'status-approved';
+                        break;
+                    case 'rejected':
+                        statusText = 'Rejected';
+                        statusClass = 'status-rejected';
+                        break;
+                }
+                
+                infoDiv.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <span class="request-status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div><strong>Your Reason:</strong> ${escapeHtml(data.reason)}</div>
+                    <div><strong>Submitted:</strong> ${data.created_at}</div>
+                    ${data.admin_reply ? `<div style="margin-top: 10px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;"><strong>Admin Response:</strong> ${escapeHtml(data.admin_reply)}</div>` : ''}
+                    ${data.estimated_timeframe ? `<div><strong>Estimated Timeframe:</strong> ${escapeHtml(data.estimated_timeframe)}</div>` : ''}
+                    ${data.reviewed_at ? `<div><strong>Reviewed:</strong> ${data.reviewed_at}</div>` : ''}
+                `;
+                
+                statusDiv.style.display = 'block';
+            } else {
+                document.getElementById('existingRequestStatus').style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Update the contact support function
+function openContactSupport() {
+    // Open reactivation modal directly
+    openReactivationModal();
+}
+</script>
+
+
+
         <!-- Clickable Balance Card with Tier Badge and Stars -->
         <div class="balance-card" id="balanceCard">
             <div class="card-tier-badge">
@@ -1501,6 +1956,72 @@ $nextTier = getNextTierInfo($balance);
             opacity: 0;
         }
     }
+    /* Main wrapper for centering */
+.main-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Card Header Styling */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-header span {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.card-header span i {
+    margin-right: 8px;
+    color: var(--accent);
+}
+
+/* Glass Card Responsive */
+.glass-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive padding adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+    
+    .glass-card {
+        padding: 18px;
+    }
+    
+    .card-header span {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+    
+    .glass-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+}
 
 </style>
 
@@ -1805,6 +2326,28 @@ function showToastMessage(message, type = 'success') {
         const dropdown = document.getElementById('notificationDropdown');
         if(dropdown) dropdown.classList.remove('show');
     });
+
+        function openContactSupport() {
+    // Open feedback modal automatically
+    const messageBubble = document.getElementById('messageBubble');
+    const feedbackModal = document.getElementById('feedbackModal');
+    if (messageBubble && feedbackModal) {
+        // Trigger the message bubble click to open modal
+        messageBubble.click();
+        // Pre-fill the subject
+        setTimeout(() => {
+            const subjectField = document.getElementById('feedbackSubject');
+            if (subjectField && !subjectField.value) {
+                subjectField.value = 'Account Deactivation - Need Assistance';
+                const messageField = document.getElementById('feedbackMessage');
+                if (messageField) {
+                    messageField.placeholder = 'My account has been deactivated. Please help me understand why and reactivate it.';
+                }
+            }
+        }, 300);
+    }
+}
+
 </script>
 
 

@@ -18,32 +18,23 @@ for($i = 6; $i >= 0; $i--) {
     $date = date('Y-m-d', strtotime("-$i days"));
     $dateLabel = date('D, M d', strtotime("-$i days"));
     
-    // Get deposits for the day
     $depositStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 1 AND DATE(TransactionDate) = ?");
     $depositStmt->execute([$date]);
     $deposits = $depositStmt->fetchColumn();
     
-    // Get withdrawals for the day
     $withdrawStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 2 AND DATE(TransactionDate) = ?");
     $withdrawStmt->execute([$date]);
     $withdrawals = $withdrawStmt->fetchColumn();
     
-    // Get transfers for the day
     $transferStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 3 AND DATE(TransactionDate) = ?");
     $transferStmt->execute([$date]);
     $transfers = $transferStmt->fetchColumn();
-    
-    // Get total transaction count
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM TRANSACTION WHERE DATE(TransactionDate) = ?");
-    $countStmt->execute([$date]);
-    $transactionCount = $countStmt->fetchColumn();
     
     $dailyData[] = [
         'date' => $dateLabel,
         'deposits' => floatval($deposits),
         'withdrawals' => floatval($withdrawals),
-        'transfers' => floatval($transfers),
-        'count' => intval($transactionCount)
+        'transfers' => floatval($transfers)
     ];
 }
 
@@ -107,9 +98,26 @@ if(isset($_GET['action'])) {
     }
     
     if($action == 'delete_customer' && isset($_GET['id'])) {
-        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 0 WHERE CustomerID = ?")->execute([$_GET['id']]);
-        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Closed' WHERE CustomerID = ?")->execute([$_GET['id']]);
-        setToast("Customer account deactivated", "warning");
+        $customerId = $_GET['id'];
+        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 0 WHERE CustomerID = ?")->execute([$customerId]);
+        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Closed' WHERE CustomerID = ?")->execute([$customerId]);
+        
+        // Send notification to the deactivated user
+        $pdo->prepare("INSERT INTO notifications (customer_id, title, message, type) VALUES (?, 'Account Deactivated', 'Your account has been deactivated by admin. Please contact customer support for assistance.', 'danger')")->execute([$customerId]);
+        
+        setToast("Customer account deactivated and notified", "warning");
+        redirect('index.php');
+    }
+
+    if($action == 'activate_customer' && isset($_GET['id'])) {
+        $customerId = $_GET['id'];
+        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 1 WHERE CustomerID = ?")->execute([$customerId]);
+        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Active' WHERE CustomerID = ?")->execute([$customerId]);
+        
+        // Send notification to the activated user
+        $pdo->prepare("INSERT INTO notifications (customer_id, title, message, type) VALUES (?, 'Account Reactivated', 'Your account has been reactivated by admin. You can now access all banking features again.', 'success')")->execute([$customerId]);
+        
+        setToast("Customer account activated and notified", "success");
         redirect('index.php');
     }
     
@@ -242,11 +250,37 @@ $tab = $_GET['tab'] ?? 'dashboard';
         .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .stat-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
         .stat-value { font-size: 28px; font-weight: 700; }
-        .stat-change { font-size: 11px; margin-top: 4px; }
-        .stat-change.up { color: var(--success); }
-        .stat-change.down { color: var(--danger); }
         
-        /* Charts Grid */
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 60px;
+            padding: 6px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .admin-tab {
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .admin-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+        .admin-tab i { margin-right: 8px; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Dashboard Tab Specific */
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -269,35 +303,6 @@ $tab = $_GET['tab'] ?? 'dashboard';
         }
         .chart-title i { color: var(--accent); }
         .chart-container { height: 300px; position: relative; }
-        
-        /* Tabs */
-        .admin-tabs {
-            display: flex;
-            gap: 8px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 60px;
-            padding: 6px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-        .admin-tab {
-            padding: 10px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 13px;
-            color: var(--text-secondary);
-            transition: all 0.2s;
-        }
-        .admin-tab.active {
-            background: var(--accent);
-            color: white;
-        }
-        .admin-tab i { margin-right: 8px; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
         
         /* Tables */
         .glass-card {
@@ -363,13 +368,19 @@ $tab = $_GET['tab'] ?? 'dashboard';
             color: var(--text-primary);
         }
         
+        .feedback-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .reply-form { display: none; margin-top: 12px; }
+        
         @media (max-width: 1000px) {
             .charts-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
             .navbar { flex-direction: column; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .admin-tab { padding: 8px 12px; font-size: 11px; }
+            .admin-tab { padding: 8px 16px; font-size: 12px; }
         }
     </style>
 </head>
@@ -392,7 +403,7 @@ $tab = $_GET['tab'] ?? 'dashboard';
     </nav>
     
     <div class="container">
-        <!-- Statistics Cards -->
+        <!-- Statistics Cards - Always Visible -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Total Customers</div>
@@ -412,84 +423,95 @@ $tab = $_GET['tab'] ?? 'dashboard';
             </div>
         </div>
         
-        <!-- Charts Section -->
-        <div class="charts-grid">
-            <!-- Daily Transaction Chart -->
-            <div class="chart-card">
-                <div class="chart-title">
-                    <i class="fas fa-chart-line"></i> Daily Transactions (Last 7 Days)
-                </div>
-                <div class="chart-container">
-                    <canvas id="dailyChart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Monthly Comparison Chart -->
-            <div class="chart-card">
-                <div class="chart-title">
-                    <i class="fas fa-chart-bar"></i> Monthly Deposits vs Withdrawals
-                </div>
-                <div class="chart-container">
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Top Customers & Recent Transactions -->
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="chart-title">
-                    <i class="fas fa-trophy"></i> Top Customers by Volume
-                </div>
-                <div class="table-container">
-                    <table style="width: 100%">
-                        <thead>
-                            <tr><th>Customer</th><th>Transactions</th><th>Total Volume</th></tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach($topCustomers as $tc): ?>
-                            <tr>
-                                <td><?= $tc['FirstName'] . ' ' . $tc['LastName'] ?> \(cid=<?= $tc['CustomerID'] ?>)</td>
-                                <td><?= $tc['transaction_count'] ?></td>
-                                <td><?= formatBDT($tc['total_volume']) ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="chart-card">
-                <div class="chart-title">
-                    <i class="fas fa-clock"></i> Recent Transactions
-                </div>
-                <div class="table-container">
-                    <table style="width: 100%">
-                        <thead>
-                            <tr><th>Date</th><th>Type</th><th>Amount</th><th>Customer</th></tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach($recentTransactions as $rt): ?>
-                            <tr>
-                                <td><?= date('d M H:i', strtotime($rt['TransactionDate'])) ?></td>
-                                <td><?= $rt['TypeName'] ?></td>
-                                <td><?= formatBDT($rt['TransactionAmount']) ?></td>
-                                <td><?= $rt['FirstName'] ?? 'System' ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Tabs for Management -->
+        <!-- Tabs Navigation -->
         <div class="admin-tabs">
-            <div class="admin-tab <?= $tab == 'dashboard' ? 'active' : '' ?>" data-tab="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
-            <div class="admin-tab <?= $tab == 'staff' ? 'active' : '' ?>" data-tab="staff"><i class="fas fa-users"></i> Staff Management</div>
-            <div class="admin-tab <?= $tab == 'customers' ? 'active' : '' ?>" data-tab="customers"><i class="fas fa-user-friends"></i> Customers</div>
-            <div class="admin-tab <?= $tab == 'notifications' ? 'active' : '' ?>" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</div>
-            <div class="admin-tab <?= $tab == 'staff_messages' ? 'active' : '' ?>" data-tab="staff_messages"><i class="fas fa-envelope"></i> Staff Messages</div>
+            <div class="admin-tab <?= $tab == 'dashboard' ? 'active' : '' ?>" data-tab="dashboard">
+                <i class="fas fa-chart-pie"></i> Dashboard
+            </div>
+            <div class="admin-tab <?= $tab == 'staff' ? 'active' : '' ?>" data-tab="staff">
+                <i class="fas fa-users"></i> Staff Management
+            </div>
+            <div class="admin-tab <?= $tab == 'customers' ? 'active' : '' ?>" data-tab="customers">
+                <i class="fas fa-user-friends"></i> Customers
+            </div>
+            <div class="admin-tab <?= $tab == 'notifications' ? 'active' : '' ?>" data-tab="notifications">
+                <i class="fas fa-bell"></i> Notifications
+            </div>
+            <div class="admin-tab <?= $tab == 'staff_messages' ? 'active' : '' ?>" data-tab="staff_messages">
+                <i class="fas fa-envelope"></i> Staff Messages
+            </div>
+        </div>
+        
+        <!-- Dashboard Tab Content -->
+        <div id="dashboardTab" class="tab-content <?= $tab == 'dashboard' ? 'active' : '' ?>">
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line"></i> Daily Transactions (Last 7 Days)
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-bar"></i> Monthly Deposits vs Withdrawals
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Customers & Recent Transactions -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-trophy"></i> Top Customers by Volume
+                    </div>
+                    <div class="table-container">
+                        <table style="width: 100%">
+                            <thead>
+                                <tr><th>Customer</th><th>Transactions</th><th>Total Volume</th></tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($topCustomers as $tc): ?>
+                                <tr>
+                                    <td><?= $tc['FirstName'] . ' ' . $tc['LastName'] ?> (ID: <?= $tc['CustomerID'] ?>)</td>
+                                    <td><?= $tc['transaction_count'] ?></td>
+                                    <td><?= formatBDT($tc['total_volume']) ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-clock"></i> Recent Transactions
+                    </div>
+                    <div class="table-container">
+                        <table style="width: 100%">
+                            <thead>
+                                <tr><th>Date</th><th>Type</th><th>Amount</th><th>Customer</th></tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($recentTransactions as $rt): ?>
+                                <tr>
+                                    <td><?= date('d M H:i', strtotime($rt['TransactionDate'])) ?></td>
+                                    <td><?= $rt['TypeName'] ?></td>
+                                    <td><?= formatBDT($rt['TransactionAmount']) ?></td>
+                                    <td><?= $rt['FirstName'] ?? 'System' ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Staff Management Tab -->
@@ -586,7 +608,7 @@ $tab = $_GET['tab'] ?? 'dashboard';
             <div class="glass-card">
                 <div class="card-header"><h3><i class="fas fa-envelope"></i> Messages from Staff</h3></div>
                 <?php foreach($staffMessages as $msg): ?>
-                <div class="feedback-item" style="padding: 16px; border-bottom: 1px solid var(--border-color);">
+                <div class="feedback-item">
                     <div><strong><?= htmlspecialchars($msg['subject']) ?></strong> <span class="badge badge-pending"><?= $msg['status'] ?></span></div>
                     <div><small>From: <?= $msg['first_name'] . ' ' . $msg['last_name'] ?></small></div>
                     <div><?= nl2br(htmlspecialchars($msg['message'])) ?></div>
@@ -594,7 +616,7 @@ $tab = $_GET['tab'] ?? 'dashboard';
                         <div style="background: var(--accent-bg); padding: 12px; border-radius: 12px; margin-top: 10px;"><strong>Reply:</strong> <?= nl2br(htmlspecialchars($msg['admin_reply'])) ?></div>
                     <?php else: ?>
                         <button class="btn btn-primary btn-sm" onclick="openReplyModal(<?= $msg['message_id'] ?>)">Reply</button>
-                        <div id="replyForm-<?= $msg['message_id'] ?>" style="display: none; margin-top: 12px;">
+                        <div id="replyForm-<?= $msg['message_id'] ?>" class="reply-form">
                             <form method="POST">
                                 <input type="hidden" name="message_id" value="<?= $msg['message_id'] ?>">
                                 <textarea name="admin_reply" rows="3" style="width:100%; padding:10px; border-radius:10px;"></textarea>
@@ -623,7 +645,12 @@ $tab = $_GET['tab'] ?? 'dashboard';
                 <input type="text" name="phone" placeholder="Phone">
                 <input type="text" name="username" placeholder="Username" required>
                 <input type="password" name="password" placeholder="Password" required>
-                <select name="role"><option value="manager">Manager</option><option value="officer">Officer</option><option value="teller">Teller</option><option value="support">Support</option></select>
+                <select name="role">
+                    <option value="manager">Manager</option>
+                    <option value="officer">Officer</option>
+                    <option value="teller">Teller</option>
+                    <option value="support">Support</option>
+                </select>
                 <input type="text" name="department" placeholder="Department">
                 <button type="submit" class="btn btn-primary" style="width:100%">Add Staff</button>
                 <button type="button" class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="closeStaffModal()">Cancel</button>
@@ -639,7 +666,11 @@ $tab = $_GET['tab'] ?? 'dashboard';
                 <select name="send_to"><option value="all">All Customers</option></select>
                 <input type="text" name="title" placeholder="Title" required>
                 <textarea name="message" rows="4" placeholder="Message" required></textarea>
-                <select name="type"><option value="info">Info</option><option value="success">Success</option><option value="warning">Warning</option></select>
+                <select name="type">
+                    <option value="info">Info</option>
+                    <option value="success">Success</option>
+                    <option value="warning">Warning</option>
+                </select>
                 <button type="submit" class="btn btn-primary" style="width:100%">Send</button>
                 <button type="button" class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="closeNotificationModal()">Cancel</button>
             </form>
@@ -657,84 +688,52 @@ $tab = $_GET['tab'] ?? 'dashboard';
         const monthlyDeposits = <?= json_encode(array_column($monthlyData, 'deposits')) ?>;
         const monthlyWithdrawals = <?= json_encode(array_column($monthlyData, 'withdrawals')) ?>;
         
-        // Format currency for charts
         function formatCurrency(value) {
             return '৳ ' + (value / 1000).toFixed(1) + 'K';
         }
         
-        // Daily Line Chart
-        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-        new Chart(dailyCtx, {
-            type: 'line',
-            data: {
-                labels: dailyLabels,
-                datasets: [
-                    {
-                        label: 'Deposits (BDT)',
-                        data: dailyDeposits,
-                        borderColor: '#3B6D11',
-                        backgroundColor: 'rgba(59, 109, 17, 0.1)',
-                        tension: 0.4,
-                        fill: true
+        // Initialize charts only if we're on dashboard tab
+        function initCharts() {
+            const dailyChartElement = document.getElementById('dailyChart');
+            const monthlyChartElement = document.getElementById('monthlyChart');
+            
+            if (dailyChartElement) {
+                new Chart(dailyChartElement.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: dailyLabels,
+                        datasets: [
+                            { label: 'Deposits (BDT)', data: dailyDeposits, borderColor: '#3B6D11', backgroundColor: 'rgba(59, 109, 17, 0.1)', tension: 0.4, fill: true },
+                            { label: 'Withdrawals (BDT)', data: dailyWithdrawals, borderColor: '#A32D2D', backgroundColor: 'rgba(163, 45, 45, 0.1)', tension: 0.4, fill: true },
+                            { label: 'Transfers (BDT)', data: dailyTransfers, borderColor: '#185FA5', backgroundColor: 'rgba(24, 95, 165, 0.1)', tension: 0.4, fill: true }
+                        ]
                     },
-                    {
-                        label: 'Withdrawals (BDT)',
-                        data: dailyWithdrawals,
-                        borderColor: '#A32D2D',
-                        backgroundColor: 'rgba(163, 45, 45, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Transfers (BDT)',
-                        data: dailyTransfers,
-                        borderColor: '#185FA5',
-                        backgroundColor: 'rgba(24, 95, 165, 0.1)',
-                        tension: 0.4,
-                        fill: true
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatCurrency(ctx.raw); } } } }
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + formatCurrency(context.raw); } } }
-                }
+                });
             }
-        });
-        
-        // Monthly Bar Chart
-        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-        new Chart(monthlyCtx, {
-            type: 'bar',
-            data: {
-                labels: monthlyLabels,
-                datasets: [
-                    {
-                        label: 'Deposits',
-                        data: monthlyDeposits,
-                        backgroundColor: '#3B6D11',
-                        borderRadius: 8
+            
+            if (monthlyChartElement) {
+                new Chart(monthlyChartElement.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: monthlyLabels,
+                        datasets: [
+                            { label: 'Deposits', data: monthlyDeposits, backgroundColor: '#3B6D11', borderRadius: 8 },
+                            { label: 'Withdrawals', data: monthlyWithdrawals, backgroundColor: '#A32D2D', borderRadius: 8 }
+                        ]
                     },
-                    {
-                        label: 'Withdrawals',
-                        data: monthlyWithdrawals,
-                        backgroundColor: '#A32D2D',
-                        borderRadius: 8
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatCurrency(ctx.raw); } } } }
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + formatCurrency(context.raw); } } }
-                }
+                });
             }
-        });
+        }
         
         // Theme Toggle
         const themeToggle = document.getElementById('themeToggle');
@@ -746,16 +745,43 @@ $tab = $_GET['tab'] ?? 'dashboard';
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
             themeToggle.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Light' : '<i class="fas fa-moon"></i> Dark';
-            setTimeout(() => location.reload(), 100);
         });
         
-        // Tab switching
+        // Tab switching - No page reload, just show/hide
         document.querySelectorAll('.admin-tab').forEach(tab => {
             tab.addEventListener('click', function() {
-                window.location.href = `?tab=${this.dataset.tab}`;
+                const tabName = this.dataset.tab;
+                
+                // Update URL without reload
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', tabName);
+                window.history.pushState({}, '', url);
+                
+                // Update active tab
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show/hide tab contents
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(tabName + 'Tab').classList.add('active');
+                
+                // If dashboard tab is selected and charts not initialized, initialize them
+                if (tabName === 'dashboard' && !window.chartsInitialized) {
+                    setTimeout(() => {
+                        initCharts();
+                        window.chartsInitialized = true;
+                    }, 100);
+                }
             });
         });
         
+        // Initialize charts if dashboard is active on page load
+        if (document.getElementById('dashboardTab').classList.contains('active')) {
+            initCharts();
+            window.chartsInitialized = true;
+        }
+        
+        // Modal functions
         function openStaffModal() { document.getElementById('staffModal').style.display = 'flex'; }
         function closeStaffModal() { document.getElementById('staffModal').style.display = 'none'; }
         function openNotificationModal() { document.getElementById('notificationModal').style.display = 'flex'; }

@@ -678,3 +678,23 @@ INSERT IGNORE INTO staff (first_name, last_name, email, phone, username, passwor
 ('Amit', 'Verma', 'amit@ashabank.bd', '01710000003', 'amit', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'teller', 'Retail Banking', CURDATE(), 1);
 
 SELECT '✅ Staff table fixed!' AS Status;
+
+
+-- Add reactivation requests table
+USE asha_bank;
+
+CREATE TABLE IF NOT EXISTS reactivation_requests (
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    reason TEXT NOT NULL,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    admin_reply TEXT,
+    estimated_timeframe VARCHAR(100),
+    reviewed_by INT,
+    reviewed_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES ADMIN_USER(AdminID) ON DELETE SET NULL
+);
+
+SELECT '✅ Reactivation requests table created!' AS Status;

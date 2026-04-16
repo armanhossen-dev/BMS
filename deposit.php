@@ -7,6 +7,14 @@ if(!isLoggedIn() || !isClient()) {
 }
 
 $userId = $_SESSION['user_id'];
+
+// Check if account is active
+$statusMessage = getAccountStatusMessage($pdo, $userId);
+if ($statusMessage) {
+    setToast($statusMessage, 'warning');
+    redirect('dashboard.php');
+}
+
 $userAccount = getUserAccount($pdo, $userId);
 $error = '';
 

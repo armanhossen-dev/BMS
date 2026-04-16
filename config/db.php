@@ -59,6 +59,34 @@ function isClient() {
     return isset($_SESSION['role']) && $_SESSION['role'] == 'client';
 }
 
+// Check if client account is active
+function isAccountActive($pdo, $userId) {
+    $stmt = $pdo->prepare("SELECT IsActive FROM CUSTOMER WHERE CustomerID = ?");
+    $stmt->execute([$userId]);
+    $result = $stmt->fetch();
+    return $result && $result['IsActive'] == 1;
+}
+
+// Check if account is frozen
+function isAccountFrozen($pdo, $userId) {
+    $stmt = $pdo->prepare("SELECT AccountStatus FROM ACCOUNT WHERE CustomerID = ?");
+    $stmt->execute([$userId]);
+    $result = $stmt->fetch();
+    return $result && $result['AccountStatus'] == 'Frozen';
+}
+
+// Get account status message
+function getAccountStatusMessage($pdo, $userId) {
+    $stmt = $pdo->prepare("SELECT c.IsActive, a.AccountStatus FROM CUSTOMER c JOIN ACCOUNT a ON c.CustomerID = a.CustomerID WHERE c.CustomerID = ?");
+    $stmt->execute([$userId]);
+    $result = $stmt->fetch();
+    
+    if (!$result) return "Account not found";
+    if ($result['IsActive'] == 0) return "Your account has been deactivated. Please contact customer support.";
+    if ($result['AccountStatus'] == 'Frozen') return "Your account has been frozen. Please contact customer support.";
+    return null;
+}
+
 function redirect($url) {
     header("Location: $url");
     exit();
@@ -78,7 +106,7 @@ function getToast() {
 }
 
 function getUserAccount($pdo, $userId) {
-    $stmt = $pdo->prepare("SELECT a.*, c.FirstName, c.LastName, c.Email, c.Phone 
+    $stmt = $pdo->prepare("SELECT a.*, c.FirstName, c.LastName, c.Email, c.Phone, c.IsActive 
                            FROM ACCOUNT a 
                            JOIN CUSTOMER c ON a.CustomerID = c.CustomerID 
                            WHERE c.CustomerID = ?");

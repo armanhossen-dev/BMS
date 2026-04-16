@@ -7,6 +7,17 @@ if(!isLoggedIn() || !isClient()) {
 }
 
 $userId = $_SESSION['user_id'];
+
+// Check if account is active
+$statusMessage = getAccountStatusMessage($pdo, $userId);
+if ($statusMessage) {
+    setToast($statusMessage, 'warning');
+    redirect('dashboard.php');
+}
+
+$statusMessage = getAccountStatusMessage($pdo, $userId);
+$accountActive = !$statusMessage;
+
 $error = '';
 $success = '';
 
@@ -108,6 +119,16 @@ if(isset($_POST['delete_account'])) {
 
 $tab = $_GET['tab'] ?? 'profile';
 ?>
+
+<?php if(!$accountActive): ?>
+    <div class="error-message" style="margin-bottom: 20px;">
+        <i class="fas fa-lock"></i> Your account is deactivated. You cannot update your profile. Please contact support.
+    </div>
+<?php endif; ?>
+
+<!-- Add readonly/disabled attributes to form inputs -->
+<input type="text" name="first_name" value="<?= htmlspecialchars($userData['FirstName'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?> required>
+
 <!DOCTYPE html>
 <html lang="<?= current_lang() ?>">
 <head>

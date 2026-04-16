@@ -7,6 +7,7 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'staff') {
 
 $staffId = $_SESSION['user_id'];
 
+
 // Get pending KYC
 $pendingKYC = $pdo->query("SELECT COUNT(*) FROM kyc_verifications WHERE status = 'pending'")->fetchColumn();
 $todayTrans = $pdo->query("SELECT COUNT(*) FROM TRANSACTION WHERE DATE(TransactionDate) = CURDATE()")->fetchColumn();
