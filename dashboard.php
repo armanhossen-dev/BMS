@@ -274,67 +274,137 @@ $nextTier = getNextTierInfo($balance);
         .nav-menu a:hover { background: var(--bg-secondary); color: var(--accent); }
         
         /* Notification Bell */
-        .notification-container { position: relative; cursor: pointer; }
-        .notification-bell { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
-        .notification-badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; }
-        .notification-dropdown { position: absolute; top: 45px; right: 0; width: 380px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-lg); display: none; z-index: 200; }
-        .notification-dropdown.show { display: block; }
-        .notification-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; font-weight: 600; }
-        .notification-item { padding: 12px 16px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; }
-        .notification-item:hover { background: var(--bg-secondary); }
-        .notification-item.unread { background: var(--accent-bg); }
-        .notification-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-        .notification-message { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
-        .notification-time { font-size: 10px; color: var(--text-tertiary); }
-        
-        /* Notification Modal */
-        .notification-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .notification-modal-content {
-            background: var(--bg-primary);
-            border-radius: 24px;
-            padding: 28px;
-            max-width: 450px;
-            width: 90%;
-            position: relative;
-            animation: modalSlideIn 0.3s ease;
-        }
-        @keyframes modalSlideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .notification-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .notification-modal-header h3 { font-size: 18px; }
-        .close-notification-modal { cursor: pointer; font-size: 24px; transition: transform 0.2s; }
-        .close-notification-modal:hover { transform: scale(1.1); }
-        .notification-modal-body { margin-bottom: 20px; }
-        .notification-modal-body p { line-height: 1.6; color: var(--text-secondary); font-size: 14px; }
-        .notification-type-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
-        .notification-type-icon.success { background: var(--success-bg); color: var(--success); }
-        .notification-type-icon.warning { background: var(--warning-bg); color: var(--warning); }
-        .notification-type-icon.info { background: var(--accent-bg); color: var(--accent); }
-        .notification-type-icon.danger { background: var(--danger-bg); color: var(--danger); }
-        .notification-type-icon i { font-size: 24px; }
-        .btn-close-modal { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .btn-close-modal:hover { background: var(--accent-dark); transform: translateY(-2px); }
+       .notification-container {
+        position: relative;
+        cursor: pointer;
+    }
+    .notification-bell {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 40px;
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .notification-bell:hover {
+        background: var(--accent-bg);
+    }
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--danger);
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+    .notification-dropdown {
+        position: absolute;
+        top: 45px;
+        right: 0;
+        width: 380px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: var(--shadow-lg);
+        display: none;
+        z-index: 200;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .notification-dropdown.show {
+        display: block;
+    }
+    .notification-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        background: var(--bg-primary);
+    }
+    .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .notification-item:hover {
+        background: var(--bg-secondary);
+    }
+    .notification-item.unread {
+        background: var(--accent-bg);
+    }
+    .notification-title {
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .notification-message {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+    .notification-time {
+        font-size: 10px;
+        color: var(--text-tertiary);
+    }
+    
+    /* Notification Modal */
+    .notification-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .notification-modal-content {
+        background: var(--bg-primary);
+        border-radius: 24px;
+        padding: 28px;
+        max-width: 450px;
+        width: 90%;
+        animation: modalSlideIn 0.3s ease;
+    }
+    @keyframes modalSlideIn {
+        from { transform: translateY(-30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .notification-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .notification-modal-header h3 { font-size: 18px; }
+    .close-notification-modal { cursor: pointer; font-size: 24px; }
+    .notification-modal-body { margin-bottom: 20px; }
+    .notification-modal-body p { line-height: 1.6; color: var(--text-secondary); font-size: 14px; }
+    .notification-type-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+    .notification-type-icon.success { background: var(--success-bg); color: var(--success); }
+    .notification-type-icon.warning { background: var(--warning-bg); color: var(--warning); }
+    .notification-type-icon.info { background: var(--accent-bg); color: var(--accent); }
+    .notification-type-icon.danger { background: var(--danger-bg); color: var(--danger); }
+    .notification-type-icon i { font-size: 24px; }
+    .btn-close-modal { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; }
+
         
         /* Container */
         .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
@@ -686,39 +756,39 @@ $nextTier = getNextTierInfo($balance);
             </div>
             
             <!-- Notification Bell -->
-            <div class="notification-container" onclick="toggleNotifications(event)">
-                <div class="notification-bell">
-                    <i class="fas fa-bell"></i>
-                    <span>Notif</span>
-                    <?php if($unreadCount > 0): ?>
-                        <span class="notification-badge"><?= $unreadCount ?></span>
-                    <?php endif; ?>
-                </div>
-                <div class="notification-dropdown" id="notificationDropdown">
-                    <div class="notification-header">
-                        <span>Notifications</span>
-                        <?php if($unreadCount > 0): ?>
-                            <a href="?mark_all_read=1" style="font-size: 11px; color: var(--accent);">Mark all read</a>
-                        <?php endif; ?>
+<div class="notification-container" onclick="toggleNotifications(event)">
+    <div class="notification-bell">
+        <i class="fas fa-bell"></i>
+        <span>Notif</span>
+        <?php if($unreadCount > 0): ?>
+            <span class="notification-badge"><?= $unreadCount ?></span>
+        <?php endif; ?>
+    </div>
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">
+            <span>Notifications</span>
+            <?php if($unreadCount > 0): ?>
+                <a href="?mark_all_read=1" style="font-size: 11px; color: var(--accent);">Mark all read</a>
+            <?php endif; ?>
+        </div>
+        <div style="max-height: 350px; overflow-y: auto;">
+            <?php if(empty($notifList)): ?>
+                <div style="padding: 40px; text-align: center; color: var(--text-tertiary);">No notifications</div>
+            <?php else: ?>
+                <?php foreach($notifList as $notif): ?>
+                    <div class="notification-item <?= $notif['is_read'] ? '' : 'unread' ?>" onclick="event.stopPropagation(); showNotificationModal(<?= htmlspecialchars(json_encode($notif)) ?>)">
+                        <div class="notification-title">
+                            <i class="fas <?= $notif['type'] == 'success' ? 'fa-check-circle' : ($notif['type'] == 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle') ?>"></i>
+                            <?= htmlspecialchars($notif['title']) ?>
+                        </div>
+                        <div class="notification-message"><?= htmlspecialchars(substr($notif['message'], 0, 60)) ?>...</div>
+                        <div class="notification-time"><?= date('d M Y, h:i A', strtotime($notif['created_at'])) ?></div>
                     </div>
-                    <div style="max-height: 400px; overflow-y: auto;">
-                        <?php if(empty($notifList)): ?>
-                            <div style="padding: 40px; text-align: center; color: var(--text-tertiary);">No notifications</div>
-                        <?php else: ?>
-                            <?php foreach($notifList as $notif): ?>
-                                <div class="notification-item <?= $notif['is_read'] ? '' : 'unread' ?>" onclick="event.stopPropagation(); showNotificationModal(<?= htmlspecialchars(json_encode($notif)) ?>)">
-                                    <div class="notification-title">
-                                        <i class="fas <?= $notif['type'] == 'success' ? 'fa-check-circle' : ($notif['type'] == 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle') ?>"></i>
-                                        <?= htmlspecialchars($notif['title']) ?>
-                                    </div>
-                                    <div class="notification-message"><?= htmlspecialchars(substr($notif['message'], 0, 60)) ?>...</div>
-                                    <div class="notification-time"><?= date('d M Y, h:i A', strtotime($notif['created_at'])) ?></div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
             
             <span><i class="fas fa-user"></i> <?= htmlspecialchars($account['FirstName']) ?></span>
             <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Dark</button>
@@ -856,20 +926,20 @@ $nextTier = getNextTierInfo($balance);
     </div>
     
     <!-- Notification Modal -->
-    <div id="notificationModal" class="notification-modal">
-        <div class="notification-modal-content">
-            <div class="notification-modal-header">
-                <h3 id="notifModalTitle"></h3>
-                <span class="close-notification-modal" onclick="closeNotificationModal()">&times;</span>
-            </div>
-            <div class="notification-modal-body">
-                <div id="notifModalIcon" class="notification-type-icon"></div>
-                <p id="notifModalMessage"></p>
-                <p id="notifModalTime" style="font-size: 11px; color: var(--text-tertiary); margin-top: 12px;"></p>
-            </div>
-            <button class="btn-close-modal" onclick="closeNotificationModal()">Close</button>
+<div id="notificationModal" class="notification-modal">
+    <div class="notification-modal-content">
+        <div class="notification-modal-header">
+            <h3 id="notifModalTitle"></h3>
+            <span class="close-notification-modal" onclick="closeNotificationModal()">&times;</span>
         </div>
+        <div class="notification-modal-body">
+            <div id="notifModalIcon" class="notification-type-icon"></div>
+            <p id="notifModalMessage"></p>
+            <p id="notifModalTime" style="font-size: 11px; color: var(--text-tertiary); margin-top: 12px;"></p>
+        </div>
+        <button class="btn-close-modal" onclick="closeNotificationModal()">Close</button>
     </div>
+</div>
     
  <!-- Premium Credit Card Modal -->
   <div id="cardModal" class="card-modal">
@@ -1176,6 +1246,8 @@ $nextTier = getNextTierInfo($balance);
             <!-- Floating Message Bubble -->
 <style>
     /* Floating Message Button */
+    
+/* Message Bubble - Bottom Right */
     .message-bubble {
         position: fixed;
         bottom: 30px;
@@ -1265,7 +1337,7 @@ $nextTier = getNextTierInfo($balance);
     }
     .feedback-body textarea {
         width: 100%;
-        height: 150px;
+        height: 120px;
         padding: 12px;
         border: 1px solid var(--border-color);
         border-radius: 12px;
@@ -1275,16 +1347,7 @@ $nextTier = getNextTierInfo($balance);
         resize: none;
         margin-bottom: 12px;
     }
-    .feedback-body select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        margin-bottom: 12px;
-    }
-    .feedback-body input {
+    .feedback-body select, .feedback-body input {
         width: 100%;
         padding: 10px;
         border: 1px solid var(--border-color);
@@ -1333,39 +1396,112 @@ $nextTier = getNextTierInfo($balance);
         font-size: 12px;
     }
     .feedback-history {
-        max-height: 300px;
+        max-height: 250px;
         overflow-y: auto;
     }
     .feedback-item {
-        padding: 12px;
+        padding: 10px;
         border-bottom: 1px solid var(--border-color);
     }
     .feedback-item .subject {
         font-weight: 600;
-        font-size: 13px;
+        font-size: 12px;
     }
     .feedback-item .message {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--text-secondary);
         margin-top: 4px;
     }
     .feedback-item .reply {
         background: var(--accent-bg);
-        padding: 8px;
-        border-radius: 10px;
-        margin-top: 8px;
-        font-size: 11px;
+        padding: 6px;
+        border-radius: 8px;
+        margin-top: 6px;
+        font-size: 10px;
     }
     .feedback-item .status {
         display: inline-block;
-        padding: 2px 8px;
+        padding: 2px 6px;
         border-radius: 20px;
-        font-size: 10px;
-        margin-top: 6px;
+        font-size: 9px;
+        margin-top: 4px;
     }
     .status-pending { background: var(--warning-bg); color: var(--warning); }
     .status-replied { background: var(--success-bg); color: var(--success); }
     .status-resolved { background: var(--accent-bg); color: var(--accent); }
+
+    /* Toast Notification - Top Right Position */
+    .toast-notification {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: var(--bg-primary);
+        border-left: 4px solid var(--success);
+        padding: 14px 20px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideInRight 0.3s ease;
+        font-size: 14px;
+        min-width: 280px;
+        max-width: 400px;
+    }
+
+    .toast-notification.success {
+        border-left-color: var(--success);
+    }
+    .toast-notification.error {
+        border-left-color: var(--danger);
+    }
+    .toast-notification.warning {
+        border-left-color: var(--warning);
+    }
+    .toast-notification.info {
+        border-left-color: var(--accent);
+    }
+
+    .toast-notification i {
+        font-size: 18px;
+    }
+
+    .toast-notification.success i {
+        color: var(--success);
+    }
+    .toast-notification.error i {
+        color: var(--danger);
+    }
+    .toast-notification.warning i {
+        color: var(--warning);
+    }
+    .toast-notification.info i {
+        color: var(--accent);
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
 </style>
 
 <?php
@@ -1375,7 +1511,24 @@ $unreadReplies->execute([$userId]);
 $replyCount = $unreadReplies->fetchColumn();
 ?>
 
-<!-- Floating Message Bubble -->
+<?php
+// Get unread notifications count
+$unreadNotif = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE customer_id = ? AND is_read = 0");
+$unreadNotif->execute([$userId]);
+$unreadCount = $unreadNotif->fetchColumn();
+
+// Get all notifications
+$notifications = $pdo->prepare("SELECT * FROM notifications WHERE customer_id = ? ORDER BY created_at DESC LIMIT 20");
+$notifications->execute([$userId]);
+$notifList = $notifications->fetchAll();
+
+// Get unread feedback replies count
+$unreadReplies = $pdo->prepare("SELECT COUNT(*) FROM feedback WHERE customer_id = ? AND status = 'replied'");
+$unreadReplies->execute([$userId]);
+$replyCount = $unreadReplies->fetchColumn();
+?>
+
+<!-- Message Bubble - Bottom Right -->
 <div class="message-bubble" id="messageBubble">
     <i class="fas fa-comment-dots"></i>
     <?php if($replyCount > 0): ?>
@@ -1386,12 +1539,12 @@ $replyCount = $unreadReplies->fetchColumn();
 <!-- Feedback Modal -->
 <div id="feedbackModal" class="feedback-modal">
     <div class="feedback-header">
-        <h3><i class="fas fa-comment"></i> Share Your Feedback</h3>
+        <h3><i class="fas fa-comment"></i> Send Feedback to Bank</h3>
         <span class="close-feedback" onclick="closeFeedbackModal()">&times;</span>
     </div>
     <div class="feedback-body">
         <select id="feedbackType">
-            <option value="feedback">💬 Feedback</option>
+            <option value="feedback">💬 General Feedback</option>
             <option value="complaint">⚠️ Complaint</option>
             <option value="suggestion">💡 Suggestion</option>
             <option value="issue">🔧 Technical Issue</option>
@@ -1411,17 +1564,17 @@ $replyCount = $unreadReplies->fetchColumn();
         </div>
     </div>
     <div class="feedback-footer">
-        We'll respond within 24 hours
+        Our team will respond within 24 hours
     </div>
 </div>
 
 <script>
     // Character counter
-    const messageInput = document.getElementById('feedbackMessage');
+    const messageInputFB = document.getElementById('feedbackMessage');
     const charCountSpan = document.getElementById('charCount');
     
-    if(messageInput) {
-        messageInput.addEventListener('input', function() {
+    if(messageInputFB) {
+        messageInputFB.addEventListener('input', function() {
             charCountSpan.textContent = this.value.length;
         });
     }
@@ -1434,7 +1587,6 @@ $replyCount = $unreadReplies->fetchColumn();
         messageBubble.addEventListener('click', function(e) {
             e.stopPropagation();
             feedbackModal.classList.toggle('show');
-            loadFeedbackHistory();
         });
     }
     
@@ -1449,38 +1601,126 @@ $replyCount = $unreadReplies->fetchColumn();
     });
     
     // Send feedback
-    function sendFeedback() {
-        const type = document.getElementById('feedbackType').value;
-        const subject = document.getElementById('feedbackSubject').value;
-        const message = document.getElementById('feedbackMessage').value;
-        
-        if(!subject || !message) {
-            alert('Please fill in both subject and message');
-            return;
-        }
-        
-        fetch('send_feedback.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `type=${type}&subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                alert('Feedback sent successfully! We will respond shortly.');
-                document.getElementById('feedbackSubject').value = '';
-                document.getElementById('feedbackMessage').value = '';
-                if(charCountSpan) charCountSpan.textContent = '0';
-                closeFeedbackModal();
-            } else {
-                alert('Error: ' + data.error);
-            }
-        })
-        .catch(error => {
-            alert('Error sending feedback: ' + error);
-        });
+// Send feedback with toast notification instead of alert
+function sendFeedback() {
+    const type = document.getElementById('feedbackType').value;
+    const subject = document.getElementById('feedbackSubject').value;
+    const message = document.getElementById('feedbackMessage').value;
+    
+    if(!subject || !message) {
+        showToastMessage('Please fill in both subject and message', 'error');
+        return;
     }
     
+    const formData = new URLSearchParams();
+    formData.append('type', type);
+    formData.append('subject', subject);
+    formData.append('message', message);
+    
+    fetch('send_feedback.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            showToastMessage('✓ Feedback sent successfully! Our team will respond within 24 hours.', 'success');
+            document.getElementById('feedbackSubject').value = '';
+            document.getElementById('feedbackMessage').value = '';
+            if(charCountSpan) charCountSpan.textContent = '0';
+            closeFeedbackModal();
+        } else {
+            showToastMessage('Error: ' + (data.error || 'Something went wrong'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToastMessage('Error sending feedback. Please try again.', 'error');
+    });
+}
+
+// Show toast message function
+function showToastMessage(message, type = 'success') {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.custom-toast');
+    if(existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `custom-toast ${type}`;
+    toast.innerHTML = `
+        <div class="custom-toast-content">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+        <div class="custom-toast-progress"></div>
+    `;
+    
+    // Style the toast
+    toast.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: var(--bg-primary);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        z-index: 10000;
+        min-width: 280px;
+        max-width: 400px;
+        overflow: hidden;
+        animation: slideInRight 0.3s ease;
+        border-left: 4px solid ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
+    `;
+    
+    const contentStyle = document.createElement('style');
+    contentStyle.textContent = `
+        .custom-toast-content {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .custom-toast-content i {
+            font-size: 18px;
+            color: ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
+        }
+        .custom-toast-progress {
+            height: 3px;
+            background: ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
+            width: 100%;
+            animation: progressShrink 3s linear forwards;
+        }
+        @keyframes progressShrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(contentStyle);
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
     // Load feedback history
     function loadFeedbackHistory() {
         fetch('get_feedback.php')
@@ -1488,16 +1728,16 @@ $replyCount = $unreadReplies->fetchColumn();
             .then(data => {
                 const historyDiv = document.getElementById('feedbackHistoryList');
                 if(historyDiv) {
-                    if(data.length === 0) {
+                    if(data.length === 0 || data.error) {
                         historyDiv.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-tertiary);">No feedback yet</div>';
                     } else {
                         historyDiv.innerHTML = data.map(f => `
                             <div class="feedback-item">
                                 <div class="subject">${escapeHtml(f.subject)}</div>
-                                <div class="message">${escapeHtml(f.message.substring(0, 100))}${f.message.length > 100 ? '...' : ''}</div>
+                                <div class="message">${escapeHtml(f.message.substring(0, 80))}${f.message.length > 80 ? '...' : ''}</div>
                                 <span class="status status-${f.status}">${f.status.toUpperCase()}</span>
-                                ${f.staff_reply ? `<div class="reply"><strong>Staff Reply:</strong> ${escapeHtml(f.staff_reply)}</div>` : ''}
-                                <small style="font-size:10px; color:var(--text-tertiary);">${f.created_at}</small>
+                                ${f.staff_reply ? `<div class="reply"><strong>Reply:</strong> ${escapeHtml(f.staff_reply.substring(0, 100))}</div>` : ''}
+                                <small style="font-size:9px; color:var(--text-tertiary);">${f.created_at}</small>
                             </div>
                         `).join('');
                     }
@@ -1505,6 +1745,10 @@ $replyCount = $unreadReplies->fetchColumn();
             })
             .catch(error => {
                 console.error('Error loading feedback:', error);
+                const historyDiv = document.getElementById('feedbackHistoryList');
+                if(historyDiv) {
+                    historyDiv.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-tertiary);">Error loading feedback</div>';
+                }
             });
     }
     
@@ -1525,6 +1769,42 @@ $replyCount = $unreadReplies->fetchColumn();
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // Notification functions
+    function showNotificationModal(notification) {
+        const modal = document.getElementById('notificationModal');
+        document.getElementById('notifModalTitle').innerHTML = notification.title;
+        document.getElementById('notifModalMessage').innerHTML = notification.message;
+        document.getElementById('notifModalTime').innerHTML = notification.created_at;
+        
+        const iconDiv = document.getElementById('notifModalIcon');
+        iconDiv.className = 'notification-type-icon ' + notification.type;
+        if(notification.type === 'success') iconDiv.innerHTML = '<i class="fas fa-check-circle"></i>';
+        else if(notification.type === 'warning') iconDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        else if(notification.type === 'danger') iconDiv.innerHTML = '<i class="fas fa-times-circle"></i>';
+        else iconDiv.innerHTML = '<i class="fas fa-info-circle"></i>';
+        
+        modal.style.display = 'flex';
+        
+        if(!notification.is_read) {
+            fetch(`?ajax_mark_read=1&id=${notification.notification_id}`);
+        }
+    }
+    
+    function closeNotificationModal() {
+        document.getElementById('notificationModal').style.display = 'none';
+    }
+    
+    function toggleNotifications(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('notificationDropdown');
+        dropdown.classList.toggle('show');
+    }
+    
+    document.addEventListener('click', function() {
+        const dropdown = document.getElementById('notificationDropdown');
+        if(dropdown) dropdown.classList.remove('show');
+    });
 </script>
 
 

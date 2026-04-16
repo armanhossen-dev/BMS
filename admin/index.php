@@ -12,51 +12,87 @@ $totalTransactions = $pdo->query("SELECT COUNT(*) FROM TRANSACTION")->fetchColum
 $totalStaff = $pdo->query("SELECT COUNT(*) FROM staff")->fetchColumn();
 $pendingStaffMessages = $pdo->query("SELECT COUNT(*) FROM staff_messages WHERE status = 'pending'")->fetchColumn();
 
+// Get daily transaction data for the last 7 days
+$dailyData = [];
+for($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $dateLabel = date('D, M d', strtotime("-$i days"));
+    
+    // Get deposits for the day
+    $depositStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 1 AND DATE(TransactionDate) = ?");
+    $depositStmt->execute([$date]);
+    $deposits = $depositStmt->fetchColumn();
+    
+    // Get withdrawals for the day
+    $withdrawStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 2 AND DATE(TransactionDate) = ?");
+    $withdrawStmt->execute([$date]);
+    $withdrawals = $withdrawStmt->fetchColumn();
+    
+    // Get transfers for the day
+    $transferStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 3 AND DATE(TransactionDate) = ?");
+    $transferStmt->execute([$date]);
+    $transfers = $transferStmt->fetchColumn();
+    
+    // Get total transaction count
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM TRANSACTION WHERE DATE(TransactionDate) = ?");
+    $countStmt->execute([$date]);
+    $transactionCount = $countStmt->fetchColumn();
+    
+    $dailyData[] = [
+        'date' => $dateLabel,
+        'deposits' => floatval($deposits),
+        'withdrawals' => floatval($withdrawals),
+        'transfers' => floatval($transfers),
+        'count' => intval($transactionCount)
+    ];
+}
+
+// Get monthly data for the last 6 months
+$monthlyData = [];
+for($i = 5; $i >= 0; $i--) {
+    $month = date('Y-m', strtotime("-$i months"));
+    $monthLabel = date('M Y', strtotime("-$i months"));
+    
+    $depositStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 1 AND DATE_FORMAT(TransactionDate, '%Y-%m') = ?");
+    $depositStmt->execute([$month]);
+    $deposits = $depositStmt->fetchColumn();
+    
+    $withdrawStmt = $pdo->prepare("SELECT COALESCE(SUM(TransactionAmount), 0) FROM TRANSACTION WHERE TransactionTypeID = 2 AND DATE_FORMAT(TransactionDate, '%Y-%m') = ?");
+    $withdrawStmt->execute([$month]);
+    $withdrawals = $withdrawStmt->fetchColumn();
+    
+    $monthlyData[] = [
+        'month' => $monthLabel,
+        'deposits' => floatval($deposits),
+        'withdrawals' => floatval($withdrawals)
+    ];
+}
+
+// Get top 5 customers by transaction volume
+$topCustomers = $pdo->query("SELECT c.CustomerID, c.FirstName, c.LastName, COUNT(t.TransactionID) as transaction_count, COALESCE(SUM(t.TransactionAmount), 0) as total_volume FROM CUSTOMER c LEFT JOIN TRANSACTION t ON c.CustomerID = t.FromCustomerID OR c.CustomerID = t.ToCustomerID GROUP BY c.CustomerID ORDER BY total_volume DESC LIMIT 5")->fetchAll();
+
+// Get recent transactions
+$recentTransactions = $pdo->query("SELECT t.*, tt.TypeName, c.FirstName, c.LastName FROM TRANSACTION t JOIN TRANSACTIONTYPE tt ON t.TransactionTypeID = tt.TransactionTypeID LEFT JOIN CUSTOMER c ON t.FromCustomerID = c.CustomerID ORDER BY t.TransactionDate DESC LIMIT 10")->fetchAll();
+
 // Get all staff
 $staffList = $pdo->query("SELECT * FROM staff ORDER BY created_at DESC")->fetchAll();
 
-// Get all customers (for delete functionality)
+// Get all customers
 $customers = $pdo->query("SELECT c.*, a.AccountNumber, a.AvailableBalance, a.AccountStatus FROM CUSTOMER c LEFT JOIN ACCOUNT a ON c.CustomerID = a.CustomerID ORDER BY c.CreatedAt DESC")->fetchAll();
 
-// Get recent notifications
+// Get notifications
 $notifications = $pdo->query("SELECT n.*, c.FirstName, c.LastName FROM notifications n LEFT JOIN CUSTOMER c ON n.customer_id = c.CustomerID ORDER BY n.created_at DESC LIMIT 20")->fetchAll();
 
-// Get staff messages to admin
+// Get staff messages
 $staffMessages = $pdo->query("SELECT sm.*, s.first_name, s.last_name, s.email FROM staff_messages sm JOIN staff s ON sm.staff_id = s.staff_id ORDER BY sm.created_at DESC")->fetchAll();
 
-// Handle staff message reply
-if(isset($_POST['reply_staff_message'])) {
-    $messageId = $_POST['message_id'];
-    $reply = $_POST['admin_reply'];
-    $status = $_POST['status'];
-    
-    $pdo->prepare("UPDATE staff_messages SET admin_reply = ?, status = ?, replied_at = NOW() WHERE message_id = ?")->execute([$reply, $status, $messageId]);
-    setToast("Reply sent to staff", "success");
-    redirect('index.php');
-}
-
-// Handle staff actions
+// Handle actions
 if(isset($_GET['action'])) {
     $action = $_GET['action'];
     
     if($action == 'delete_staff' && isset($_GET['id'])) {
         $pdo->prepare("DELETE FROM staff WHERE staff_id = ?")->execute([$_GET['id']]);
         setToast("Staff member deleted", "success");
-        redirect('index.php');
-    }
-    
-    if($action == 'delete_customer' && isset($_GET['id'])) {
-        // Soft delete - just deactivate
-        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 0 WHERE CustomerID = ?")->execute([$_GET['id']]);
-        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Closed' WHERE CustomerID = ?")->execute([$_GET['id']]);
-        setToast("Customer account deactivated", "warning");
-        redirect('index.php');
-    }
-    
-    if($action == 'activate_customer' && isset($_GET['id'])) {
-        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 1 WHERE CustomerID = ?")->execute([$_GET['id']]);
-        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Active' WHERE CustomerID = ?")->execute([$_GET['id']]);
-        setToast("Customer account activated", "success");
         redirect('index.php');
     }
     
@@ -67,6 +103,20 @@ if(isset($_GET['action'])) {
         $newStatus = $current['is_active'] ? 0 : 1;
         $pdo->prepare("UPDATE staff SET is_active = ? WHERE staff_id = ?")->execute([$newStatus, $_GET['id']]);
         setToast("Staff status updated", "success");
+        redirect('index.php');
+    }
+    
+    if($action == 'delete_customer' && isset($_GET['id'])) {
+        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 0 WHERE CustomerID = ?")->execute([$_GET['id']]);
+        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Closed' WHERE CustomerID = ?")->execute([$_GET['id']]);
+        setToast("Customer account deactivated", "warning");
+        redirect('index.php');
+    }
+    
+    if($action == 'activate_customer' && isset($_GET['id'])) {
+        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 1 WHERE CustomerID = ?")->execute([$_GET['id']]);
+        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Active' WHERE CustomerID = ?")->execute([$_GET['id']]);
+        setToast("Customer account activated", "success");
         redirect('index.php');
     }
     
@@ -90,7 +140,7 @@ if(isset($_GET['action'])) {
     }
 }
 
-// Add new staff with proper password hashing
+// Add new staff
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_staff'])) {
     $firstName = $_POST['first_name'];
     $lastName = $_POST['last_name'];
@@ -101,7 +151,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_staff'])) {
     $role = $_POST['role'];
     $department = $_POST['department'];
     
-    // Hash the password
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
     
     $stmt = $pdo->prepare("INSERT INTO staff (first_name, last_name, email, phone, username, password_hash, role, department, join_date, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), 1)");
@@ -110,7 +159,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_staff'])) {
     redirect('index.php');
 }
 
-$tab = $_GET['tab'] ?? 'staff';
+$tab = $_GET['tab'] ?? 'dashboard';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -120,6 +169,7 @@ $tab = $_GET['tab'] ?? 'staff';
     <title>Admin Dashboard - Asha Bank</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -137,6 +187,7 @@ $tab = $_GET['tab'] ?? 'staff';
             --danger: #A32D2D;
             --warning: #BA7517;
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
         
         body.dark {
@@ -174,6 +225,7 @@ $tab = $_GET['tab'] ?? 'staff';
         
         .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
         
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -185,9 +237,38 @@ $tab = $_GET['tab'] ?? 'staff';
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 20px;
+            transition: all 0.2s;
         }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .stat-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
         .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-change { font-size: 11px; margin-top: 4px; }
+        .stat-change.up { color: var(--success); }
+        .stat-change.down { color: var(--danger); }
+        
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .chart-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-title i { color: var(--accent); }
+        .chart-container { height: 300px; position: relative; }
         
         /* Tabs */
         .admin-tabs {
@@ -198,15 +279,14 @@ $tab = $_GET['tab'] ?? 'staff';
             border-radius: 60px;
             padding: 6px;
             margin-bottom: 24px;
+            flex-wrap: wrap;
         }
         .admin-tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
+            padding: 10px 20px;
             border-radius: 40px;
             cursor: pointer;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
             transition: all 0.2s;
         }
@@ -219,6 +299,7 @@ $tab = $_GET['tab'] ?? 'staff';
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
+        /* Tables */
         .glass-card {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -245,17 +326,12 @@ $tab = $_GET['tab'] ?? 'staff';
         .badge-active { background: var(--success); color: white; }
         .badge-inactive { background: var(--danger); color: white; }
         .badge-pending { background: var(--warning); color: white; }
-        .badge-success { background: var(--success); color: white; }
-        .badge-info { background: var(--accent); color: white; }
         
         .btn { padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; text-decoration: none; display: inline-block; transition: all 0.2s; }
         .btn-primary { background: var(--accent); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-warning { background: var(--warning); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
-        
-        .btn-sm { padding: 4px 10px; font-size: 11px; }
         
         .modal {
             display: none;
@@ -276,11 +352,6 @@ $tab = $_GET['tab'] ?? 'staff';
             padding: 28px;
             max-width: 500px;
             width: 90%;
-            animation: modalSlideIn 0.3s ease;
-        }
-        @keyframes modalSlideIn {
-            from { transform: translateY(-30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
         .modal-content input, .modal-content textarea, .modal-content select {
             width: 100%;
@@ -292,17 +363,13 @@ $tab = $_GET['tab'] ?? 'staff';
             color: var(--text-primary);
         }
         
-        .feedback-item {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+        @media (max-width: 1000px) {
+            .charts-grid { grid-template-columns: 1fr; }
         }
-        .reply-form { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); }
-        
         @media (max-width: 768px) {
             .navbar { flex-direction: column; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .admin-tabs { flex-wrap: wrap; border-radius: 16px; }
-            .admin-tab { font-size: 12px; padding: 8px; }
+            .admin-tab { padding: 8px 12px; font-size: 11px; }
         }
     </style>
 </head>
@@ -325,15 +392,100 @@ $tab = $_GET['tab'] ?? 'staff';
     </nav>
     
     <div class="container">
+        <!-- Statistics Cards -->
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">Total Customers</div><div class="stat-value"><?= $totalCustomers ?></div></div>
-            <div class="stat-card"><div class="stat-label">Total Balance</div><div class="stat-value"><?= formatBDT($totalBalance) ?></div></div>
-            <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value"><?= $totalTransactions ?></div></div>
-            <div class="stat-card"><div class="stat-label">Staff Members</div><div class="stat-value"><?= $totalStaff ?></div></div>
-            <div class="stat-card"><div class="stat-label">Staff Messages</div><div class="stat-value"><?= $pendingStaffMessages ?></div></div>
+            <div class="stat-card">
+                <div class="stat-label">Total Customers</div>
+                <div class="stat-value"><?= number_format($totalCustomers) ?></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Bank Reserve</div>
+                <div class="stat-value"><?= formatBDT($totalBalance) ?></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Transactions</div>
+                <div class="stat-value"><?= number_format($totalTransactions) ?></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Staff Members</div>
+                <div class="stat-value"><?= $totalStaff ?></div>
+            </div>
         </div>
         
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <!-- Daily Transaction Chart -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i> Daily Transactions (Last 7 Days)
+                </div>
+                <div class="chart-container">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Monthly Comparison Chart -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar"></i> Monthly Deposits vs Withdrawals
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Customers & Recent Transactions -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-trophy"></i> Top Customers by Volume
+                </div>
+                <div class="table-container">
+                    <table style="width: 100%">
+                        <thead>
+                            <tr><th>Customer</th><th>Transactions</th><th>Total Volume</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach($topCustomers as $tc): ?>
+                            <tr>
+                                <td><?= $tc['FirstName'] . ' ' . $tc['LastName'] ?> \(cid=<?= $tc['CustomerID'] ?>)</td>
+                                <td><?= $tc['transaction_count'] ?></td>
+                                <td><?= formatBDT($tc['total_volume']) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-clock"></i> Recent Transactions
+                </div>
+                <div class="table-container">
+                    <table style="width: 100%">
+                        <thead>
+                            <tr><th>Date</th><th>Type</th><th>Amount</th><th>Customer</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach($recentTransactions as $rt): ?>
+                            <tr>
+                                <td><?= date('d M H:i', strtotime($rt['TransactionDate'])) ?></td>
+                                <td><?= $rt['TypeName'] ?></td>
+                                <td><?= formatBDT($rt['TransactionAmount']) ?></td>
+                                <td><?= $rt['FirstName'] ?? 'System' ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabs for Management -->
         <div class="admin-tabs">
+            <div class="admin-tab <?= $tab == 'dashboard' ? 'active' : '' ?>" data-tab="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
             <div class="admin-tab <?= $tab == 'staff' ? 'active' : '' ?>" data-tab="staff"><i class="fas fa-users"></i> Staff Management</div>
             <div class="admin-tab <?= $tab == 'customers' ? 'active' : '' ?>" data-tab="customers"><i class="fas fa-user-friends"></i> Customers</div>
             <div class="admin-tab <?= $tab == 'notifications' ? 'active' : '' ?>" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</div>
@@ -349,9 +501,7 @@ $tab = $_GET['tab'] ?? 'staff';
                 </div>
                 <div class="table-container">
                     <table>
-                        <thead>
-                            <tr><th>ID</th><th>Name</th><th>Email</th><th>Username</th><th>Role</th><th>Department</th><th>Status</th><th>Actions</th></tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody>
                             <?php foreach($staffList as $s): ?>
                             <tr>
@@ -360,11 +510,10 @@ $tab = $_GET['tab'] ?? 'staff';
                                 <td><?= $s['email'] ?></td>
                                 <td><?= $s['username'] ?></td>
                                 <td><span class="badge badge-active"><?= ucfirst($s['role']) ?></span></td>
-                                <td><?= $s['department'] ?></td>
                                 <td><span class="badge <?= $s['is_active'] ? 'badge-active' : 'badge-inactive' ?>"><?= $s['is_active'] ? 'Active' : 'Inactive' ?></span></td>
                                 <td>
                                     <a href="?action=toggle_staff&id=<?= $s['staff_id'] ?>" class="btn btn-warning btn-sm">Toggle</a>
-                                    <a href="?action=delete_staff&id=<?= $s['staff_id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Delete this staff permanently?')">Delete</a>
+                                    <a href="?action=delete_staff&id=<?= $s['staff_id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Delete this staff?')">Delete</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -374,26 +523,13 @@ $tab = $_GET['tab'] ?? 'staff';
             </div>
         </div>
         
-        <!-- Customers Tab (with Delete User) -->
+        <!-- Customers Tab -->
         <div id="customersTab" class="tab-content <?= $tab == 'customers' ? 'active' : '' ?>">
             <div class="glass-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-user-friends"></i> All Customers</h3>
-                </div>
+                <div class="card-header"><h3><i class="fas fa-user-friends"></i> All Customers</h3></div>
                 <div class="table-container">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Account</th>
-                                <th>Balance</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Account</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody>
                             <?php foreach($customers as $c): ?>
                             <tr>
@@ -406,9 +542,9 @@ $tab = $_GET['tab'] ?? 'staff';
                                 <td><span class="badge <?= $c['IsActive'] ? 'badge-active' : 'badge-inactive' ?>"><?= $c['IsActive'] ? 'Active' : 'Inactive' ?></span></td>
                                 <td>
                                     <?php if($c['IsActive']): ?>
-                                        <a href="?action=delete_customer&id=<?= $c['CustomerID'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Deactivate this customer account?')">Deactivate</a>
+                                        <a href="?action=delete_customer&id=<?= $c['CustomerID'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Deactivate this customer?')">Deactivate</a>
                                     <?php else: ?>
-                                        <a href="?action=activate_customer&id=<?= $c['CustomerID'] ?>" class="btn btn-success btn-sm" onclick="return confirm('Activate this customer account?')">Activate</a>
+                                        <a href="?action=activate_customer&id=<?= $c['CustomerID'] ?>" class="btn btn-success btn-sm" onclick="return confirm('Activate this customer?')">Activate</a>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -428,14 +564,13 @@ $tab = $_GET['tab'] ?? 'staff';
                 </div>
                 <div class="table-container">
                     <table>
-                        <thead><tr><th>To</th><th>Title</th><th>Message</th><th>Type</th><th>Date</th><th>Action</th></tr></thead>
+                        <thead><tr><th>To</th><th>Title</th><th>Message</th><th>Date</th><th>Action</th></tr></thead>
                         <tbody>
                             <?php foreach($notifications as $n): ?>
                             <tr>
                                 <td><?= $n['FirstName'] ? $n['FirstName'] . ' ' . $n['LastName'] : 'All Customers' ?></td>
                                 <td><?= htmlspecialchars($n['title']) ?></td>
                                 <td><?= htmlspecialchars(substr($n['message'], 0, 40)) ?>...</td>
-                                <td><span class="badge badge-info"><?= $n['type'] ?></span></td>
                                 <td><?= date('d M Y', strtotime($n['created_at'])) ?></td>
                                 <td><a href="?action=delete_notification&id=<?= $n['notification_id'] ?>" class="btn btn-danger btn-sm">Delete</a></td>
                             </tr>
@@ -449,38 +584,27 @@ $tab = $_GET['tab'] ?? 'staff';
         <!-- Staff Messages Tab -->
         <div id="staff_messagesTab" class="tab-content <?= $tab == 'staff_messages' ? 'active' : '' ?>">
             <div class="glass-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-envelope"></i> Messages from Staff</h3>
+                <div class="card-header"><h3><i class="fas fa-envelope"></i> Messages from Staff</h3></div>
+                <?php foreach($staffMessages as $msg): ?>
+                <div class="feedback-item" style="padding: 16px; border-bottom: 1px solid var(--border-color);">
+                    <div><strong><?= htmlspecialchars($msg['subject']) ?></strong> <span class="badge badge-pending"><?= $msg['status'] ?></span></div>
+                    <div><small>From: <?= $msg['first_name'] . ' ' . $msg['last_name'] ?></small></div>
+                    <div><?= nl2br(htmlspecialchars($msg['message'])) ?></div>
+                    <?php if($msg['admin_reply']): ?>
+                        <div style="background: var(--accent-bg); padding: 12px; border-radius: 12px; margin-top: 10px;"><strong>Reply:</strong> <?= nl2br(htmlspecialchars($msg['admin_reply'])) ?></div>
+                    <?php else: ?>
+                        <button class="btn btn-primary btn-sm" onclick="openReplyModal(<?= $msg['message_id'] ?>)">Reply</button>
+                        <div id="replyForm-<?= $msg['message_id'] ?>" style="display: none; margin-top: 12px;">
+                            <form method="POST">
+                                <input type="hidden" name="message_id" value="<?= $msg['message_id'] ?>">
+                                <textarea name="admin_reply" rows="3" style="width:100%; padding:10px; border-radius:10px;"></textarea>
+                                <select name="status"><option value="approved">Approve</option><option value="rejected">Reject</option></select>
+                                <button type="submit" name="reply_staff_message" class="btn btn-success">Send</button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <?php if(empty($staffMessages)): ?>
-                    <p style="text-align: center; padding: 40px;">No messages from staff</p>
-                <?php else: ?>
-                    <?php foreach($staffMessages as $msg): ?>
-                    <div class="feedback-item">
-                        <div><strong><?= htmlspecialchars($msg['subject']) ?></strong> <span class="badge badge-pending"><?= $msg['status'] ?></span></div>
-                        <div><small>From: <?= $msg['first_name'] . ' ' . $msg['last_name'] ?></small></div>
-                        <div class="feedback-message"><?= nl2br(htmlspecialchars($msg['message'])) ?></div>
-                        <?php if($msg['admin_reply']): ?>
-                            <div style="background: var(--accent-bg); padding: 12px; border-radius: 12px; margin-top: 10px;">
-                                <strong>Your Reply:</strong> <?= nl2br(htmlspecialchars($msg['admin_reply'])) ?>
-                            </div>
-                        <?php else: ?>
-                            <button class="btn btn-primary btn-sm" onclick="openReplyModal(<?= $msg['message_id'] ?>)">Reply</button>
-                            <div id="replyForm-<?= $msg['message_id'] ?>" class="reply-form">
-                                <form method="POST">
-                                    <input type="hidden" name="message_id" value="<?= $msg['message_id'] ?>">
-                                    <textarea name="admin_reply" rows="3" placeholder="Write your response..." required></textarea>
-                                    <select name="status">
-                                        <option value="approved">✓ Approve</option>
-                                        <option value="rejected">✗ Reject</option>
-                                    </select>
-                                    <button type="submit" name="reply_staff_message" class="btn btn-success">Send Reply</button>
-                                </form>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -488,7 +612,7 @@ $tab = $_GET['tab'] ?? 'staff';
     <!-- Add Staff Modal -->
     <div id="staffModal" class="modal">
         <div class="modal-content">
-            <h3><i class="fas fa-user-plus"></i> Add New Staff Member</h3>
+            <h3>Add New Staff</h3>
             <form method="POST">
                 <input type="hidden" name="add_staff" value="1">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -499,15 +623,10 @@ $tab = $_GET['tab'] ?? 'staff';
                 <input type="text" name="phone" placeholder="Phone">
                 <input type="text" name="username" placeholder="Username" required>
                 <input type="password" name="password" placeholder="Password" required>
-                <select name="role" required>
-                    <option value="manager">Manager</option>
-                    <option value="officer">Officer</option>
-                    <option value="teller">Teller</option>
-                    <option value="support">Support</option>
-                </select>
+                <select name="role"><option value="manager">Manager</option><option value="officer">Officer</option><option value="teller">Teller</option><option value="support">Support</option></select>
                 <input type="text" name="department" placeholder="Department">
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Add Staff Member</button>
-                <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="closeStaffModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="width:100%">Add Staff</button>
+                <button type="button" class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="closeStaffModal()">Cancel</button>
             </form>
         </div>
     </div>
@@ -515,26 +634,109 @@ $tab = $_GET['tab'] ?? 'staff';
     <!-- Send Notification Modal -->
     <div id="notificationModal" class="modal">
         <div class="modal-content">
-            <h3><i class="fas fa-bell"></i> Send Notification</h3>
+            <h3>Send Notification</h3>
             <form method="POST" action="?action=send_notification">
-                <select name="send_to" required>
-                    <option value="all">All Customers</option>
-                </select>
+                <select name="send_to"><option value="all">All Customers</option></select>
                 <input type="text" name="title" placeholder="Title" required>
                 <textarea name="message" rows="4" placeholder="Message" required></textarea>
-                <select name="type" required>
-                    <option value="info">ℹ️ Info</option>
-                    <option value="success">✅ Success</option>
-                    <option value="warning">⚠️ Warning</option>
-                    <option value="danger">🔴 Danger</option>
-                </select>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Send</button>
-                <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="closeNotificationModal()">Cancel</button>
+                <select name="type"><option value="info">Info</option><option value="success">Success</option><option value="warning">Warning</option></select>
+                <button type="submit" class="btn btn-primary" style="width:100%">Send</button>
+                <button type="button" class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="closeNotificationModal()">Cancel</button>
             </form>
         </div>
     </div>
     
     <script>
+        // Chart Data from PHP
+        const dailyLabels = <?= json_encode(array_column($dailyData, 'date')) ?>;
+        const dailyDeposits = <?= json_encode(array_column($dailyData, 'deposits')) ?>;
+        const dailyWithdrawals = <?= json_encode(array_column($dailyData, 'withdrawals')) ?>;
+        const dailyTransfers = <?= json_encode(array_column($dailyData, 'transfers')) ?>;
+        
+        const monthlyLabels = <?= json_encode(array_column($monthlyData, 'month')) ?>;
+        const monthlyDeposits = <?= json_encode(array_column($monthlyData, 'deposits')) ?>;
+        const monthlyWithdrawals = <?= json_encode(array_column($monthlyData, 'withdrawals')) ?>;
+        
+        // Format currency for charts
+        function formatCurrency(value) {
+            return '৳ ' + (value / 1000).toFixed(1) + 'K';
+        }
+        
+        // Daily Line Chart
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: dailyLabels,
+                datasets: [
+                    {
+                        label: 'Deposits (BDT)',
+                        data: dailyDeposits,
+                        borderColor: '#3B6D11',
+                        backgroundColor: 'rgba(59, 109, 17, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Withdrawals (BDT)',
+                        data: dailyWithdrawals,
+                        borderColor: '#A32D2D',
+                        backgroundColor: 'rgba(163, 45, 45, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Transfers (BDT)',
+                        data: dailyTransfers,
+                        borderColor: '#185FA5',
+                        backgroundColor: 'rgba(24, 95, 165, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + formatCurrency(context.raw); } } }
+                }
+            }
+        });
+        
+        // Monthly Bar Chart
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [
+                    {
+                        label: 'Deposits',
+                        data: monthlyDeposits,
+                        backgroundColor: '#3B6D11',
+                        borderRadius: 8
+                    },
+                    {
+                        label: 'Withdrawals',
+                        data: monthlyWithdrawals,
+                        backgroundColor: '#A32D2D',
+                        borderRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + formatCurrency(context.raw); } } }
+                }
+            }
+        });
+        
+        // Theme Toggle
         const themeToggle = document.getElementById('themeToggle');
         if(localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark');
@@ -544,8 +746,10 @@ $tab = $_GET['tab'] ?? 'staff';
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
             themeToggle.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Light' : '<i class="fas fa-moon"></i> Dark';
+            setTimeout(() => location.reload(), 100);
         });
         
+        // Tab switching
         document.querySelectorAll('.admin-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 window.location.href = `?tab=${this.dataset.tab}`;
@@ -556,15 +760,9 @@ $tab = $_GET['tab'] ?? 'staff';
         function closeStaffModal() { document.getElementById('staffModal').style.display = 'none'; }
         function openNotificationModal() { document.getElementById('notificationModal').style.display = 'flex'; }
         function closeNotificationModal() { document.getElementById('notificationModal').style.display = 'none'; }
+        function openReplyModal(id) { document.getElementById('replyForm-' + id).style.display = 'block'; }
         
-        function openReplyModal(id) {
-            const form = document.getElementById('replyForm-' + id);
-            form.style.display = 'block';
-        }
-        
-        window.onclick = function(e) {
-            if(e.target.classList.contains('modal')) e.target.style.display = 'none';
-        }
+        window.onclick = function(e) { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
     </script>
 </body>
 </html>

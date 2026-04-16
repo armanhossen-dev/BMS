@@ -668,6 +668,45 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 padding: 24px;
             }
         }
+
+        /* Toast Notification - Top Right Position */
+        .toast-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-left: 4px solid #3b6d11;
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+            font-size: 14px;
+            min-width: 280px;
+            max-width: 400px;
+        }
+
+        .toast-notification.success { border-left-color: #3b6d11; }
+        .toast-notification.error { border-left-color: #a32d2d; }
+        .toast-notification.warning { border-left-color: #ba7517; }
+
+        .toast-notification i { font-size: 18px; }
+        .toast-notification.success i { color: #3b6d11; }
+        .toast-notification.error i { color: #a32d2d; }
+        .toast-notification.warning i { color: #ba7517; }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -833,5 +872,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     });
 </script>
+
+<!-- Toast Container -->
+<div id="toastContainer" style="position: fixed; top: 80px; right: 20px; z-index: 1000;">
+    <?php $toast = getToast(); if($toast): ?>
+        <div class="toast-notification <?= $toast['type'] ?>">
+            <i class="fas <?= $toast['type'] == 'success' ? 'fa-check-circle' : 'fa-info-circle' ?>"></i>
+            <span><?= htmlspecialchars($toast['message']) ?></span>
+        </div>
+        <script>
+            setTimeout(() => {
+                const toast = document.querySelector('.toast-notification');
+                if(toast) {
+                    toast.style.animation = 'slideOutRight 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 3000);
+        </script>
+    <?php endif; ?>
+</div>
+
 </body>
 </html>

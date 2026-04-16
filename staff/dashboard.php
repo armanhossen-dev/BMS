@@ -206,14 +206,226 @@ $tab = $_GET['tab'] ?? 'kyc';
         .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
         
         /* Feedback Items */
-        .feedback-item {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .feedback-item:last-child { border-bottom: none; }
-        .feedback-subject { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
-        .feedback-message { font-size: 13px; color: var(--text-secondary); margin: 8px 0; }
-        .reply-form { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); }
+       /* Feedback Items - Improved Styling */
+.feedback-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+}
+
+.feedback-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.feedback-subject {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.feedback-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    flex-wrap: wrap;
+}
+
+.feedback-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.feedback-meta i {
+    font-size: 11px;
+}
+
+.feedback-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.feedback-type.feedback { background: #E6F1FB; color: #185FA5; }
+.feedback-type.complaint { background: #FCEBEB; color: #A32D2D; }
+.feedback-type.suggestion { background: #FAEEDA; color: #BA7517; }
+.feedback-type.issue { background: #FCEBEB; color: #A32D2D; }
+
+.feedback-message {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 14px;
+    margin: 12px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    border-left: 3px solid var(--accent);
+}
+
+.feedback-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+/* Reply Form Styling */
+.reply-form {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.reply-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    transition: all 0.2s;
+}
+
+.reply-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.reply-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.btn-reply {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-reply:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+}
+
+.btn-cancel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-cancel:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* Customer Info Badge */
+.customer-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.customer-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 14px;
+}
+
+.customer-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.customer-email {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+/* Reply Badge */
+.reply-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--success-bg);
+    color: var(--success);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* Existing Reply Styling */
+.existing-reply {
+    background: var(--success-bg);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 12px;
+    border-left: 3px solid var(--success);
+}
+
+.existing-reply strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--success);
+}
+
         
         /* Modal */
         .modal {
@@ -343,27 +555,59 @@ $tab = $_GET['tab'] ?? 'kyc';
             <div class="glass-card">
                 <div class="card-header">
                     <h3><i class="fas fa-comments"></i> Customer Feedback & Issues</h3>
+                    <span class="feedback-count"><?= count($pendingFeedbackList) ?> pending</span>
                 </div>
+                
                 <?php if(empty($pendingFeedbackList)): ?>
-                    <p style="text-align: center; padding: 40px; color: var(--text-tertiary);">No pending feedback</p>
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No pending feedback</p>
+                    </div>
                 <?php else: ?>
                     <?php foreach($pendingFeedbackList as $fb): ?>
                     <div class="feedback-item">
-                        <div class="feedback-subject">
-                            <?= htmlspecialchars($fb['subject']) ?>
-                            <span style="float: right; font-size: 11px; color: var(--text-tertiary);"><?= $fb['created_at'] ?></span>
+                        <div class="feedback-header">
+                            <div class="feedback-subject">
+                                <?= htmlspecialchars($fb['subject']) ?>
+                                <span class="feedback-type <?= $fb['type'] ?>"><?= ucfirst($fb['type']) ?></span>
+                            </div>
+                            <div class="feedback-meta">
+                                <span><i class="fas fa-calendar-alt"></i> <?= date('d M Y, h:i A', strtotime($fb['created_at'])) ?></span>
+                            </div>
                         </div>
-                        <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 6px;">
-                            From: <?= $fb['FirstName'].' '.$fb['LastName'] ?> | Type: <?= $fb['type'] ?>
+                        
+                        <div class="customer-info">
+                            <div class="customer-avatar">
+                                <?= strtoupper(substr($fb['FirstName'], 0, 1)) . strtoupper(substr($fb['LastName'], 0, 1)) ?>
+                            </div>
+                            <div>
+                                <div class="customer-name"><?= $fb['FirstName'] . ' ' . $fb['LastName'] ?></div>
+                                <div class="customer-email"><?= $fb['Email'] ?> • <?= $fb['Phone'] ?></div>
+                            </div>
                         </div>
-                        <div class="feedback-message"><?= nl2br(htmlspecialchars($fb['message'])) ?></div>
-                        <button class="btn btn-primary btn-sm" onclick="toggleReplyForm(<?= $fb['feedback_id'] ?>)">Reply to Customer</button>
+                        
+                        <div class="feedback-message">
+                            <?= nl2br(htmlspecialchars($fb['message'])) ?>
+                        </div>
+                        
+                        <div class="feedback-actions">
+                            <button class="btn-reply" onclick="toggleReplyForm(<?= $fb['feedback_id'] ?>)">
+                                <i class="fas fa-reply"></i> Reply to Customer
+                            </button>
+                        </div>
+                        
                         <div id="replyForm-<?= $fb['feedback_id'] ?>" class="reply-form">
                             <form method="POST">
                                 <input type="hidden" name="feedback_id" value="<?= $fb['feedback_id'] ?>">
-                                <textarea name="reply_message" rows="3" placeholder="Write your response to the customer..." required></textarea>
-                                <button type="submit" name="reply_feedback" class="btn btn-success">Send Reply</button>
-                                <button type="button" class="btn btn-outline" onclick="closeReplyForm(<?= $fb['feedback_id'] ?>)">Cancel</button>
+                                <textarea name="reply_message" rows="4" placeholder="Write your response to the customer..." required></textarea>
+                                <div class="reply-form-actions">
+                                    <button type="submit" name="reply_feedback" class="btn-reply">
+                                        <i class="fas fa-paper-plane"></i> Send Reply
+                                    </button>
+                                    <button type="button" class="btn-cancel" onclick="closeReplyForm(<?= $fb['feedback_id'] ?>)">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>

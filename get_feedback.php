@@ -1,6 +1,13 @@
 <?php
 require_once 'config/db.php';
-session_start();
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Set JSON header
+header('Content-Type: application/json');
 
 if(!isset($_SESSION['user_id'])) {
     echo json_encode([]);
@@ -28,6 +35,6 @@ try {
     $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode($feedbacks);
 } catch(Exception $e) {
-    echo json_encode([]);
+    echo json_encode(['error' => $e->getMessage()]);
 }
 ?>

@@ -1,7 +1,12 @@
 <?php
 require_once 'config/db.php';
 
-session_start();
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+header('Content-Type: application/json');
 
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'client') {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
@@ -35,14 +40,16 @@ try {
         staff_reply TEXT,
         replied_by INT,
         replied_at DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
     
     $stmt = $pdo->prepare("INSERT INTO feedback (customer_id, subject, message, type, status, created_at) VALUES (?, ?, ?, ?, 'pending', NOW())");
     $stmt->execute([$userId, $subject, $message, $type]);
     
-    echo json_encode(['success' => true]);
+    // Set session toast for success
+    $_SESSION['toast'] = ['message' => '✓ Feedback sent successfully! Our team will respond within 24 hours.', 'type' => 'success'];
+    
+    echo json_encode(['success' => true, 'message' => 'Feedback sent successfully']);
 } catch(Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

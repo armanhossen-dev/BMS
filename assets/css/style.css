@@ -250,3 +250,52 @@
   }
   .toast-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
   .toast-text { font-size: 11px; color: var(--t1); }
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-tertiary);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 14px;
+}
+
+/* Feedback Count Badge */
+.feedback-count {
+    background: var(--warning-bg);
+    color: var(--warning);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Success Toast for Reply */
+.reply-success {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: var(--success-bg);
+    color: var(--success);
+    padding: 12px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    animation: slideInRight 0.3s ease;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.reply-success i {
+    font-size: 16px;
+}
