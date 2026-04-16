@@ -10,13 +10,11 @@ $userId = $_SESSION['user_id'];
 
 // Check if account is active
 $statusMessage = getAccountStatusMessage($pdo, $userId);
-if ($statusMessage) {
-    setToast($statusMessage, 'warning');
-    redirect('dashboard.php');
-}
+$accountActive = ($statusMessage === null);
 
-$statusMessage = getAccountStatusMessage($pdo, $userId);
-$accountActive = !$statusMessage;
+if(!$accountActive) {
+    setToast($statusMessage, 'warning');
+}
 
 $error = '';
 $success = '';
@@ -35,7 +33,7 @@ $stmtNom->execute([$userId]);
 $nominee = $stmtNom->fetch();
 
 // Update Profile
-if(isset($_POST['update_profile'])) {
+if(isset($_POST['update_profile']) && $accountActive) {
     $firstName = trim($_POST['first_name']);
     $lastName = trim($_POST['last_name']);
     $email = trim($_POST['email']);
@@ -73,7 +71,7 @@ if(isset($_POST['update_nominee'])) {
 }
 
 // Change Password
-if(isset($_POST['change_password'])) {
+if(isset($_POST['change_password']) && $accountActive) {
     $currentPassword = $_POST['current_password'];
     $newPassword = $_POST['new_password'];
     $confirmPassword = $_POST['confirm_password'];
@@ -97,7 +95,7 @@ if(isset($_POST['change_password'])) {
 }
 
 // Delete Account Request
-if(isset($_POST['delete_account'])) {
+if(isset($_POST['delete_account']) && $accountActive) {
     $confirmDelete = $_POST['confirm_delete'];
     if($confirmDelete == 'DELETE') {
         try {
@@ -119,16 +117,6 @@ if(isset($_POST['delete_account'])) {
 
 $tab = $_GET['tab'] ?? 'profile';
 ?>
-
-<?php if(!$accountActive): ?>
-    <div class="error-message" style="margin-bottom: 20px;">
-        <i class="fas fa-lock"></i> Your account is deactivated. You cannot update your profile. Please contact support.
-    </div>
-<?php endif; ?>
-
-<!-- Add readonly/disabled attributes to form inputs -->
-<input type="text" name="first_name" value="<?= htmlspecialchars($userData['FirstName'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?> required>
-
 <!DOCTYPE html>
 <html lang="<?= current_lang() ?>">
 <head>
@@ -178,6 +166,7 @@ $tab = $_GET['tab'] ?? 'profile';
         
         body { font-family: var(--font-sans); background: var(--bg-secondary); color: var(--text-primary); transition: all 0.3s ease; }
         
+        /* Navbar */
         .navbar {
             background: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
@@ -191,10 +180,8 @@ $tab = $_GET['tab'] ?? 'profile';
         
         .logo { display: flex; align-items: center; gap: 12px; }
         .logo-icon { width: 36px; height: 36px; background: var(--accent-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-icon svg { width: 20px; height: 20px; }
         .navbar-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-        .nav-menu { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .nav-menu a { text-decoration: none; color: var(--text-secondary); font-size: 13px; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; }
-        .nav-menu a:hover { background: var(--bg-secondary); color: var(--accent); }
         
         .back-button {
             display: inline-flex;
@@ -227,6 +214,7 @@ $tab = $_GET['tab'] ?? 'profile';
         
         .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
         
+        /* Tabs */
         .tabs {
             display: flex;
             gap: 8px;
@@ -255,6 +243,7 @@ $tab = $_GET['tab'] ?? 'profile';
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
+        /* Cards */
         .glass-card {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -265,10 +254,19 @@ $tab = $_GET['tab'] ?? 'profile';
         
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 13px; color: var(--text-secondary); }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-secondary); color: var(--text-primary); outline: none; }
+        .form-group input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            background: var(--bg-secondary); 
+            color: var(--text-primary); 
+            outline: none; 
+        }
         .form-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+        .form-group input:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        /* Fixed Button Styles - No text color issue on hover */
+        /* Buttons */
         .btn { 
             padding: 12px 24px; 
             border-radius: 40px; 
@@ -276,8 +274,6 @@ $tab = $_GET['tab'] ?? 'profile';
             font-weight: 600; 
             cursor: pointer; 
             transition: all 0.2s; 
-            background: var(--accent); 
-            color: white;
         }
         .btn-primary { 
             background: var(--accent); 
@@ -289,6 +285,11 @@ $tab = $_GET['tab'] ?? 'profile';
             transform: translateY(-2px);
             color: white;
         }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
         .btn-danger { 
             background: var(--danger); 
             color: white;
@@ -299,9 +300,30 @@ $tab = $_GET['tab'] ?? 'profile';
             color: white;
         }
         
-        .error-message { background: var(--danger-bg); color: var(--danger); padding: 12px; border-radius: 12px; margin-bottom: 20px; }
-        .success-message { background: var(--success-bg); color: var(--success); padding: 12px; border-radius: 12px; margin-bottom: 20px; }
+        /* Messages */
+        .error-message { 
+            background: var(--danger-bg); 
+            color: var(--danger); 
+            padding: 12px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         
+        .warning-message {
+            background: var(--warning-bg);
+            color: var(--warning);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Info Box */
         .info-box {
             background: var(--bg-secondary);
             border-radius: 16px;
@@ -318,6 +340,7 @@ $tab = $_GET['tab'] ?? 'profile';
         .info-label { font-weight: 500; color: var(--text-secondary); }
         .info-value { font-weight: 600; color: var(--text-primary); }
         
+        /* Delete Warning */
         .delete-warning {
             background: var(--danger-bg);
             border: 1px solid var(--danger);
@@ -329,11 +352,14 @@ $tab = $_GET['tab'] ?? 'profile';
         .delete-warning p, .delete-warning h4 { color: var(--danger); }
         .delete-warning .form-group label { color: var(--danger); }
         
+        /* Responsive */
         @media (max-width: 768px) {
             .navbar { flex-direction: column; }
             .navbar-right { justify-content: center; }
             .tabs { flex-wrap: wrap; border-radius: 16px; }
             .tab { font-size: 12px; }
+            .container { padding: 16px; }
+            .glass-card { padding: 20px; }
         }
     </style>
 </head>
@@ -364,6 +390,13 @@ $tab = $_GET['tab'] ?? 'profile';
             <a href="dashboard.php" class="back-button"><i class="fas fa-arrow-left"></i> <?= __('back_to_dashboard') ?></a>
         </div>
         
+        <?php if(!$accountActive): ?>
+            <div class="warning-message">
+                <i class="fas fa-lock"></i> 
+                <span>Your account is deactivated. You cannot update your profile. Please contact support for reactivation.</span>
+            </div>
+        <?php endif; ?>
+        
         <div class="tabs">
             <div class="tab <?= $tab == 'profile' ? 'active' : '' ?>" data-tab="profile"><i class="fas fa-user"></i> <?= __('profile') ?></div>
             <div class="tab <?= $tab == 'nominee' ? 'active' : '' ?>" data-tab="nominee"><i class="fas fa-user-friends"></i> <?= __('nominee') ?></div>
@@ -382,29 +415,31 @@ $tab = $_GET['tab'] ?? 'profile';
                 <form method="POST">
                     <div class="form-group">
                         <label>First Name</label>
-                        <input type="text" name="first_name" value="<?= htmlspecialchars($userData['FirstName'] ?? '') ?>" required>
+                        <input type="text" name="first_name" value="<?= htmlspecialchars($userData['FirstName'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?> required>
                     </div>
                     <div class="form-group">
                         <label>Last Name</label>
-                        <input type="text" name="last_name" value="<?= htmlspecialchars($userData['LastName'] ?? '') ?>" required>
+                        <input type="text" name="last_name" value="<?= htmlspecialchars($userData['LastName'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?> required>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" name="email" value="<?= htmlspecialchars($userData['Email'] ?? '') ?>" required>
+                        <input type="email" name="email" value="<?= htmlspecialchars($userData['Email'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?> required>
                     </div>
                     <div class="form-group">
                         <label>Phone</label>
-                        <input type="tel" name="phone" value="<?= htmlspecialchars($userData['Phone'] ?? '') ?>" required>
+                        <input type="tel" name="phone" value="<?= htmlspecialchars($userData['Phone'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?> required>
                     </div>
                     <div class="form-group">
                         <label>Address</label>
-                        <input type="text" name="address" value="<?= htmlspecialchars($userData['Address'] ?? '') ?>">
+                        <input type="text" name="address" value="<?= htmlspecialchars($userData['Address'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?>>
                     </div>
                     <div class="form-group">
                         <label>City</label>
-                        <input type="text" name="city" value="<?= htmlspecialchars($userData['City'] ?? '') ?>">
+                        <input type="text" name="city" value="<?= htmlspecialchars($userData['City'] ?? '') ?>" <?= !$accountActive ? 'disabled' : '' ?>>
                     </div>
-                    <button type="submit" name="update_profile" class="btn btn-primary"><?= __('update_profile') ?></button>
+                    <button type="submit" name="update_profile" class="btn btn-primary" <?= !$accountActive ? 'disabled' : '' ?>>
+                        <?= __('update_profile') ?>
+                    </button>
                 </form>
             </div>
             
@@ -452,18 +487,20 @@ $tab = $_GET['tab'] ?? 'profile';
                 <form method="POST">
                     <div class="form-group">
                         <label>Current Password</label>
-                        <input type="password" name="current_password" required>
+                        <input type="password" name="current_password" <?= !$accountActive ? 'disabled' : '' ?> required>
                     </div>
                     <div class="form-group">
                         <label>New Password</label>
-                        <input type="password" name="new_password" required>
+                        <input type="password" name="new_password" <?= !$accountActive ? 'disabled' : '' ?> required>
                         <small>Minimum 4 characters</small>
                     </div>
                     <div class="form-group">
                         <label>Confirm Password</label>
-                        <input type="password" name="confirm_password" required>
+                        <input type="password" name="confirm_password" <?= !$accountActive ? 'disabled' : '' ?> required>
                     </div>
-                    <button type="submit" name="change_password" class="btn btn-primary"><?= __('change_password') ?></button>
+                    <button type="submit" name="change_password" class="btn btn-primary" <?= !$accountActive ? 'disabled' : '' ?>>
+                        <?= __('change_password') ?>
+                    </button>
                 </form>
             </div>
         </div>
@@ -479,9 +516,11 @@ $tab = $_GET['tab'] ?? 'profile';
                     <form method="POST" onsubmit="return confirm('Are you absolutely sure you want to delete your account? This action cannot be undone!')">
                         <div class="form-group">
                             <label>Type "DELETE" to confirm</label>
-                            <input type="text" name="confirm_delete" placeholder="DELETE" required>
+                            <input type="text" name="confirm_delete" placeholder="DELETE" <?= !$accountActive ? 'disabled' : '' ?> required>
                         </div>
-                        <button type="submit" name="delete_account" class="btn btn-danger" style="width: 100%;">Permanently Delete Account</button>
+                        <button type="submit" name="delete_account" class="btn btn-danger" style="width: 100%;" <?= !$accountActive ? 'disabled' : '' ?>>
+                            Permanently Delete Account
+                        </button>
                     </form>
                 </div>
             </div>
@@ -490,13 +529,14 @@ $tab = $_GET['tab'] ?? 'profile';
     
     <div id="toastContainer">
         <?php $toast = getToast(); if($toast): ?>
-            <div style="position: fixed; bottom: 20px; right: 20px; background: var(--bg-primary); border-left: 4px solid var(--success); padding: 12px 20px; border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 1000;">
+            <div style="position: fixed; top: 80px; right: 20px; background: var(--bg-primary); border-left: 4px solid var(--success); padding: 12px 20px; border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 1000;">
                 <i class="fas fa-check-circle" style="color: var(--success);"></i> <?= htmlspecialchars($toast['message']) ?>
             </div>
         <?php endif; ?>
     </div>
     
     <script>
+        // Theme Toggle
         const themeToggle = document.getElementById('themeToggle');
         if(localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark');
@@ -514,11 +554,21 @@ $tab = $_GET['tab'] ?? 'profile';
             }
         });
         
+        // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 window.location.href = `?tab=${this.dataset.tab}`;
             });
         });
+        
+        // Auto-hide toast after 3 seconds
+        setTimeout(() => {
+            const toast = document.querySelector('#toastContainer > div');
+            if(toast) {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 3000);
     </script>
 </body>
 </html>

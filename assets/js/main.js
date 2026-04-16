@@ -479,6 +479,111 @@ function closeReplyForm(id) {
     if (form) form.style.display = 'none';
 }
 
+// Notification Modal Functions
+let currentNotificationId = null;
+
+function showNotificationModal(notification) {
+    const modal = document.getElementById('notificationModal');
+    const title = document.getElementById('notifModalTitle');
+    const message = document.getElementById('notifModalMessage');
+    const time = document.getElementById('notifModalTime');
+    const iconDiv = document.getElementById('notifModalIcon');
+    
+    if (!modal) return;
+    
+    // Set content
+    title.innerHTML = notification.title;
+    message.innerHTML = notification.message;
+    time.innerHTML = notification.created_at;
+    
+    // Set icon based on type
+    iconDiv.className = 'notification-type-icon ' + notification.type;
+    if (notification.type === 'success') {
+        iconDiv.innerHTML = '<i class="fas fa-check-circle"></i>';
+    } else if (notification.type === 'warning') {
+        iconDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+    } else if (notification.type === 'danger') {
+        iconDiv.innerHTML = '<i class="fas fa-times-circle"></i>';
+    } else {
+        iconDiv.innerHTML = '<i class="fas fa-info-circle"></i>';
+    }
+    
+    // Show modal
+    modal.style.display = 'flex';
+    currentNotificationId = notification.notification_id;
+    
+    // Mark as read via AJAX if unread
+    if (!notification.is_read) {
+        fetch(`?ajax_mark_read=1&id=${notification.notification_id}`, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the notification item in dropdown
+                const items = document.querySelectorAll('.notification-item');
+                items.forEach(item => {
+                    if (item.innerHTML.includes(notification.title.substring(0, 20))) {
+                        item.classList.remove('unread');
+                    }
+                });
+                // Update badge count
+                const badge = document.querySelector('.notification-badge');
+                if (badge) {
+                    let count = parseInt(badge.textContent) - 1;
+                    if (count > 0) {
+                        badge.textContent = count;
+                    } else {
+                        badge.remove();
+                    }
+                }
+            }
+        })
+        .catch(err => console.error('Error marking notification as read:', err));
+    }
+}
+
+function closeNotificationModal() {
+    const modal = document.getElementById('notificationModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    currentNotificationId = null;
+}
+
+function toggleNotifications(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function() {
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.remove('show');
+    }
+});
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeNotificationModal();
+    }
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('notificationModal');
+    if (modal && e.target === modal) {
+        closeNotificationModal();
+    }
+});
+
+
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================

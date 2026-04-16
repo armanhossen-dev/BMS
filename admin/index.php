@@ -77,6 +77,21 @@ $notifications = $pdo->query("SELECT n.*, c.FirstName, c.LastName FROM notificat
 // Get staff messages
 $staffMessages = $pdo->query("SELECT sm.*, s.first_name, s.last_name, s.email FROM staff_messages sm JOIN staff s ON sm.staff_id = s.staff_id ORDER BY sm.created_at DESC")->fetchAll();
 
+// Handle Staff Message Reply
+if(isset($_POST['reply_staff_message'])) {
+    $messageId = $_POST['message_id'];
+    $adminReply = trim($_POST['admin_reply']);
+    $status = $_POST['status'];
+    
+    if(!empty($adminReply)) {
+        $pdo->prepare("UPDATE staff_messages SET admin_reply = ?, status = ?, replied_at = NOW() WHERE message_id = ?")->execute([$adminReply, $status, $messageId]);
+        setToast("Reply sent to staff member", "success");
+    } else {
+        setToast("Please enter a reply message", "error");
+    }
+    redirect('index.php?tab=staff_messages');
+}
+
 // Handle actions
 if(isset($_GET['action'])) {
     $action = $_GET['action'];
@@ -118,13 +133,6 @@ if(isset($_GET['action'])) {
         $pdo->prepare("INSERT INTO notifications (customer_id, title, message, type) VALUES (?, 'Account Reactivated', 'Your account has been reactivated by admin. You can now access all banking features again.', 'success')")->execute([$customerId]);
         
         setToast("Customer account activated and notified", "success");
-        redirect('index.php');
-    }
-    
-    if($action == 'activate_customer' && isset($_GET['id'])) {
-        $pdo->prepare("UPDATE CUSTOMER SET IsActive = 1 WHERE CustomerID = ?")->execute([$_GET['id']]);
-        $pdo->prepare("UPDATE ACCOUNT SET AccountStatus = 'Active' WHERE CustomerID = ?")->execute([$_GET['id']]);
-        setToast("Customer account activated", "success");
         redirect('index.php');
     }
     
@@ -337,6 +345,7 @@ $tab = $_GET['tab'] ?? 'dashboard';
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-warning { background: var(--warning); color: white; }
+        .btn-sm { padding: 4px 10px; font-size: 11px; }
         
         .modal {
             display: none;
@@ -370,9 +379,35 @@ $tab = $_GET['tab'] ?? 'dashboard';
         
         .feedback-item {
             padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-primary);
         }
-        .reply-form { display: none; margin-top: 12px; }
+        .reply-form { 
+            display: none; 
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        .reply-form textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        .reply-form select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            width: 100%;
+        }
         
         @media (max-width: 1000px) {
             .charts-grid { grid-template-columns: 1fr; }
@@ -585,7 +620,7 @@ $tab = $_GET['tab'] ?? 'dashboard';
                     <button class="btn btn-primary" onclick="openNotificationModal()">+ Send New</button>
                 </div>
                 <div class="table-container">
-                    <table>
+                    </table>
                         <thead><tr><th>To</th><th>Title</th><th>Message</th><th>Date</th><th>Action</th></tr></thead>
                         <tbody>
                             <?php foreach($notifications as $n): ?>
@@ -603,30 +638,59 @@ $tab = $_GET['tab'] ?? 'dashboard';
             </div>
         </div>
         
-        <!-- Staff Messages Tab -->
+        <!-- Staff Messages Tab - Fixed Reply Functionality -->
         <div id="staff_messagesTab" class="tab-content <?= $tab == 'staff_messages' ? 'active' : '' ?>">
             <div class="glass-card">
-                <div class="card-header"><h3><i class="fas fa-envelope"></i> Messages from Staff</h3></div>
-                <?php foreach($staffMessages as $msg): ?>
-                <div class="feedback-item">
-                    <div><strong><?= htmlspecialchars($msg['subject']) ?></strong> <span class="badge badge-pending"><?= $msg['status'] ?></span></div>
-                    <div><small>From: <?= $msg['first_name'] . ' ' . $msg['last_name'] ?></small></div>
-                    <div><?= nl2br(htmlspecialchars($msg['message'])) ?></div>
-                    <?php if($msg['admin_reply']): ?>
-                        <div style="background: var(--accent-bg); padding: 12px; border-radius: 12px; margin-top: 10px;"><strong>Reply:</strong> <?= nl2br(htmlspecialchars($msg['admin_reply'])) ?></div>
-                    <?php else: ?>
-                        <button class="btn btn-primary btn-sm" onclick="openReplyModal(<?= $msg['message_id'] ?>)">Reply</button>
-                        <div id="replyForm-<?= $msg['message_id'] ?>" class="reply-form">
-                            <form method="POST">
-                                <input type="hidden" name="message_id" value="<?= $msg['message_id'] ?>">
-                                <textarea name="admin_reply" rows="3" style="width:100%; padding:10px; border-radius:10px;"></textarea>
-                                <select name="status"><option value="approved">Approve</option><option value="rejected">Reject</option></select>
-                                <button type="submit" name="reply_staff_message" class="btn btn-success">Send</button>
-                            </form>
-                        </div>
-                    <?php endif; ?>
+                <div class="card-header">
+                    <h3><i class="fas fa-envelope"></i> Messages from Staff</h3>
                 </div>
-                <?php endforeach; ?>
+                <?php if(empty($staffMessages)): ?>
+                    <p style="text-align: center; padding: 40px; color: var(--text-tertiary);">No messages from staff</p>
+                <?php else: ?>
+                    <?php foreach($staffMessages as $msg): ?>
+                    <div class="feedback-item">
+                        <div style="margin-bottom: 10px;">
+                            <strong><?= htmlspecialchars($msg['subject']) ?></strong> 
+                            <span class="badge badge-pending" style="float: right;"><?= ucfirst($msg['status']) ?></span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <small><i class="fas fa-user"></i> From: <?= $msg['first_name'] . ' ' . $msg['last_name'] ?> (<?= $msg['email'] ?>)</small>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <small><i class="fas fa-tag"></i> Type: <?= ucfirst($msg['type']) ?> | Sent: <?= date('d M Y, h:i A', strtotime($msg['created_at'])) ?></small>
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 12px; border-radius: 10px; margin: 10px 0;">
+                            <?= nl2br(htmlspecialchars($msg['message'])) ?>
+                        </div>
+                        
+                        <?php if($msg['admin_reply']): ?>
+                            <div style="background: var(--accent-bg); padding: 12px; border-radius: 12px; margin-top: 10px;">
+                                <strong><i class="fas fa-reply"></i> Your Reply:</strong><br>
+                                <?= nl2br(htmlspecialchars($msg['admin_reply'])) ?>
+                                <div class="badge badge-active" style="margin-top: 5px;">Replied on: <?= date('d M Y, h:i A', strtotime($msg['replied_at'])) ?></div>
+                            </div>
+                        <?php else: ?>
+                            <button class="btn btn-primary btn-sm" onclick="toggleReplyForm(<?= $msg['message_id'] ?>)">
+                                <i class="fas fa-reply"></i> Reply to Staff
+                            </button>
+                            <div id="replyForm-<?= $msg['message_id'] ?>" class="reply-form">
+                                <form method="POST" action="">
+                                    <input type="hidden" name="message_id" value="<?= $msg['message_id'] ?>">
+                                    <textarea name="admin_reply" rows="4" placeholder="Write your response to the staff member..." required></textarea>
+                                    <select name="status" required>
+                                        <option value="approved">✓ Approve & Mark as Resolved</option>
+                                        <option value="rejected">✗ Reject Request</option>
+                                    </select>
+                                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                        <button type="submit" name="reply_staff_message" class="btn btn-success">Send Reply</button>
+                                        <button type="button" class="btn btn-outline" onclick="closeReplyForm(<?= $msg['message_id'] ?>)">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -747,38 +811,31 @@ $tab = $_GET['tab'] ?? 'dashboard';
             themeToggle.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Light' : '<i class="fas fa-moon"></i> Dark';
         });
         
-        // Tab switching - No page reload, just show/hide
+        // Tab switching
         document.querySelectorAll('.admin-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const tabName = this.dataset.tab;
-                
-                // Update URL without reload
-                const url = new URL(window.location.href);
-                url.searchParams.set('tab', tabName);
-                window.history.pushState({}, '', url);
-                
-                // Update active tab
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Show/hide tab contents
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                document.getElementById(tabName + 'Tab').classList.add('active');
-                
-                // If dashboard tab is selected and charts not initialized, initialize them
-                if (tabName === 'dashboard' && !window.chartsInitialized) {
-                    setTimeout(() => {
-                        initCharts();
-                        window.chartsInitialized = true;
-                    }, 100);
-                }
+                window.location.href = `?tab=${tabName}`;
             });
         });
         
         // Initialize charts if dashboard is active on page load
         if (document.getElementById('dashboardTab').classList.contains('active')) {
             initCharts();
-            window.chartsInitialized = true;
+        }
+        
+        // Reply form functions
+        function toggleReplyForm(id) {
+            const form = document.getElementById('replyForm-' + id);
+            if (form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        }
+        
+        function closeReplyForm(id) {
+            document.getElementById('replyForm-' + id).style.display = 'none';
         }
         
         // Modal functions
@@ -786,9 +843,10 @@ $tab = $_GET['tab'] ?? 'dashboard';
         function closeStaffModal() { document.getElementById('staffModal').style.display = 'none'; }
         function openNotificationModal() { document.getElementById('notificationModal').style.display = 'flex'; }
         function closeNotificationModal() { document.getElementById('notificationModal').style.display = 'none'; }
-        function openReplyModal(id) { document.getElementById('replyForm-' + id).style.display = 'block'; }
         
-        window.onclick = function(e) { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
+        window.onclick = function(e) { 
+            if(e.target.classList.contains('modal')) e.target.style.display = 'none'; 
+        }
     </script>
 </body>
 </html>

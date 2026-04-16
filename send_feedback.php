@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Set JSON header
 header('Content-Type: application/json');
 
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'client') {
@@ -46,8 +47,29 @@ try {
     $stmt = $pdo->prepare("INSERT INTO feedback (customer_id, subject, message, type, status, created_at) VALUES (?, ?, ?, ?, 'pending', NOW())");
     $stmt->execute([$userId, $subject, $message, $type]);
     
-    // Set session toast for success
-    $_SESSION['toast'] = ['message' => '✓ Feedback sent successfully! Our team will respond within 24 hours.', 'type' => 'success'];
+    // Check if this is a reactivation request
+    if(strpos($subject, 'REACTIVATION') !== false || strpos($message, 'reactivation') !== false) {
+        // Also create a reactivation request record
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reactivation_requests (
+            request_id INT AUTO_INCREMENT PRIMARY KEY,
+            customer_id INT NOT NULL,
+            reason TEXT NOT NULL,
+            status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+            admin_reply TEXT,
+            estimated_timeframe VARCHAR(100),
+            reviewed_by INT,
+            reviewed_at DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+        
+        // Check if already has pending request
+        $check = $pdo->prepare("SELECT * FROM reactivation_requests WHERE customer_id = ? AND status = 'pending'");
+        $check->execute([$userId]);
+        if(!$check->fetch()) {
+            $pdo->prepare("INSERT INTO reactivation_requests (customer_id, reason, status, created_at) VALUES (?, ?, 'pending', NOW())")
+                ->execute([$userId, $message]);
+        }
+    }
     
     echo json_encode(['success' => true, 'message' => 'Feedback sent successfully']);
 } catch(Exception $e) {
