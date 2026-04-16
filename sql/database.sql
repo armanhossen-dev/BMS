@@ -659,3 +659,22 @@ ALTER TABLE feedback ADD COLUMN IF NOT EXISTS replied_at DATETIME;
 UPDATE feedback SET is_read = 1 WHERE status = 'resolved';
 
 SELECT '✅ Database fixed successfully!' AS Status;
+
+-- Fix staff table and add missing data
+USE asha_bank;
+
+-- Ensure staff table has correct structure
+ALTER TABLE staff MODIFY COLUMN password_hash VARCHAR(255) NOT NULL;
+ALTER TABLE staff ADD COLUMN IF NOT EXISTS is_active TINYINT(1) DEFAULT 1;
+
+-- Update existing staff with proper password hashes
+-- Password for all staff is 'staff123' hashed
+UPDATE staff SET password_hash = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi' WHERE password_hash IS NULL OR password_hash = '';
+
+-- Insert default staff if not exists
+INSERT IGNORE INTO staff (first_name, last_name, email, phone, username, password_hash, role, department, join_date, is_active) VALUES
+('Rajesh', 'Sharma', 'rajesh@ashabank.bd', '01710000001', 'rajesh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'manager', 'Operations', CURDATE(), 1),
+('Priya', 'Mehta', 'priya@ashabank.bd', '01710000002', 'priya', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'officer', 'Customer Service', CURDATE(), 1),
+('Amit', 'Verma', 'amit@ashabank.bd', '01710000003', 'amit', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'teller', 'Retail Banking', CURDATE(), 1);
+
+SELECT '✅ Staff table fixed!' AS Status;

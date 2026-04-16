@@ -25,17 +25,23 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             redirect('admin/index.php');
         } else $error = "Invalid admin credentials";
     } elseif($role == 'staff') {
-        $stmt = $pdo->prepare("SELECT * FROM EMPLOYEE WHERE (Email = ? OR EmployeeID = ?) AND IsActive = 1");
-        $stmt->execute([$login, $login]); 
-        $staff = $stmt->fetch();
-        if($staff && $password == 'staff123') {
-            $_SESSION['user_id'] = $staff['EmployeeID']; 
-            $_SESSION['username'] = $staff['FirstName'] . ' ' . $staff['LastName']; 
-            $_SESSION['role'] = 'staff';
-            setToast("Welcome Staff!", "success"); 
-            redirect('staff/dashboard.php');
-        } else $error = "Invalid staff credentials";
+    // Staff login from staff table (not EMPLOYEE)
+    $stmt = $pdo->prepare("SELECT * FROM staff WHERE (email = ? OR username = ?) AND is_active = 1");
+    $stmt->execute([$login, $login]); 
+    $staff = $stmt->fetch();
+    
+    // Verify password using password_verify
+    if($staff && password_verify($password, $staff['password_hash'])) {
+        $_SESSION['user_id'] = $staff['staff_id']; 
+        $_SESSION['username'] = $staff['first_name'] . ' ' . $staff['last_name']; 
+        $_SESSION['role'] = 'staff';
+        $_SESSION['staff_username'] = $staff['username'];
+        setToast("Welcome Staff!", "success"); 
+        redirect('staff/dashboard.php');
     } else {
+        $error = "Invalid staff credentials. Use username/email and password.";
+    }
+    }  else {
         $stmt = $pdo->prepare("SELECT d.UserID, d.CustomerID, d.PasswordHash, c.FirstName, c.LastName FROM DIGITALBANKINGUSER d JOIN CUSTOMER c ON d.CustomerID = c.CustomerID WHERE d.Username = ? OR c.Email = ?");
         $stmt->execute([$login, $login]); 
         $user = $stmt->fetch();
