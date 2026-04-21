@@ -1,0 +1,91 @@
+DATABASE NAME:
+Bank Management System
+
+ENTITIES AND ATTRIBUTES:
+
+1. USERS
+- id (PK)
+- full_name
+- email (UNIQUE)
+- password
+- role (admin, staff, customer)
+- status (active, inactive)
+- created_at
+
+2. CUSTOMERS
+- id (PK)
+- customer_id (UNIQUE)
+- user_id (FK → users.id)
+- full_name
+- email (UNIQUE)
+- phone
+- address
+- dob
+- gender
+- id_type
+- id_number
+- status
+- created_at
+
+RELATIONSHIP:
+One USER can be linked to zero or one CUSTOMER.
+A CUSTOMER optionally belongs to one USER.
+
+3. ACCOUNTS
+- id (PK)
+- account_number (UNIQUE)
+- customer_id (FK → customers.id)
+- account_type (savings, current, fixed_deposit, loan)
+- balance
+- interest_rate
+- status
+- opened_date
+
+RELATIONSHIP:
+One CUSTOMER can have many ACCOUNTS.
+Each ACCOUNT belongs to one CUSTOMER.
+
+4. TRANSACTIONS
+- id (PK)
+- transaction_id (UNIQUE)
+- account_id (FK → accounts.id)
+- type (deposit, withdrawal, transfer_in, transfer_out, loan_disbursement, loan_repayment)
+- amount
+- balance_after
+- description
+- reference_account
+- performed_by (FK → users.id)
+- created_at
+
+RELATIONSHIPS:
+One ACCOUNT has many TRANSACTIONS.
+One USER (staff/admin) performs many TRANSACTIONS.
+
+5. LOANS
+- id (PK)
+- loan_id (UNIQUE)
+- customer_id (FK → customers.id)
+- account_id (FK → accounts.id)
+- loan_type (personal, home, car, business, education)
+- principal_amount
+- interest_rate
+- tenure_months
+- monthly_payment
+- amount_paid
+- amount_remaining
+- status
+- applied_date
+- approved_date
+
+RELATIONSHIPS:
+One CUSTOMER can have many LOANS.
+Each LOAN is linked to one ACCOUNT.
+
+DIAGRAM REQUIREMENTS:
+- Use Crow’s Foot cardinality symbols
+- Clearly mark Primary Keys (PK) and Foreign Keys (FK)
+- Show one-to-many relationships visually
+- Arrange entities logically:
+  USERS → CUSTOMERS → ACCOUNTS → TRANSACTIONS
+                             ↓
+                           LOANS
