@@ -1,4 +1,4 @@
-# Asha Bank — Banking Management System
+# Asha Bank — Banking Management System [v2.0](https://github.com/armanhossen-dev/BMS/tree/main/v2.0)
 
 A full-stack PHP/MySQL banking web app with a dark, gold-accented dashboard UI
 (Customer / Staff / Admin portals), responsive from desktop down to mobile.
