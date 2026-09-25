@@ -1,239 +1,340 @@
 <?php
-require_once __DIR__ . '/config/db.php';
-require_once __DIR__ . '/config/language.php';
-require_once __DIR__ . '/includes/functions.php';
-require_customer();
+require_once 'config/db.php';
+requireAuth('client');
 
-$customerId = $_SESSION['customer_id'];
-$customer = get_customer($customerId);
-$accounts = get_accounts($customerId);
-$primary = $accounts[0] ?? null;
+$userId = $_SESSION['user_id'];
 
-$totalBalance = array_sum(array_column($accounts, 'AvailableBalance'));
-$tier = tier_for_balance($totalBalance);
-$next = tier_next($totalBalance);
-$stars = tier_stars($tier);
+// Check account status
+$statusMsg = getAccountStatusMessage($pdo, $userId);
 
-// Recent transactions (last 6)
-$stmt = $pdo->prepare("SELECT t.*, tt.TypeName FROM TRANSACTION t
-                        JOIN TRANSACTIONTYPE tt ON t.TransactionTypeID = tt.TransactionTypeID
-                        WHERE t.FromCustomerID = ? OR t.ToCustomerID = ?
-                        ORDER BY t.TransactionDate DESC LIMIT 6");
-$stmt->execute([$customerId, $customerId]);
-$recentTxns = $stmt->fetchAll();
+// Get full account info
+$account = getUserAccount($pdo, $userId);
+if (!$account) { setToast('Account not found.', 'danger'); redirect('logout.php'); }
 
-// This month stats
-$stmt = $pdo->prepare("SELECT
-    SUM(CASE WHEN ToCustomerID = ? THEN TransactionAmount ELSE 0 END) AS received,
-    SUM(CASE WHEN FromCustomerID = ? THEN TransactionAmount ELSE 0 END) AS sent,
-    COUNT(*) AS total
-    FROM TRANSACTION WHERE (FromCustomerID = ? OR ToCustomerID = ?)
-    AND MONTH(TransactionDate) = MONTH(CURDATE()) AND YEAR(TransactionDate) = YEAR(CURDATE())");
-$stmt->execute([$customerId, $customerId, $customerId, $customerId]);
-$monthStats = $stmt->fetch();
+$balance = (float)($account['AvailableBalance'] ?? 0);
+$tier    = getCardTier($balance);
 
-// Last 7 days transaction volume (for chart)
-$stmt = $pdo->prepare("SELECT DATE(TransactionDate) d,
-    SUM(CASE WHEN ToCustomerID = ? THEN TransactionAmount ELSE 0 END) credit,
-    SUM(CASE WHEN FromCustomerID = ? THEN TransactionAmount ELSE 0 END) debit
-    FROM TRANSACTION WHERE (FromCustomerID = ? OR ToCustomerID = ?) AND TransactionDate >= CURDATE() - INTERVAL 6 DAY
-    GROUP BY DATE(TransactionDate) ORDER BY d");
-$stmt->execute([$customerId, $customerId, $customerId, $customerId]);
-$chartRaw = $stmt->fetchAll();
-$chartMap = [];
-foreach ($chartRaw as $r) $chartMap[$r['d']] = $r;
-$chartLabels = []; $chartCredit = []; $chartDebit = [];
-for ($i = 6; $i >= 0; $i--) {
-    $d = date('Y-m-d', strtotime("-$i day"));
-    $chartLabels[] = date('D', strtotime($d));
-    $chartCredit[] = (float)($chartMap[$d]['credit'] ?? 0);
-    $chartDebit[]  = (float)($chartMap[$d]['debit'] ?? 0);
+// Get card
+$card = $pdo->prepare("SELECT * FROM CARDS WHERE CustomerID = ? AND IsActive = 1 LIMIT 1");
+$card->execute([$userId]);
+$card = $card->fetch();
+
+// Get unread notifications
+$unreadCount = getUnreadNotifications($pdo, $userId);
+
+// Mark notification read (AJAX)
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'notif_count') {
+    header('Content-Type: application/json');
+    echo json_encode(['count' => $unreadCount]);
+    exit;
 }
 
+// Get recent transactions (last 10)
+$txns = $pdo->prepare(
+    "SELECT t.*, tt.TypeName
+     FROM TRANSACTION t
+     JOIN TRANSACTIONTYPE tt ON t.TransactionTypeID = tt.TransactionTypeID
+     WHERE t.FromCustomerID = ? OR t.ToCustomerID = ?
+     ORDER BY t.TransactionDate DESC
+     LIMIT 10"
+);
+$txns->execute([$userId, $userId]);
+$transactions = $txns->fetchAll();
+
+// Stats
+$totalSent = (float)$pdo->prepare("SELECT COALESCE(SUM(TransactionAmount),0) FROM TRANSACTION WHERE FromCustomerID = ? AND TransactionStatus='Completed'")->execute([$userId]) ? $pdo->query("SELECT COALESCE(SUM(TransactionAmount),0) FROM TRANSACTION WHERE FromCustomerID=$userId AND TransactionStatus='Completed'")->fetchColumn() : 0;
+$totalReceived = (float)$pdo->query("SELECT COALESCE(SUM(TransactionAmount),0) FROM TRANSACTION WHERE ToCustomerID=$userId AND TransactionStatus='Completed'")->fetchColumn();
+$txnCount = (int)$pdo->query("SELECT COUNT(*) FROM TRANSACTION WHERE FromCustomerID=$userId OR ToCustomerID=$userId")->fetchColumn();
+
 // KYC status
-$stmt = $pdo->prepare("SELECT status FROM KYC_VERIFICATIONS WHERE customer_id = ? ORDER BY submitted_at DESC LIMIT 1");
-$stmt->execute([$customerId]);
-$kycStatus = $stmt->fetchColumn() ?: 'pending';
+$kyc = $pdo->prepare("SELECT * FROM KYC_VERIFICATIONS WHERE customer_id = ? ORDER BY submitted_at DESC LIMIT 1");
+$kyc->execute([$userId]);
+$kyc = $kyc->fetch();
 
-// Card
-$stmt = $pdo->prepare("SELECT * FROM CARDS WHERE CustomerID = ? LIMIT 1");
-$stmt->execute([$customerId]);
-$card = $stmt->fetch();
+// Nominee
+$nominee = $pdo->prepare("SELECT * FROM NOMINEE WHERE CustomerID = ? LIMIT 1");
+$nominee->execute([$userId]);
+$nominee = $nominee->fetch();
 
-$showKycPopup = !empty($_SESSION['show_kyc_popup']);
-unset($_SESSION['show_kyc_popup']);
+// Notifications (latest 5)
+$notifs = $pdo->prepare("SELECT * FROM NOTIFICATIONS WHERE customer_id = ? ORDER BY created_at DESC LIMIT 5");
+$notifs->execute([$userId]);
+$notifications = $notifs->fetchAll();
 
-$pageTitle = 'Dashboard';
-$activeNav = 'dashboard';
-require __DIR__ . '/includes/header.php';
+$pageTitle  = 'Dashboard';
+$activePage = 'dashboard';
+include 'includes/header.php';
 ?>
 
-<div class="page-head">
-  <div>
-    <h1><?= t('welcome_back') ?>, <?= clean($customer['FirstName']) ?>! 👋</h1>
-    <div class="sub">Here's what's happening with your money today.</div>
-  </div>
-  <div class="flex gap-12">
-    <?php if ($kycStatus !== 'verified'): ?>
-      <span class="badge badge-warning">KYC <?= ucfirst($kycStatus) ?></span>
-    <?php else: ?>
-      <span class="badge badge-success">KYC Verified</span>
-    <?php endif; ?>
-    <a href="<?= BASE_URL ?>/transfer.php" class="btn btn-primary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      <?= t('send_money') ?>
-    </a>
-  </div>
-</div>
+<div class="page-content">
 
-<div class="grid grid-4">
-  <div class="card stat-card">
-    <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-    <div class="stat-label"><?= t('available_balance') ?></div>
-    <div class="stat-value mono"><?= currency($totalBalance) ?></div>
-    <div class="stat-delta up">Across <?= count($accounts) ?> account<?= count($accounts)===1?'':'s' ?></div>
-  </div>
-  <div class="card stat-card">
-    <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-    <div class="stat-label">Received this month</div>
-    <div class="stat-value mono"><?= currency($monthStats['received'] ?? 0) ?></div>
-    <div class="stat-delta up">↑ Credits</div>
-  </div>
-  <div class="card stat-card">
-    <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
-    <div class="stat-label">Sent this month</div>
-    <div class="stat-value mono"><?= currency($monthStats['sent'] ?? 0) ?></div>
-    <div class="stat-delta down">↓ Debits</div>
-  </div>
-  <div class="card stat-card">
-    <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.2 21 12 17.27 5.8 21 7 14.14l-5-4.87 7.1-1.01z"/></svg></div>
-    <div class="stat-label">Your Tier</div>
-    <div class="stat-value" style="color:var(--accent);"><?= clean($tier) ?></div>
-    <div class="tier-stars mt-8">
-      <?php for ($i=1;$i<=5;$i++): ?>
-        <svg viewBox="0 0 24 24" class="<?= $i<=$stars?'filled':'empty' ?>" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-      <?php endfor; ?>
-    </div>
-  </div>
-</div>
-
-<div class="grid grid-main mt-16">
-  <div class="card">
-    <div class="card-head">
-      <span class="card-title">Transaction Volume</span>
-      <span class="text-dim text-xs">Last 7 days</span>
-    </div>
-    <div class="chart-canvas-wrap">
-      <canvas id="volumeChart" style="width:100%;height:100%;"></canvas>
-    </div>
-    <div class="flex gap-16 mt-16" style="justify-content:center;">
-      <div class="flex items-center gap-8 text-xs text-dim"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span> Received</div>
-      <div class="flex items-center gap-8 text-xs text-dim"><span style="width:8px;height:8px;border-radius:50%;background:var(--info);display:inline-block;"></span> Sent</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <span class="card-title">Your Card</span>
-      <a href="<?= BASE_URL ?>/cards.php" class="link">Manage</a>
-    </div>
-    <?php if ($card): ?>
-    <div class="bank-card <?= tier_class($tier) ?>">
-      <div class="card-top">
-        <div class="card-chip"></div>
-        <div class="card-brand">VISA</div>
-      </div>
-      <div class="card-number mono"><?= mask_card($card['CardNumber']) ?></div>
-      <div class="card-bottom">
-        <div class="card-holder"><?= clean($tier) ?> Card<strong><?= clean($customer['FirstName'] . ' ' . $customer['LastName']) ?></strong></div>
-        <div class="text-xs mono" style="opacity:.85;">EXP <?= date('m/y', strtotime($card['ExpiryDate'])) ?></div>
-      </div>
+    <!-- Account status warning -->
+    <?php if ($statusMsg): ?>
+    <div class="alert alert-warning" role="alert" style="margin-bottom: 24px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><?= e($statusMsg) ?></span>
     </div>
     <?php endif; ?>
 
-    <?php if ($next): ?>
-    <div class="tier-progress">
-      <div class="flex justify-between text-xs text-dim">
-        <span>Next: <?= clean($next['name']) ?></span>
-        <span><?= currency($next['need']) ?> to go</span>
-      </div>
-      <div class="tier-bar"><div class="tier-bar-fill" data-width="<?= min(100, ($totalBalance / $next['target']) * 100) ?>%"></div></div>
+    <!-- Page header -->
+    <div class="page-header">
+        <h1>Good <?= date('H') < 12 ? 'morning' : (date('H') < 17 ? 'afternoon' : 'evening') ?>, <?= e(explode(' ', $_SESSION['username'])[0]) ?>.</h1>
+        <p>Here's your financial overview for <?= date('l, d F Y') ?>.</p>
     </div>
-    <?php else: ?>
-      <div class="badge badge-warning mt-16">🏆 You've reached the top tier!</div>
-    <?php endif; ?>
-  </div>
+
+    <!-- Top row: bank card + quick stats -->
+    <div style="display:grid;grid-template-columns:340px 1fr;gap:24px;margin-bottom:24px;align-items:start;">
+
+        <!-- Bank Card -->
+        <div class="bank-card reveal"
+             style="background:linear-gradient(145deg,<?= e($tier['color']) ?> 0%,<?= e(adjustBrightness($tier['color'] ?? '#185FA5', 20)) ?> 100%);">
+            <div>
+                <div class="bank-card-chip"></div>
+                <div class="bank-card-number">
+                    <?= $card ? maskCardNumber($card['CardNumber']) : '**** **** **** ****' ?>
+                </div>
+            </div>
+            <div class="bank-card-bottom">
+                <div>
+                    <div class="bank-card-holder"><?= e($account['FirstName'] . ' ' . $account['LastName']) ?></div>
+                    <div class="bank-card-expiry">VALID <?= $card ? date('m/y', strtotime($card['ExpiryDate'])) : '—' ?></div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="bank-card-tier"><?= e($tier['name']) ?></div>
+                    <div class="bank-card-network">VISA</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="stat-card reveal">
+                <div class="stat-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </div>
+                <div class="stat-card-label">Available Balance</div>
+                <div class="stat-card-value" style="font-size:22px;color:var(--green);"><?= formatBDT($balance) ?></div>
+                <div class="stat-card-sub"><?= e($account['AccountType'] ?? 'Savings') ?> · <?= e($account['AccountStatus']) ?></div>
+            </div>
+            <div class="stat-card reveal">
+                <div class="stat-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                </div>
+                <div class="stat-card-label">Total Received</div>
+                <div class="stat-card-value" style="font-size:22px;"><?= formatBDT($totalReceived) ?></div>
+                <div class="stat-card-sub">All-time credits</div>
+            </div>
+            <div class="stat-card reveal">
+                <div class="stat-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+                </div>
+                <div class="stat-card-label">Total Sent</div>
+                <div class="stat-card-value" style="font-size:22px;"><?= formatBDT($totalSent) ?></div>
+                <div class="stat-card-sub">All-time debits</div>
+            </div>
+            <div class="stat-card reveal">
+                <div class="stat-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="stat-card-label">Transactions</div>
+                <div class="stat-card-value" style="font-size:22px;"><?= $txnCount ?></div>
+                <div class="stat-card-sub">Total count</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account details row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;" class="reveal">
+        <div style="background:var(--surface);border:1px solid var(--cream-3);border-radius:12px;padding:16px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:8px;">Account Number</div>
+            <div style="font-size:15px;font-weight:600;font-family:monospace;color:var(--ink);"><?= e($account['AccountNumber']) ?></div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--cream-3);border-radius:12px;padding:16px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:8px;">Branch</div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);"><?= e($account['BranchName'] ?? '—') ?></div>
+            <div style="font-size:12px;color:var(--ink-faint);"><?= e($account['IFSCCode'] ?? '') ?></div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--cream-3);border-radius:12px;padding:16px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:8px;">KYC Status</div>
+            <?php if ($kyc): ?>
+            <span class="badge badge-<?= $kyc['status']==='verified' ? 'success' : ($kyc['status']==='rejected' ? 'danger' : 'warning') ?>">
+                <?= ucfirst($kyc['status']) ?>
+            </span>
+            <?php else: ?>
+            <span class="badge badge-neutral">Not submitted</span>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card reveal" style="margin-bottom:24px;">
+        <div class="card-header">
+            <h4>Quick Actions</h4>
+        </div>
+        <div class="card-body">
+            <div class="quick-actions">
+                <a href="deposit.php" class="quick-action">
+                    <div class="qa-icon" style="background:var(--green-light);color:var(--green);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                    </div>
+                    <span class="qa-label">Deposit</span>
+                </a>
+                <a href="withdraw.php" class="quick-action">
+                    <div class="qa-icon" style="background:var(--red-light);color:var(--red);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                    </div>
+                    <span class="qa-label">Withdraw</span>
+                </a>
+                <a href="transfer.php" class="quick-action">
+                    <div class="qa-icon" style="background:var(--blue-light);color:var(--blue);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                    </div>
+                    <span class="qa-label">Transfer</span>
+                </a>
+                <a href="cards.php" class="quick-action">
+                    <div class="qa-icon" style="background:var(--amber-light);color:var(--amber);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                    <span class="qa-label">Cards</span>
+                </a>
+                <a href="notifications.php" class="quick-action">
+                    <div class="qa-icon" style="background:var(--cream-2);color:var(--ink-muted);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
+                    <span class="qa-label">Alerts</span>
+                </a>
+                <a href="feedback.php" class="quick-action">
+                    <div class="qa-icon" style="background:var(--cream-2);color:var(--ink-muted);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <span class="qa-label">Support</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions + Notifications -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
+
+        <!-- Recent Transactions -->
+        <div class="card reveal">
+            <div class="card-header">
+                <h4>Recent Transactions</h4>
+                <a href="transactions.php" class="btn btn-ghost btn-sm">View all →</a>
+            </div>
+            <div class="card-body" style="padding:0 24px;">
+                <?php if (empty($transactions)): ?>
+                <div class="empty-state" style="padding:40px 0;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <h3>No transactions yet</h3>
+                    <p>Make your first deposit to get started.</p>
+                </div>
+                <?php else: ?>
+                <?php foreach ($transactions as $txn):
+                    $isCredit = $txn['ToCustomerID'] == $userId;
+                    $type     = strtolower($txn['TypeName'] ?? 'transfer');
+                    $iconClass = $isCredit ? 'credit' : 'debit';
+                    if (strpos($type, 'transfer') !== false) $iconClass = 'transfer';
+                ?>
+                <div class="txn-item">
+                    <div class="txn-icon <?= $iconClass ?>">
+                        <?php if ($iconClass === 'credit'): ?>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                        <?php elseif ($iconClass === 'debit'): ?>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                        <?php else: ?>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                        <?php endif; ?>
+                    </div>
+                    <div class="txn-info">
+                        <div class="txn-description"><?= e($txn['Description'] ?: $txn['TypeName']) ?></div>
+                        <div class="txn-date"><?= formatDate($txn['TransactionDate'], 'd M Y, g:i A') ?></div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="txn-amount <?= $isCredit ? 'credit' : 'debit' ?>">
+                            <?= $isCredit ? '+' : '-' ?><?= formatBDT($txn['TransactionAmount']) ?>
+                        </div>
+                        <div class="txn-ref"><?= e($txn['ReferenceNumber'] ?? '') ?></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Sidebar: Notifications + Account Info -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- Notifications -->
+            <div class="card reveal">
+                <div class="card-header">
+                    <h4>Notifications</h4>
+                    <?php if ($unreadCount): ?>
+                    <span class="badge badge-danger"><?= $unreadCount ?> new</span>
+                    <?php endif; ?>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <?php if (empty($notifications)): ?>
+                    <div style="padding:24px;text-align:center;color:var(--ink-faint);font-size:13px;">No notifications</div>
+                    <?php else: ?>
+                    <?php foreach ($notifications as $n):
+                        $ntype = $n['type'] ?? 'info';
+                        $colors = ['success'=>'var(--green)','warning'=>'var(--amber)','danger'=>'var(--red)','info'=>'var(--blue)'];
+                        $color  = $colors[$ntype] ?? 'var(--ink-muted)';
+                    ?>
+                    <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--cream-3);<?= !$n['is_read'] ? 'background:var(--surface-2);' : '' ?>">
+                        <div style="width:8px;height:8px;border-radius:50%;background:<?= $color ?>;flex-shrink:0;margin-top:5px;"></div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:500;color:var(--ink-2);"><?= e($n['title']) ?></div>
+                            <div style="font-size:12px;color:var(--ink-faint);margin-top:2px;"><?= timeAgo($n['created_at']) ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                    <div style="padding:10px 16px;">
+                        <a href="notifications.php" style="font-size:13px;color:var(--red);text-decoration:none;font-weight:500;">View all notifications →</a>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Account info -->
+            <div class="card reveal">
+                <div class="card-header"><h4>Account Info</h4></div>
+                <div class="card-body" style="padding:16px;">
+                    <?php $rows = [
+                        ['Product', $account['ProductName'] ?? '—'],
+                        ['Type',    $account['AccountType'] ?? '—'],
+                        ['Min Balance', formatBDT($account['MinBalance'] ?? 0)],
+                        ['Interest Rate', ($account['InterestRate'] ?? 0) . '% p.a.'],
+                        ['Opened', formatDate($account['OpeningDate'] ?? '')],
+                        ['Status', ucfirst($account['AccountStatus'])],
+                    ]; foreach ($rows as [$k,$v]): ?>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--cream-3);">
+                        <span style="font-size:12px;color:var(--ink-muted);"><?= e($k) ?></span>
+                        <span style="font-size:12px;font-weight:500;color:var(--ink);"><?= e($v) ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php if ($nominee): ?>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;">
+                        <span style="font-size:12px;color:var(--ink-muted);">Nominee</span>
+                        <span style="font-size:12px;font-weight:500;color:var(--ink);"><?= e($nominee['NomineeName']) ?></span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="grid grid-main mt-16">
-  <div class="card">
-    <div class="card-head">
-      <span class="card-title"><?= t('recent_transactions') ?></span>
-      <a href="#" class="link"><?= t('view_all') ?></a>
-    </div>
-    <?php if (empty($recentTxns)): ?>
-      <div class="empty-state">No transactions yet. Make your first transfer!</div>
-    <?php else: foreach ($recentTxns as $tx):
-        $isCredit = $tx['ToCustomerID'] == $customerId;
-    ?>
-      <div class="txn-row">
-        <div class="txn-icon <?= $isCredit?'credit':'debit' ?>">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <?php if ($isCredit): ?><polyline points="19 12 12 19 5 12"/><line x1="12" y1="5" x2="12" y2="19"/>
-            <?php else: ?><polyline points="5 12 12 5 19 12"/><line x1="12" y1="19" x2="12" y2="5"/><?php endif; ?>
-          </svg>
-        </div>
-        <div class="txn-info">
-          <div class="txn-title"><?= clean($tx['TypeName']) ?></div>
-          <div class="txn-sub"><?= clean($tx['Description'] ?: $tx['ReferenceNumber']) ?> · <?= time_ago($tx['TransactionDate']) ?></div>
-        </div>
-        <div class="txn-amount <?= $isCredit?'credit':'debit' ?>"><?= $isCredit?'+':'-' ?> <?= currency($tx['TransactionAmount']) ?></div>
-      </div>
-    <?php endforeach; endif; ?>
-  </div>
-
-  <div class="card">
-    <div class="card-head"><span class="card-title">Your Accounts</span></div>
-    <?php foreach ($accounts as $acc): ?>
-      <div class="flex justify-between items-center" style="padding:12px 0;border-bottom:1px solid var(--border-soft);">
-        <div>
-          <div class="text-sm" style="font-weight:600;"><?= clean($acc['ProductName']) ?></div>
-          <div class="text-xs text-dim mono"><?= mask_account($acc['AccountNumber']) ?></div>
-        </div>
-        <div class="text-right">
-          <div class="mono" style="font-weight:600;"><?= currency($acc['AvailableBalance']) ?></div>
-          <span class="badge <?= $acc['AccountStatus']==='Active'?'badge-success':'badge-warning' ?>" style="margin-top:4px;"><?= clean($acc['AccountStatus']) ?></span>
-        </div>
-      </div>
-    <?php endforeach; ?>
-    <a href="<?= BASE_URL ?>/deposit.php" class="btn btn-secondary btn-block mt-16">+ Add Funds</a>
-  </div>
-</div>
-
-<script>
-drawLineChart('volumeChart',
-  <?= json_encode($chartLabels) ?>,
-  [
-    { data: <?= json_encode($chartCredit) ?>, color: '#d4a657' },
-    { data: <?= json_encode($chartDebit) ?>, color: '#60a5fa' }
-  ]
-);
-</script>
-
-<?php if ($showKycPopup && $kycStatus !== 'verified'): ?>
-<div class="modal-overlay open" id="kycModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 style="font-size:17px;">Complete your KYC</h3>
-      <span class="modal-close" data-modal-close>✕</span>
-    </div>
-    <p class="text-muted text-sm">Verify your identity to unlock transfers, cards, and loans. It only takes a minute.</p>
-    <div class="flex gap-12 mt-24">
-      <button class="btn btn-secondary" style="flex:1;" data-modal-close>Later</button>
-      <a href="<?= BASE_URL ?>/profile.php#kyc" class="btn btn-primary" style="flex:1;">Verify Now</a>
-    </div>
-  </div>
-</div>
-<?php endif; ?>
-
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php
+// Helper: lighten a hex color
+function adjustBrightness(string $hex, int $steps): string {
+    $hex = ltrim($hex, '#');
+    if (strlen($hex) === 3) $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+    $r = max(0, min(255, hexdec(substr($hex,0,2)) + $steps));
+    $g = max(0, min(255, hexdec(substr($hex,2,2)) + $steps));
+    $b = max(0, min(255, hexdec(substr($hex,4,2)) + $steps));
+    return '#' . sprintf('%02x%02x%02x', $r, $g, $b);
+}
+include 'includes/footer.php';
+?>

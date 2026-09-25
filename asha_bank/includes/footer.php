@@ -1,16 +1,12 @@
-    </div><!-- /.content -->
-  </div><!-- /.main-col -->
-</div><!-- /.app-shell -->
-
 <?php
-$flashKeys = isset($_SESSION['flash']) ? array_keys($_SESSION['flash']) : [];
-foreach ($flashKeys as $k):
-    $f = flash($k);
-    if ($f):
+// Footer include — closes the main-content and app-layout divs
 ?>
-<div class="js-flash" data-msg="<?= clean($f['msg']) ?>" data-type="<?= clean($f['type']) ?>" style="display:none;"></div>
-<?php endif; endforeach; ?>
+</div><!-- .main-content -->
+</div><!-- .app-layout -->
 
-<script src="<?= BASE_URL ?>/assets/js/main.js"></script>
+<script src="<?= $rootUrl ?>assets/js/main.js"></script>
+<?php if (isset($extraJS)): ?>
+<script><?= $extraJS ?></script>
+<?php endif; ?>
 </body>
 </html>

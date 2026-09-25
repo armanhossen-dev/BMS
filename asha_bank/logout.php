@@ -1,10 +1,20 @@
 <?php
-session_start();
-$_SESSION = [];
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+require_once 'config/db.php';
+
+if (isLoggedIn()) {
+    // Audit log
+    try {
+        $pdo->prepare("INSERT INTO AUDITLOG (UserID, UserRole, Action, IPAddress, LoggedAt) VALUES (?, ?, 'logout', ?, NOW())")
+            ->execute([$_SESSION['user_id'], $_SESSION['role'], $_SERVER['REMOTE_ADDR'] ?? '']);
+    } catch (\Exception $e) {}
 }
+
 session_destroy();
-header('Location: ' . (defined('BASE_URL') ? BASE_URL : '') . '/login.php');
-exit;
+
+setcookie(session_name(), '', time() - 3600, '/');
+
+// Restart session for toast
+session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Strict']);
+setToast('You have been signed out successfully.', 'success');
+
+redirect('login.php');
