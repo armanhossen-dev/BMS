@@ -1,29 +1,35 @@
 -- ============================================================
--- ASHA BANK - COMPLETE DATABASE SCHEMA (WITH NEW TABLES)
+-- ASHA BANK - PRODUCTION-READY COMPLETE DATABASE SCHEMA
+-- Compatible with MySQL 5.7+ / MySQL 8.0+ / MariaDB 10.3+
+-- Character Set: utf8mb4 / Collation: utf8mb4_unicode_ci
 -- ============================================================
 
 DROP DATABASE IF EXISTS asha_bank;
 CREATE DATABASE asha_bank CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE asha_bank;
- 
+
 SET FOREIGN_KEY_CHECKS = 0;
+SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
 
 -- ============================================================
--- 1. GEOGRAPHIC TABLES
+-- 1. GEOGRAPHIC & ORGANIZATIONAL TABLES
 -- ============================================================
 
+DROP TABLE IF EXISTS ZONE;
 CREATE TABLE ZONE (
     ZoneID INT AUTO_INCREMENT PRIMARY KEY,
     ZoneName VARCHAR(100) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS REGION;
 CREATE TABLE REGION (
     RegionID INT AUTO_INCREMENT PRIMARY KEY,
     RegionName VARCHAR(100) NOT NULL,
     ZoneID INT NOT NULL,
-    FOREIGN KEY (ZoneID) REFERENCES ZONE(ZoneID)
-);
+    FOREIGN KEY (ZoneID) REFERENCES ZONE(ZoneID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS BRANCH;
 CREATE TABLE BRANCH (
     BranchID INT AUTO_INCREMENT PRIMARY KEY,
     BranchName VARCHAR(150) NOT NULL,
@@ -31,63 +37,68 @@ CREATE TABLE BRANCH (
     Address VARCHAR(255),
     City VARCHAR(100),
     RegionID INT,
-    ManagerEmployeeID INT,
-    Latitude DECIMAL(10,8),
-    Longitude DECIMAL(11,8),
-    FOREIGN KEY (RegionID) REFERENCES REGION(RegionID)
-);
+    ManagerEmployeeID INT NULL,
+    Latitude DECIMAL(10,8) NULL,
+    Longitude DECIMAL(11,8) NULL,
+    Phone VARCHAR(30) NULL,
+    Email VARCHAR(150) NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (RegionID) REFERENCES REGION(RegionID) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 2. EMPLOYEE TABLES
--- ============================================================
-
+DROP TABLE IF EXISTS DEPARTMENT;
 CREATE TABLE DEPARTMENT (
     DepartmentID INT AUTO_INCREMENT PRIMARY KEY,
     DepartmentName VARCHAR(100) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS DESIGNATION;
 CREATE TABLE DESIGNATION (
     DesignationID INT AUTO_INCREMENT PRIMARY KEY,
     DesignationName VARCHAR(100) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS EMPLOYEE;
 CREATE TABLE EMPLOYEE (
     EmployeeID INT AUTO_INCREMENT PRIMARY KEY,
     FirstName VARCHAR(100) NOT NULL,
     LastName VARCHAR(100) NOT NULL,
     Email VARCHAR(150) UNIQUE,
     Phone VARCHAR(20),
-    DepartmentID INT,
-    DesignationID INT,
-    BranchID INT,
-    ManagerID INT,
+    DepartmentID INT NULL,
+    DesignationID INT NULL,
+    BranchID INT NULL,
+    ManagerID INT NULL,
     HireDate DATE,
-    Salary DECIMAL(12,2),
+    Salary DECIMAL(12,2) DEFAULT 0.00,
     IsActive TINYINT(1) DEFAULT 1,
-    FOREIGN KEY (DepartmentID) REFERENCES DEPARTMENT(DepartmentID),
-    FOREIGN KEY (DesignationID) REFERENCES DESIGNATION(DesignationID),
-    FOREIGN KEY (BranchID) REFERENCES BRANCH(BranchID),
-    FOREIGN KEY (ManagerID) REFERENCES EMPLOYEE(EmployeeID)
-);
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (DepartmentID) REFERENCES DEPARTMENT(DepartmentID) ON DELETE SET NULL,
+    FOREIGN KEY (DesignationID) REFERENCES DESIGNATION(DesignationID) ON DELETE SET NULL,
+    FOREIGN KEY (BranchID) REFERENCES BRANCH(BranchID) ON DELETE SET NULL,
+    FOREIGN KEY (ManagerID) REFERENCES EMPLOYEE(EmployeeID) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE BRANCH ADD FOREIGN KEY (ManagerEmployeeID) REFERENCES EMPLOYEE(EmployeeID);
+ALTER TABLE BRANCH ADD CONSTRAINT fk_branch_manager FOREIGN KEY (ManagerEmployeeID) REFERENCES EMPLOYEE(EmployeeID) ON DELETE SET NULL;
 
 -- ============================================================
--- 3. USER TABLES
+-- 2. USER & AUTHENTICATION TABLES
 -- ============================================================
 
+DROP TABLE IF EXISTS ADMIN_USER;
 CREATE TABLE ADMIN_USER (
     AdminID INT AUTO_INCREMENT PRIMARY KEY,
     Username VARCHAR(100) NOT NULL UNIQUE,
     PasswordHash VARCHAR(255) NOT NULL,
-    Role ENUM('superadmin','manager','teller','support') DEFAULT 'teller',
-    EmployeeID INT,
+    Role ENUM('superadmin','manager','teller','support') DEFAULT 'superadmin',
+    EmployeeID INT NULL,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    LastLogin DATETIME,
+    LastLogin DATETIME NULL,
     IsActive TINYINT(1) DEFAULT 1,
-    FOREIGN KEY (EmployeeID) REFERENCES EMPLOYEE(EmployeeID)
-);
+    FOREIGN KEY (EmployeeID) REFERENCES EMPLOYEE(EmployeeID) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS STAFF;
 CREATE TABLE STAFF (
     staff_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -101,20 +112,18 @@ CREATE TABLE STAFF (
     join_date DATE,
     is_active TINYINT(1) DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_login DATETIME,
+    last_login DATETIME NULL,
     login_attempts INT DEFAULT 0,
-    locked_until DATETIME
-);
+    locked_until DATETIME NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 4. CUSTOMER TABLES
--- ============================================================
-
+DROP TABLE IF EXISTS CUSTOMERCATEGORY;
 CREATE TABLE CUSTOMERCATEGORY (
     CategoryID INT AUTO_INCREMENT PRIMARY KEY,
     CategoryName VARCHAR(100) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS CUSTOMER;
 CREATE TABLE CUSTOMER (
     CustomerID INT AUTO_INCREMENT PRIMARY KEY,
     FirstName VARCHAR(100) NOT NULL,
@@ -128,44 +137,58 @@ CREATE TABLE CUSTOMER (
     NationalID VARCHAR(50) UNIQUE,
     CustomerCategoryID INT DEFAULT 1,
     PrimaryBranchID INT DEFAULT 1,
-    RelationshipManagerID INT,
+    RelationshipManagerID INT NULL,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     IsActive TINYINT(1) DEFAULT 1,
     ReferralCode VARCHAR(20) UNIQUE,
-    ReferredBy INT,
-    FOREIGN KEY (CustomerCategoryID) REFERENCES CUSTOMERCATEGORY(CategoryID),
-    FOREIGN KEY (PrimaryBranchID) REFERENCES BRANCH(BranchID),
-    FOREIGN KEY (RelationshipManagerID) REFERENCES EMPLOYEE(EmployeeID)
-);
+    ReferredBy INT NULL,
+    FOREIGN KEY (CustomerCategoryID) REFERENCES CUSTOMERCATEGORY(CategoryID) ON DELETE SET NULL,
+    FOREIGN KEY (PrimaryBranchID) REFERENCES BRANCH(BranchID) ON DELETE SET NULL,
+    FOREIGN KEY (RelationshipManagerID) REFERENCES EMPLOYEE(EmployeeID) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS DIGITALBANKINGUSER;
+CREATE TABLE DIGITALBANKINGUSER (
+    UserID INT AUTO_INCREMENT PRIMARY KEY,
+    CustomerID INT NOT NULL UNIQUE,
+    Username VARCHAR(100) NOT NULL UNIQUE,
+    PasswordHash VARCHAR(255) NOT NULL,
+    IsActive TINYINT(1) DEFAULT 1,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    LastLogin DATETIME NULL,
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS NOMINEE;
 CREATE TABLE NOMINEE (
     NomineeID INT AUTO_INCREMENT PRIMARY KEY,
     CustomerID INT NOT NULL,
     NomineeName VARCHAR(150) NOT NULL,
     NomineeRelation VARCHAR(100),
     NomineePhone VARCHAR(20),
-    NomineeDOB DATE,
+    NomineeDOB DATE NULL,
     NomineeAddress VARCHAR(255),
-    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID)
-);
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 5. ACCOUNT TABLES
+-- 3. CORE BANKING ACCOUNTS & CARDS
 -- ============================================================
 
+DROP TABLE IF EXISTS ACCOUNTPRODUCT;
 CREATE TABLE ACCOUNTPRODUCT (
     ProductID INT AUTO_INCREMENT PRIMARY KEY,
-    ProductName VARCHAR(150) NOT NULL,
-    AccountType ENUM('Savings','Current','Fixed Deposit','Recurring Deposit') NOT NULL,
+    ProductName VARCHAR(100) NOT NULL,
+    AccountType ENUM('Savings','Current','Fixed Deposit','Student','Salary') DEFAULT 'Savings',
     InterestRate DECIMAL(5,2) DEFAULT 0.00,
-    MinBalance DECIMAL(12,2) DEFAULT 0.00,
-    MaxWithdrawalLimit DECIMAL(15,2),
-    DailyTransferLimit DECIMAL(15,2),
-    MonthlyFee DECIMAL(10,2) DEFAULT 0.00,
-    Description TEXT,
-    IsActive TINYINT(1) DEFAULT 1
-);
+    MinBalance DECIMAL(15,2) DEFAULT 500.00,
+    MaxWithdrawalLimit DECIMAL(15,2) DEFAULT 200000.00,
+    DailyTransferLimit DECIMAL(15,2) DEFAULT 500000.00,
+    Description TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS ACCOUNT;
 CREATE TABLE ACCOUNT (
     AccountNumber BIGINT PRIMARY KEY,
     ProductID INT NOT NULL,
@@ -173,256 +196,216 @@ CREATE TABLE ACCOUNT (
     BranchID INT NOT NULL,
     OpeningDate DATE NOT NULL,
     AvailableBalance DECIMAL(15,2) DEFAULT 0.00,
-    AccountStatus ENUM('Active','Dormant','Closed','Frozen') DEFAULT 'Active',
-    LastTransactionDate DATETIME,
-    IsJoint TINYINT(1) DEFAULT 0,
+    AccountStatus ENUM('Active','Dormant','Frozen','Closed') DEFAULT 'Active',
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ProductID) REFERENCES ACCOUNTPRODUCT(ProductID),
-    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID),
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
     FOREIGN KEY (BranchID) REFERENCES BRANCH(BranchID)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS JOINT_ACCOUNT_HOLDERS;
 CREATE TABLE JOINT_ACCOUNT_HOLDERS (
     JointID INT AUTO_INCREMENT PRIMARY KEY,
     AccountNumber BIGINT NOT NULL,
     CustomerID INT NOT NULL,
-    Relationship VARCHAR(50),
-    IsPrimary TINYINT(1) DEFAULT 0,
-    FOREIGN KEY (AccountNumber) REFERENCES ACCOUNT(AccountNumber),
-    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID)
-);
+    Relation VARCHAR(50),
+    AddedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (AccountNumber) REFERENCES ACCOUNT(AccountNumber) ON DELETE CASCADE,
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 6. CARD TABLES
--- ============================================================
-
+DROP TABLE IF EXISTS CARDS;
 CREATE TABLE CARDS (
     CardID INT AUTO_INCREMENT PRIMARY KEY,
     CardNumber VARCHAR(20) NOT NULL UNIQUE,
     CustomerID INT NOT NULL,
-    AccountNumber BIGINT,
+    AccountNumber BIGINT NOT NULL,
+    CardHolderName VARCHAR(150),
     ExpiryDate DATE NOT NULL,
     CVV VARCHAR(4) NOT NULL,
     CardType ENUM('Debit','Credit','Prepaid') DEFAULT 'Debit',
-    CardStatus ENUM('Active','Blocked','Expired','Lost','Stolen') DEFAULT 'Active',
-    DailyLimit DECIMAL(15,2) DEFAULT 500000,
+    CardStatus ENUM('Active','Blocked','Expired') DEFAULT 'Active',
+    DailyLimit DECIMAL(15,2) DEFAULT 100000.00,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (AccountNumber) REFERENCES ACCOUNT(AccountNumber)
-);
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (AccountNumber) REFERENCES ACCOUNT(AccountNumber) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 7. TRANSACTION TABLES
+-- 4. TRANSACTIONS & AUDITING
 -- ============================================================
 
+DROP TABLE IF EXISTS TRANSACTIONTYPE;
 CREATE TABLE TRANSACTIONTYPE (
     TransactionTypeID INT AUTO_INCREMENT PRIMARY KEY,
-    TypeName VARCHAR(100) NOT NULL,
+    TypeName VARCHAR(50) NOT NULL,
     Description VARCHAR(255),
     Fee DECIMAL(10,2) DEFAULT 0.00
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS TRANSACTION;
 CREATE TABLE TRANSACTION (
     TransactionID BIGINT AUTO_INCREMENT PRIMARY KEY,
     TransactionTypeID INT NOT NULL,
     TransactionAmount DECIMAL(15,2) NOT NULL,
     TransactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FromAccountNumber BIGINT,
-    ToAccountNumber BIGINT,
-    FromCustomerID INT,
-    ToCustomerID INT,
+    FromAccountNumber BIGINT NULL,
+    ToAccountNumber BIGINT NULL,
+    FromCustomerID INT NULL,
+    ToCustomerID INT NULL,
     Description VARCHAR(255),
-    TransactionStatus ENUM('Pending','Processing','Completed','Failed','Reversed','Cancelled') DEFAULT 'Completed',
-    ProcessedBy INT,
-    ReferenceNumber VARCHAR(50) UNIQUE,
-    FailureReason TEXT,
-    Remarks TEXT,
+    TransactionStatus ENUM('Pending','Completed','Processing','Failed','Cancelled') DEFAULT 'Completed',
+    ReferenceNumber VARCHAR(100) UNIQUE,
     FOREIGN KEY (TransactionTypeID) REFERENCES TRANSACTIONTYPE(TransactionTypeID),
-    FOREIGN KEY (FromAccountNumber) REFERENCES ACCOUNT(AccountNumber),
-    FOREIGN KEY (ToAccountNumber) REFERENCES ACCOUNT(AccountNumber),
-    FOREIGN KEY (FromCustomerID) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (ToCustomerID) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (ProcessedBy) REFERENCES EMPLOYEE(EmployeeID)
-);
+    FOREIGN KEY (FromAccountNumber) REFERENCES ACCOUNT(AccountNumber) ON DELETE SET NULL,
+    FOREIGN KEY (ToAccountNumber) REFERENCES ACCOUNT(AccountNumber) ON DELETE SET NULL,
+    FOREIGN KEY (FromCustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE SET NULL,
+    FOREIGN KEY (ToCustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 8. TRANSACTION LIMITS
--- ============================================================
-
+DROP TABLE IF EXISTS TRANSACTION_LIMITS;
 CREATE TABLE TRANSACTION_LIMITS (
     LimitID INT AUTO_INCREMENT PRIMARY KEY,
-    CustomerID INT NOT NULL,
-    TransactionTypeID INT NOT NULL,
-    DailyLimit DECIMAL(15,2),
-    MonthlyLimit DECIMAL(15,2),
-    PerTransactionLimit DECIMAL(15,2),
-    CurrentDayUsage DECIMAL(15,2) DEFAULT 0.00,
-    CurrentMonthUsage DECIMAL(15,2) DEFAULT 0.00,
-    LastResetDate DATE,
-    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (TransactionTypeID) REFERENCES TRANSACTIONTYPE(TransactionTypeID)
-);
-
--- ============================================================
--- 9. DIGITAL BANKING
--- ============================================================
-
-CREATE TABLE DIGITALBANKINGUSER (
-    UserID INT AUTO_INCREMENT PRIMARY KEY,
     CustomerID INT NOT NULL UNIQUE,
-    Username VARCHAR(100) NOT NULL UNIQUE,
-    PasswordHash VARCHAR(255) NOT NULL,
-    IsActive TINYINT(1) DEFAULT 1,
-    LastLogin DATETIME,
-    LoginAttempts INT DEFAULT 0,
-    LockedUntil DATETIME,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PasswordResetToken VARCHAR(255),
-    PasswordResetExpiry DATETIME,
-    SecurityQuestion1 VARCHAR(200),
-    SecurityAnswer1 VARCHAR(200),
-    SecurityQuestion2 VARCHAR(200),
-    SecurityAnswer2 VARCHAR(200),
-    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID)
-);
+    DailyTransferLimit DECIMAL(15,2) DEFAULT 500000.00,
+    DailyWithdrawalLimit DECIMAL(15,2) DEFAULT 200000.00,
+    PerTransactionLimit DECIMAL(15,2) DEFAULT 300000.00,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS TRANSACTION_AUDIT;
+CREATE TABLE TRANSACTION_AUDIT (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id BIGINT NULL,
+    action_type VARCHAR(50),
+    old_amount DECIMAL(15,2),
+    new_amount DECIMAL(15,2),
+    changed_by VARCHAR(100),
+    changed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS AUDIT_LOGS;
+CREATE TABLE AUDIT_LOGS (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    user_type VARCHAR(50),
+    action VARCHAR(50),
+    table_name VARCHAR(100),
+    record_id INT NULL,
+    old_data JSON NULL,
+    new_data JSON NULL,
+    ip_address VARCHAR(45) NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 10. NOTIFICATIONS
+-- 5. NOTIFICATIONS & CUSTOMER CARE
 -- ============================================================
 
+DROP TABLE IF EXISTS NOTIFICATIONS;
 CREATE TABLE NOTIFICATIONS (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT,
+    customer_id INT NOT NULL,
     title VARCHAR(200) NOT NULL,
     message TEXT NOT NULL,
-    type ENUM('info', 'success', 'warning', 'danger') DEFAULT 'info',
+    type ENUM('info','success','warning','danger') DEFAULT 'info',
     is_read TINYINT(1) DEFAULT 0,
-    read_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    link VARCHAR(255),
     FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 11. FEEDBACK
--- ============================================================
-
+DROP TABLE IF EXISTS FEEDBACK;
 CREATE TABLE FEEDBACK (
     feedback_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     subject VARCHAR(200) NOT NULL,
     message TEXT NOT NULL,
-    type ENUM('feedback', 'complaint', 'suggestion', 'issue') DEFAULT 'feedback',
-    status ENUM('pending', 'read', 'replied', 'resolved') DEFAULT 'pending',
-    staff_reply TEXT,
-    replied_by INT,
-    replied_at DATETIME,
+    type ENUM('feedback','complaint','inquiry') DEFAULT 'feedback',
+    status ENUM('pending','in_progress','resolved','closed') DEFAULT 'pending',
+    admin_reply TEXT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved_at DATETIME NULL,
     FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 12. KYC VERIFICATION
--- ============================================================
-
+DROP TABLE IF EXISTS KYC_VERIFICATIONS;
 CREATE TABLE KYC_VERIFICATIONS (
     kyc_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
-    nid_number VARCHAR(50),
-    phone_number VARCHAR(20),
-    verification_code VARCHAR(10),
-    code_expiry DATETIME,
-    status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
-    rejection_reason TEXT,
-    verified_by INT,
-    verified_at DATETIME,
+    nid_number VARCHAR(50) NOT NULL,
+    id_type VARCHAR(50) DEFAULT 'National ID',
+    id_image_front VARCHAR(255) NULL,
+    id_image_back VARCHAR(255) NULL,
+    selfie_image VARCHAR(255) NULL,
+    status ENUM('pending','verified','rejected') DEFAULT 'pending',
+    rejection_reason TEXT NULL,
     submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    document_front_path VARCHAR(255),
-    document_back_path VARCHAR(255),
-    selfie_path VARCHAR(255),
+    verified_at DATETIME NULL,
+    verified_by INT NULL,
     FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 13. REACTIVATION
--- ============================================================
-
+DROP TABLE IF EXISTS REACTIVATION_REQUESTS;
 CREATE TABLE REACTIVATION_REQUESTS (
     request_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     reason TEXT NOT NULL,
-    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-    admin_reply TEXT,
-    estimated_timeframe VARCHAR(100),
-    reviewed_by INT,
-    reviewed_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending','approved','rejected') DEFAULT 'pending',
+    requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at DATETIME NULL,
+    reviewed_by INT NULL,
+    remarks TEXT NULL,
     FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 14. STAFF MESSAGES
--- ============================================================
-
+DROP TABLE IF EXISTS STAFF_MESSAGES;
 CREATE TABLE STAFF_MESSAGES (
     message_id INT AUTO_INCREMENT PRIMARY KEY,
     staff_id INT NOT NULL,
+    sender_id INT NULL,
     subject VARCHAR(200) NOT NULL,
     message TEXT NOT NULL,
-    type ENUM('suggestion', 'request', 'report', 'issue') DEFAULT 'request',
-    status ENUM('pending', 'read', 'approved', 'rejected') DEFAULT 'pending',
-    admin_reply TEXT,
-    replied_by INT,
-    replied_at DATETIME,
+    is_read TINYINT(1) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (staff_id) REFERENCES STAFF(staff_id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 15. LOAN MANAGEMENT (NEW)
+-- 6. LOANS & FINANCING
 -- ============================================================
 
+DROP TABLE IF EXISTS LOAN_PRODUCTS;
 CREATE TABLE LOAN_PRODUCTS (
     loan_product_id INT AUTO_INCREMENT PRIMARY KEY,
     product_name VARCHAR(100) NOT NULL,
-    loan_type ENUM('Home','Personal','Car','Education','Business','Gold') NOT NULL,
-    min_amount DECIMAL(15,2) NOT NULL,
-    max_amount DECIMAL(15,2) NOT NULL,
-    min_tenure_months INT NOT NULL,
-    max_tenure_months INT NOT NULL,
+    loan_type ENUM('Home','Personal','Car','Education','SME') DEFAULT 'Personal',
+    min_amount DECIMAL(15,2) DEFAULT 50000.00,
+    max_amount DECIMAL(15,2) DEFAULT 5000000.00,
+    min_tenure_months INT DEFAULT 12,
+    max_tenure_months INT DEFAULT 60,
     interest_rate DECIMAL(5,2) NOT NULL,
-    processing_fee DECIMAL(10,2) DEFAULT 0.00,
-    late_fee_percentage DECIMAL(5,2) DEFAULT 2.00,
+    processing_fee DECIMAL(10,2) DEFAULT 1000.00,
     is_active TINYINT(1) DEFAULT 1
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS LOANS;
 CREATE TABLE LOANS (
     loan_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     loan_product_id INT NOT NULL,
-    application_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     loan_amount DECIMAL(15,2) NOT NULL,
     tenure_months INT NOT NULL,
     interest_rate DECIMAL(5,2) NOT NULL,
     emi_amount DECIMAL(15,2) NOT NULL,
-    total_payable DECIMAL(15,2) NOT NULL,
-    status ENUM('Pending','Approved','Rejected','Active','Closed','Defaulted') DEFAULT 'Pending',
-    approved_by INT,
-    approved_date DATETIME,
-    disbursement_account BIGINT,
-    disbursement_date DATE,
-    first_emi_date DATE,
-    last_emi_date DATE,
-    purpose TEXT,
-    collateral_type VARCHAR(50),
-    collateral_value DECIMAL(15,2),
-    rejection_reason TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (loan_product_id) REFERENCES LOAN_PRODUCTS(loan_product_id),
-    FOREIGN KEY (approved_by) REFERENCES EMPLOYEE(EmployeeID),
-    FOREIGN KEY (disbursement_account) REFERENCES ACCOUNT(AccountNumber)
-);
+    status ENUM('Pending','Approved','Rejected','Active','Closed') DEFAULT 'Pending',
+    application_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    approval_date DATETIME NULL,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (loan_product_id) REFERENCES LOAN_PRODUCTS(loan_product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS LOAN_EMI_SCHEDULE;
 CREATE TABLE LOAN_EMI_SCHEDULE (
     emi_id INT AUTO_INCREMENT PRIMARY KEY,
     loan_id INT NOT NULL,
@@ -431,172 +414,132 @@ CREATE TABLE LOAN_EMI_SCHEDULE (
     principal_amount DECIMAL(15,2) NOT NULL,
     interest_amount DECIMAL(15,2) NOT NULL,
     outstanding_balance DECIMAL(15,2) NOT NULL,
-    status ENUM('Pending','Paid','Overdue','Partially Paid') DEFAULT 'Pending',
-    paid_date DATETIME,
-    transaction_id BIGINT,
-    late_fee_charged DECIMAL(10,2) DEFAULT 0.00,
-    FOREIGN KEY (loan_id) REFERENCES LOANS(loan_id),
-    FOREIGN KEY (transaction_id) REFERENCES TRANSACTION(TransactionID)
-);
+    status ENUM('Pending','Paid','Overdue') DEFAULT 'Pending',
+    paid_date DATETIME NULL,
+    FOREIGN KEY (loan_id) REFERENCES LOANS(loan_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 16. BILL PAYMENT (NEW)
+-- 7. UTILITY BILLS & CHEQUES
 -- ============================================================
 
+DROP TABLE IF EXISTS BILL_CATEGORIES;
 CREATE TABLE BILL_CATEGORIES (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(100) NOT NULL,
-    category_icon VARCHAR(50),
+    category_icon VARCHAR(50) DEFAULT 'fa-bolt',
     is_active TINYINT(1) DEFAULT 1
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS BILL_PROVIDERS;
 CREATE TABLE BILL_PROVIDERS (
     provider_id INT AUTO_INCREMENT PRIMARY KEY,
     category_id INT NOT NULL,
     provider_name VARCHAR(100) NOT NULL,
     provider_code VARCHAR(50) NOT NULL UNIQUE,
     is_active TINYINT(1) DEFAULT 1,
-    FOREIGN KEY (category_id) REFERENCES BILL_CATEGORIES(category_id)
-);
+    FOREIGN KEY (category_id) REFERENCES BILL_CATEGORIES(category_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS BILL_PAYMENTS;
 CREATE TABLE BILL_PAYMENTS (
     bill_payment_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
+    from_account BIGINT NULL,
     provider_id INT NOT NULL,
-    account_number VARCHAR(50) NOT NULL,
+    account_number VARCHAR(100) NOT NULL,
     amount DECIMAL(15,2) NOT NULL,
-    due_date DATE,
+    fee DECIMAL(10,2) DEFAULT 0.00,
+    total_amount DECIMAL(15,2) NOT NULL,
     payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    reference_number VARCHAR(50) UNIQUE,
-    status ENUM('Pending','Processing','Completed','Failed','Cancelled') DEFAULT 'Pending',
-    transaction_id BIGINT,
-    is_recurring TINYINT(1) DEFAULT 0,
-    next_payment_date DATE,
-    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (provider_id) REFERENCES BILL_PROVIDERS(provider_id),
-    FOREIGN KEY (transaction_id) REFERENCES TRANSACTION(TransactionID)
-);
-
-CREATE TABLE BILL_AUTOPAY_SCHEDULES (
-    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
-    provider_id INT NOT NULL,
-    account_number VARCHAR(50) NOT NULL,
-    amount DECIMAL(15,2) NOT NULL,
-    frequency ENUM('Monthly','Quarterly','Yearly') DEFAULT 'Monthly',
-    next_run_date DATE NOT NULL,
-    last_run_date DATE,
-    is_active TINYINT(1) DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID),
+    status ENUM('Completed','Pending','Failed','Cancelled') DEFAULT 'Completed',
+    reference_number VARCHAR(100) UNIQUE,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (from_account) REFERENCES ACCOUNT(AccountNumber) ON DELETE SET NULL,
     FOREIGN KEY (provider_id) REFERENCES BILL_PROVIDERS(provider_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 17. CHEQUE MANAGEMENT (NEW)
--- ============================================================
+DROP TABLE IF EXISTS BILL_AUTOPAY_SCHEDULES;
+CREATE TABLE BILL_AUTOPAY_SCHEDULES (
+    autopay_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    from_account BIGINT NOT NULL,
+    provider_id INT NOT NULL,
+    consumer_number VARCHAR(100) NOT NULL,
+    max_amount DECIMAL(15,2) NOT NULL,
+    next_due_date DATE NULL,
+    is_active TINYINT(1) DEFAULT 1,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (from_account) REFERENCES ACCOUNT(AccountNumber) ON DELETE CASCADE,
+    FOREIGN KEY (provider_id) REFERENCES BILL_PROVIDERS(provider_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS CHEQUE_BOOK_REQUESTS;
 CREATE TABLE CHEQUE_BOOK_REQUESTS (
     request_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     account_number BIGINT NOT NULL,
-    number_of_leaves INT DEFAULT 50,
+    leaves_count INT DEFAULT 25,
+    status ENUM('Pending','Approved','Dispatched','Delivered','Rejected') DEFAULT 'Pending',
     request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('Pending','Processing','Ready','Delivered','Cancelled') DEFAULT 'Pending',
-    processed_by INT,
-    processed_at DATETIME,
-    delivery_address VARCHAR(255),
-    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (account_number) REFERENCES ACCOUNT(AccountNumber),
-    FOREIGN KEY (processed_by) REFERENCES EMPLOYEE(EmployeeID)
-);
+    processed_date DATETIME NULL,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (account_number) REFERENCES ACCOUNT(AccountNumber) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS CHEQUES;
 CREATE TABLE CHEQUES (
     cheque_id INT AUTO_INCREMENT PRIMARY KEY,
     account_number BIGINT NOT NULL,
-    cheque_number VARCHAR(20) NOT NULL UNIQUE,
+    cheque_number VARCHAR(50) NOT NULL,
+    payee_name VARCHAR(150) NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
     issue_date DATE NOT NULL,
-    amount DECIMAL(15,2),
-    payee_name VARCHAR(150),
-    status ENUM('Issued','Presented','Cleared','Bounced','Cancelled','Stopped') DEFAULT 'Issued',
-    presented_date DATETIME,
-    cleared_date DATETIME,
-    bounce_reason TEXT,
-    stop_payment_reason TEXT,
-    stop_payment_date DATETIME,
-    transaction_id BIGINT,
-    FOREIGN KEY (account_number) REFERENCES ACCOUNT(AccountNumber),
-    FOREIGN KEY (transaction_id) REFERENCES TRANSACTION(TransactionID)
-);
+    status ENUM('Issued','Presented','Cleared','Bounced','Stopped','Cancelled') DEFAULT 'Issued',
+    clearance_date DATETIME NULL,
+    FOREIGN KEY (account_number) REFERENCES ACCOUNT(AccountNumber) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 18. REFERRAL & REWARDS (NEW)
+-- 8. REWARDS & REFERRALS
 -- ============================================================
 
+DROP TABLE IF EXISTS REFERRALS;
 CREATE TABLE REFERRALS (
     referral_id INT AUTO_INCREMENT PRIMARY KEY,
     referrer_id INT NOT NULL,
-    referred_id INT NOT NULL,
-    referral_code VARCHAR(20) NOT NULL,
-    status ENUM('Pending','Completed','Rewarded') DEFAULT 'Pending',
-    referral_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    completion_date DATETIME,
-    reward_amount DECIMAL(10,2) DEFAULT 0.00,
-    FOREIGN KEY (referrer_id) REFERENCES CUSTOMER(CustomerID),
-    FOREIGN KEY (referred_id) REFERENCES CUSTOMER(CustomerID)
-);
+    referee_id INT NOT NULL,
+    referral_code VARCHAR(50) NOT NULL,
+    status ENUM('pending','completed') DEFAULT 'completed',
+    bonus_awarded DECIMAL(10,2) DEFAULT 100.00,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (referrer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (referee_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS REWARD_POINTS;
 CREATE TABLE REWARD_POINTS (
     reward_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
-    points_earned INT DEFAULT 0,
-    points_used INT DEFAULT 0,
-    points_expiry DATE,
-    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID)
-);
+    customer_id INT NOT NULL UNIQUE,
+    points_balance INT DEFAULT 0,
+    lifetime_earned INT DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS REWARD_HISTORY;
 CREATE TABLE REWARD_HISTORY (
     history_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
-    transaction_type ENUM('Earned','Used','Expired','Adjusted') NOT NULL,
     points INT NOT NULL,
+    type ENUM('earn','redeem') NOT NULL,
     description VARCHAR(255),
-    reference_id INT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID)
-);
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 19. AUDIT LOGS
--- ============================================================
-
-CREATE TABLE AUDIT_LOGS (
-    audit_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    user_type ENUM('admin','staff','customer') NOT NULL,
-    action VARCHAR(100) NOT NULL,
-    table_name VARCHAR(50),
-    record_id INT,
-    old_data JSON,
-    new_data JSON,
-    ip_address VARCHAR(45),
-    user_agent VARCHAR(255),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE TRANSACTION_AUDIT (
-    audit_id INT AUTO_INCREMENT PRIMARY KEY,
-    transaction_id BIGINT,
-    action_type VARCHAR(20),
-    old_amount DECIMAL(15,2),
-    new_amount DECIMAL(15,2),
-    changed_by VARCHAR(100),
-    changed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- ============================================================
--- 20. INDEXES
+-- 9. INDEXES
 -- ============================================================
 
 CREATE INDEX idx_customer_email ON CUSTOMER(Email);
@@ -608,7 +551,8 @@ CREATE INDEX idx_account_status ON ACCOUNT(AccountStatus);
 CREATE INDEX idx_transaction_date ON TRANSACTION(TransactionDate);
 CREATE INDEX idx_transaction_status ON TRANSACTION(TransactionStatus);
 CREATE INDEX idx_transaction_reference ON TRANSACTION(ReferenceNumber);
-CREATE INDEX idx_transaction_customer_date ON TRANSACTION(FromCustomerID, TransactionDate);
+CREATE INDEX idx_transaction_from_cust ON TRANSACTION(FromCustomerID, TransactionDate);
+CREATE INDEX idx_transaction_to_cust ON TRANSACTION(ToCustomerID, TransactionDate);
 CREATE INDEX idx_notification_customer ON NOTIFICATIONS(customer_id, is_read);
 CREATE INDEX idx_notification_created ON NOTIFICATIONS(created_at);
 CREATE INDEX idx_feedback_customer ON FEEDBACK(customer_id, status);
@@ -618,17 +562,102 @@ CREATE INDEX idx_emi_loan ON LOAN_EMI_SCHEDULE(loan_id, status);
 CREATE INDEX idx_cheque_account ON CHEQUES(account_number, status);
 CREATE INDEX idx_bill_customer ON BILL_PAYMENTS(customer_id, status);
 
-CREATE FULLTEXT INDEX idx_customer_search ON CUSTOMER(FirstName, LastName, Email, Phone);
-CREATE FULLTEXT INDEX idx_transaction_description ON TRANSACTION(Description);
-
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
--- 21. STORED PROCEDURES
+-- 10. FUNCTIONS
 -- ============================================================
 
 DELIMITER $$
 
+DROP FUNCTION IF EXISTS fn_calculate_age$$
+CREATE FUNCTION fn_calculate_age(p_dob DATE)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    IF p_dob IS NULL THEN RETURN 0; END IF;
+    RETURN TIMESTAMPDIFF(YEAR, p_dob, CURDATE());
+END$$
+
+DROP FUNCTION IF EXISTS fn_get_customer_tier$$
+CREATE FUNCTION fn_get_customer_tier(p_balance DECIMAL(15,2))
+RETURNS VARCHAR(20)
+DETERMINISTIC
+BEGIN
+    DECLARE v_tier VARCHAR(20);
+    IF p_balance >= 1000000 THEN
+        SET v_tier = 'Black Edition';
+    ELSEIF p_balance >= 500000 THEN
+        SET v_tier = 'Platinum';
+    ELSEIF p_balance >= 100000 THEN
+        SET v_tier = 'Gold';
+    ELSEIF p_balance >= 10000 THEN
+        SET v_tier = 'Silver';
+    ELSE
+        SET v_tier = 'Classic';
+    END IF;
+    RETURN v_tier;
+END$$
+
+DROP FUNCTION IF EXISTS fn_format_currency$$
+CREATE FUNCTION fn_format_currency(p_amount DECIMAL(15,2))
+RETURNS VARCHAR(50)
+DETERMINISTIC
+BEGIN
+    RETURN CONCAT('৳ ', FORMAT(COALESCE(p_amount, 0), 2));
+END$$
+
+DROP FUNCTION IF EXISTS fn_total_customer_transactions$$
+CREATE FUNCTION fn_total_customer_transactions(p_customer_id INT)
+RETURNS INT
+READS SQL DATA
+BEGIN
+    DECLARE v_total INT DEFAULT 0;
+    SELECT COUNT(*) INTO v_total
+    FROM TRANSACTION
+    WHERE FromCustomerID = p_customer_id OR ToCustomerID = p_customer_id;
+    RETURN v_total;
+END$$
+
+DROP FUNCTION IF EXISTS fn_calculate_emi$$
+CREATE FUNCTION fn_calculate_emi(
+    p_amount DECIMAL(15,2),
+    p_rate DECIMAL(5,2),
+    p_tenure INT
+)
+RETURNS DECIMAL(15,2)
+DETERMINISTIC
+BEGIN
+    DECLARE v_monthly_rate DECIMAL(10,6);
+    DECLARE v_temp DECIMAL(15,6);
+    DECLARE v_emi DECIMAL(15,2);
+    
+    IF p_amount <= 0 OR p_tenure <= 0 THEN RETURN 0.00; END IF;
+    IF p_rate <= 0 THEN RETURN ROUND(p_amount / p_tenure, 2); END IF;
+    
+    SET v_monthly_rate = p_rate / 12 / 100;
+    SET v_temp = POW(1 + v_monthly_rate, p_tenure);
+    SET v_emi = p_amount * v_monthly_rate * v_temp / (v_temp - 1);
+    
+    RETURN ROUND(v_emi, 2);
+END$$
+
+DROP FUNCTION IF EXISTS fn_get_balance$$
+CREATE FUNCTION fn_get_balance(p_account BIGINT)
+RETURNS DECIMAL(15,2)
+READS SQL DATA
+BEGIN
+    DECLARE v_balance DECIMAL(15,2) DEFAULT 0.00;
+    SELECT COALESCE(AvailableBalance, 0.00) INTO v_balance
+    FROM ACCOUNT WHERE AccountNumber = p_account;
+    RETURN v_balance;
+END$$
+
+-- ============================================================
+-- 11. STORED PROCEDURES
+-- ============================================================
+
+DROP PROCEDURE IF EXISTS sp_get_customer_statement$$
 CREATE PROCEDURE sp_get_customer_statement(
     IN p_customer_id INT,
     IN p_start_date DATE,
@@ -651,6 +680,7 @@ BEGIN
     ORDER BY t.TransactionDate DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS sp_transfer_money$$
 CREATE PROCEDURE sp_transfer_money(
     IN p_from_account BIGINT,
     IN p_to_account BIGINT,
@@ -665,13 +695,12 @@ BEGIN
     DECLARE v_to_customer INT;
     DECLARE v_from_status VARCHAR(20);
     DECLARE v_to_status VARCHAR(20);
-    DECLARE v_daily_limit DECIMAL(15,2);
-    DECLARE v_daily_usage DECIMAL(15,2);
     
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
         SET p_result = 'ERROR: Transaction failed';
+        SET p_transaction_id = 0;
     END;
     
     START TRANSACTION;
@@ -680,20 +709,33 @@ BEGIN
     INTO v_from_balance, v_from_customer, v_from_status
     FROM ACCOUNT WHERE AccountNumber = p_from_account FOR UPDATE;
     
-    SELECT CustomerID, AccountStatus INTO v_to_customer, v_to_status
+    SELECT CustomerID, AccountStatus 
+    INTO v_to_customer, v_to_status
     FROM ACCOUNT WHERE AccountNumber = p_to_account FOR UPDATE;
     
-    IF v_from_status != 'Active' THEN
+    IF v_from_customer IS NULL THEN
+        SET p_result = 'ERROR: Source account not found';
+        SET p_transaction_id = 0;
+        ROLLBACK;
+    ELSEIF v_to_customer IS NULL THEN
+        SET p_result = 'ERROR: Destination account not found';
+        SET p_transaction_id = 0;
+        ROLLBACK;
+    ELSEIF v_from_status != 'Active' THEN
         SET p_result = 'ERROR: Source account is not active';
+        SET p_transaction_id = 0;
         ROLLBACK;
     ELSEIF v_to_status != 'Active' THEN
         SET p_result = 'ERROR: Destination account is not active';
-        ROLLBACK;
-    ELSEIF v_from_balance < p_amount THEN
-        SET p_result = 'ERROR: Insufficient balance';
+        SET p_transaction_id = 0;
         ROLLBACK;
     ELSEIF p_amount <= 0 THEN
         SET p_result = 'ERROR: Invalid amount';
+        SET p_transaction_id = 0;
+        ROLLBACK;
+    ELSEIF v_from_balance < p_amount THEN
+        SET p_result = 'ERROR: Insufficient balance';
+        SET p_transaction_id = 0;
         ROLLBACK;
     ELSE
         UPDATE ACCOUNT SET AvailableBalance = AvailableBalance - p_amount 
@@ -702,12 +744,15 @@ BEGIN
         UPDATE ACCOUNT SET AvailableBalance = AvailableBalance + p_amount 
         WHERE AccountNumber = p_to_account;
         
-        INSERT INTO TRANSACTION (TransactionTypeID, TransactionAmount, 
+        INSERT INTO TRANSACTION (
+            TransactionTypeID, TransactionAmount, 
             FromAccountNumber, ToAccountNumber, FromCustomerID, ToCustomerID, 
-            Description, TransactionStatus, ReferenceNumber, TransactionDate)
-        VALUES (3, p_amount, p_from_account, p_to_account, 
-                v_from_customer, v_to_customer, p_description, 'Completed', 
-                CONCAT('TXN', UNIX_TIMESTAMP(), FLOOR(RAND()*1000)), NOW());
+            Description, TransactionStatus, ReferenceNumber, TransactionDate
+        ) VALUES (
+            3, p_amount, p_from_account, p_to_account, 
+            v_from_customer, v_to_customer, p_description, 'Completed', 
+            CONCAT('TXN', UNIX_TIMESTAMP(), FLOOR(RAND()*1000)), NOW()
+        );
         
         SET p_transaction_id = LAST_INSERT_ID();
         SET p_result = 'SUCCESS: Transfer completed';
@@ -715,6 +760,7 @@ BEGIN
     END IF;
 END$$
 
+DROP PROCEDURE IF EXISTS sp_apply_monthly_interest$$
 CREATE PROCEDURE sp_apply_monthly_interest()
 BEGIN
     DECLARE done INT DEFAULT FALSE;
@@ -728,7 +774,7 @@ BEGIN
         SELECT a.AccountNumber, a.AvailableBalance, ap.InterestRate, a.CustomerID
         FROM ACCOUNT a
         JOIN ACCOUNTPRODUCT ap ON a.ProductID = ap.ProductID
-        WHERE ap.AccountType = 'Savings' AND a.AccountStatus = 'Active';
+        WHERE ap.AccountType = 'Savings' AND a.AccountStatus = 'Active' AND a.AvailableBalance > 0;
     
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     
@@ -739,26 +785,33 @@ BEGIN
             LEAVE read_loop;
         END IF;
         
-        SET v_interest = v_balance * (v_rate / 100) / 12;
+        SET v_interest = ROUND(v_balance * (v_rate / 100) / 12, 2);
         
-        UPDATE ACCOUNT SET AvailableBalance = AvailableBalance + v_interest
-        WHERE AccountNumber = v_account;
-        
-        INSERT INTO TRANSACTION (TransactionTypeID, TransactionAmount, 
-            ToAccountNumber, ToCustomerID, Description, TransactionStatus, ReferenceNumber)
-        SELECT 8, v_interest, v_account, CustomerID, 
-               CONCAT('Monthly Interest @ ', v_rate, '%'), 'Completed', 
-               CONCAT('INT', DATE_FORMAT(NOW(), '%Y%m'), FLOOR(RAND()*1000))
-        FROM ACCOUNT WHERE AccountNumber = v_account;
-        
-        INSERT INTO NOTIFICATIONS (customer_id, title, message, type)
-        VALUES (v_customer, 'Interest Credited', 
+        IF v_interest > 0 THEN
+            UPDATE ACCOUNT SET AvailableBalance = AvailableBalance + v_interest
+            WHERE AccountNumber = v_account;
+            
+            INSERT INTO TRANSACTION (
+                TransactionTypeID, TransactionAmount, 
+                ToAccountNumber, ToCustomerID, Description, TransactionStatus, ReferenceNumber
+            ) VALUES (
+                8, v_interest, v_account, v_customer, 
+                CONCAT('Monthly Interest @ ', v_rate, '%'), 'Completed',
+                CONCAT('INT', DATE_FORMAT(NOW(), '%Y%m'), FLOOR(RAND()*1000))
+            );
+            
+            INSERT INTO NOTIFICATIONS (customer_id, title, message, type)
+            VALUES (
+                v_customer, 'Interest Credited', 
                 CONCAT('Monthly interest of ', fn_format_currency(v_interest), ' has been credited to your account.'),
-                'success');
+                'success'
+            );
+        END IF;
     END LOOP;
     CLOSE cur;
 END$$
 
+DROP PROCEDURE IF EXISTS sp_calculate_loan_emi$$
 CREATE PROCEDURE sp_calculate_loan_emi(
     IN p_loan_amount DECIMAL(15,2),
     IN p_interest_rate DECIMAL(5,2),
@@ -767,15 +820,11 @@ CREATE PROCEDURE sp_calculate_loan_emi(
     OUT p_total_payable DECIMAL(15,2)
 )
 BEGIN
-    DECLARE v_monthly_rate DECIMAL(10,6);
-    DECLARE v_temp DECIMAL(15,6);
-    
-    SET v_monthly_rate = p_interest_rate / 12 / 100;
-    SET v_temp = POW(1 + v_monthly_rate, p_tenure_months);
-    SET p_emi = p_loan_amount * v_monthly_rate * v_temp / (v_temp - 1);
-    SET p_total_payable = p_emi * p_tenure_months;
+    SET p_emi = fn_calculate_emi(p_loan_amount, p_interest_rate, p_tenure_months);
+    SET p_total_payable = ROUND(p_emi * p_tenure_months, 2);
 END$$
 
+DROP PROCEDURE IF EXISTS sp_generate_emi_schedule$$
 CREATE PROCEDURE sp_generate_emi_schedule(
     IN p_loan_id INT
 )
@@ -784,7 +833,6 @@ BEGIN
     DECLARE v_interest_rate DECIMAL(5,2);
     DECLARE v_tenure_months INT;
     DECLARE v_emi DECIMAL(15,2);
-    DECLARE v_total_payable DECIMAL(15,2);
     DECLARE v_balance DECIMAL(15,2);
     DECLARE v_interest DECIMAL(15,2);
     DECLARE v_principal DECIMAL(15,2);
@@ -796,131 +844,56 @@ BEGIN
     INTO v_loan_amount, v_interest_rate, v_tenure_months, v_emi
     FROM LOANS WHERE loan_id = p_loan_id;
     
-    SET v_balance = v_loan_amount;
-    SET v_monthly_rate = v_interest_rate / 12 / 100;
-    SET v_emi_date = CURDATE() + INTERVAL 1 MONTH;
-    
-    DELETE FROM LOAN_EMI_SCHEDULE WHERE loan_id = p_loan_id;
-    
-    WHILE v_i <= v_tenure_months DO
-        SET v_interest = v_balance * v_monthly_rate;
-        SET v_principal = v_emi - v_interest;
-        SET v_balance = v_balance - v_principal;
+    IF v_loan_amount IS NOT NULL THEN
+        SET v_balance = v_loan_amount;
+        SET v_monthly_rate = v_interest_rate / 12 / 100;
+        SET v_emi_date = DATE_ADD(CURDATE(), INTERVAL 1 MONTH);
         
-        IF v_i = v_tenure_months THEN
-            SET v_principal = v_principal + v_balance;
-            SET v_balance = 0;
-        END IF;
+        DELETE FROM LOAN_EMI_SCHEDULE WHERE loan_id = p_loan_id;
         
-        INSERT INTO LOAN_EMI_SCHEDULE (
-            loan_id, due_date, emi_amount, principal_amount, 
-            interest_amount, outstanding_balance, status
-        ) VALUES (
-            p_loan_id, v_emi_date, v_emi, v_principal, v_interest, v_balance, 'Pending'
-        );
-        
-        SET v_emi_date = v_emi_date + INTERVAL 1 MONTH;
-        SET v_i = v_i + 1;
-    END WHILE;
-END$$
-
--- ============================================================
--- 22. FUNCTIONS
--- ============================================================
-
-CREATE FUNCTION fn_calculate_age(p_dob DATE)
-RETURNS INT
-DETERMINISTIC
-BEGIN
-    RETURN TIMESTAMPDIFF(YEAR, p_dob, CURDATE());
-END$$
-
-CREATE FUNCTION fn_get_customer_tier(p_balance DECIMAL(15,2))
-RETURNS VARCHAR(20)
-DETERMINISTIC
-BEGIN
-    DECLARE v_tier VARCHAR(20);
-    IF p_balance >= 1000000 THEN
-        SET v_tier = 'Black Edition';
-    ELSEIF p_balance >= 500000 THEN
-        SET v_tier = 'Platinum';
-    ELSEIF p_balance >= 100000 THEN
-        SET v_tier = 'Gold';
-    ELSEIF p_balance >= 10000 THEN
-        SET v_tier = 'Silver';
-    ELSE
-        SET v_tier = 'Classic';
+        WHILE v_i <= v_tenure_months DO
+            SET v_interest = ROUND(v_balance * v_monthly_rate, 2);
+            SET v_principal = v_emi - v_interest;
+            SET v_balance = v_balance - v_principal;
+            
+            IF v_i = v_tenure_months THEN
+                SET v_principal = v_principal + v_balance;
+                SET v_balance = 0;
+            END IF;
+            
+            INSERT INTO LOAN_EMI_SCHEDULE (
+                loan_id, due_date, emi_amount, principal_amount, 
+                interest_amount, outstanding_balance, status
+            ) VALUES (
+                p_loan_id, v_emi_date, v_emi, v_principal, v_interest, GREATEST(0, v_balance), 'Pending'
+            );
+            
+            SET v_emi_date = DATE_ADD(v_emi_date, INTERVAL 1 MONTH);
+            SET v_i = v_i + 1;
+        END WHILE;
     END IF;
-    RETURN v_tier;
-END$$
-
-CREATE FUNCTION fn_format_currency(p_amount DECIMAL(15,2))
-RETURNS VARCHAR(50)
-DETERMINISTIC
-BEGIN
-    RETURN CONCAT('৳ ', FORMAT(p_amount, 2));
-END$$
-
-CREATE FUNCTION fn_total_customer_transactions(p_customer_id INT)
-RETURNS INT
-DETERMINISTIC
-BEGIN
-    DECLARE v_total INT;
-    SELECT COUNT(*) INTO v_total
-    FROM TRANSACTION
-    WHERE FromCustomerID = p_customer_id OR ToCustomerID = p_customer_id;
-    RETURN v_total;
-END$$
-
-CREATE FUNCTION fn_calculate_emi(
-    p_amount DECIMAL(15,2),
-    p_rate DECIMAL(5,2),
-    p_tenure INT
-)
-RETURNS DECIMAL(15,2)
-DETERMINISTIC
-BEGIN
-    DECLARE v_monthly_rate DECIMAL(10,6);
-    DECLARE v_temp DECIMAL(15,6);
-    DECLARE v_emi DECIMAL(15,2);
-    
-    SET v_monthly_rate = p_rate / 12 / 100;
-    SET v_temp = POW(1 + v_monthly_rate, p_tenure);
-    SET v_emi = p_amount * v_monthly_rate * v_temp / (v_temp - 1);
-    
-    RETURN v_emi;
-END$$
-
-CREATE FUNCTION fn_get_balance(p_account BIGINT)
-RETURNS DECIMAL(15,2)
-READS SQL DATA
-BEGIN
-    DECLARE v_balance DECIMAL(15,2);
-    SELECT AvailableBalance INTO v_balance
-    FROM ACCOUNT WHERE AccountNumber = p_account;
-    RETURN v_balance;
 END$$
 
 -- ============================================================
--- 23. TRIGGERS
+-- 12. TRIGGERS
 -- ============================================================
 
-CREATE TRIGGER trg_check_account_status
-AFTER UPDATE ON ACCOUNT
+DROP TRIGGER IF EXISTS trg_prevent_negative_balance$$
+CREATE TRIGGER trg_prevent_negative_balance
+BEFORE UPDATE ON ACCOUNT
 FOR EACH ROW
 BEGIN
+    IF NEW.AvailableBalance < 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Cannot update: Available balance cannot be negative';
+    END IF;
+    -- Auto-mark dormant if balance drops to zero
     IF NEW.AvailableBalance <= 0 AND OLD.AvailableBalance > 0 THEN
-        UPDATE ACCOUNT SET AccountStatus = 'Dormant' 
-        WHERE AccountNumber = NEW.AccountNumber;
-        
-        INSERT INTO NOTIFICATIONS (customer_id, title, message, type)
-        SELECT CustomerID, 'Low Balance Alert', 
-               'Your account balance has reached zero. Please deposit to keep account active.',
-               'warning'
-        FROM ACCOUNT WHERE AccountNumber = NEW.AccountNumber;
+        SET NEW.AccountStatus = 'Dormant';
     END IF;
 END$$
 
+DROP TRIGGER IF EXISTS trg_transaction_audit$$
 CREATE TRIGGER trg_transaction_audit
 AFTER UPDATE ON ACCOUNT
 FOR EACH ROW
@@ -931,30 +904,25 @@ BEGIN
     END IF;
 END$$
 
+DROP TRIGGER IF EXISTS trg_large_transaction_notification$$
 CREATE TRIGGER trg_large_transaction_notification
 AFTER INSERT ON TRANSACTION
 FOR EACH ROW
 BEGIN
-    IF NEW.TransactionAmount > 100000 THEN
-        INSERT INTO NOTIFICATIONS (customer_id, title, message, type)
-        SELECT NEW.FromCustomerID, 'Large Transaction Alert',
-               CONCAT('A large transaction of ', fn_format_currency(NEW.TransactionAmount), 
-                      ' was processed from your account.'),
-               'warning'
-        WHERE NEW.FromCustomerID IS NOT NULL;
+    IF NEW.TransactionAmount >= 100000 THEN
+        IF NEW.FromCustomerID IS NOT NULL THEN
+            INSERT INTO NOTIFICATIONS (customer_id, title, message, type)
+            VALUES (
+                NEW.FromCustomerID, 
+                'Large Transaction Alert',
+                CONCAT('A large debit transaction of ', fn_format_currency(NEW.TransactionAmount), ' was processed (Ref: ', NEW.ReferenceNumber, ').'),
+                'warning'
+            );
+        END IF;
     END IF;
 END$$
 
-CREATE TRIGGER trg_prevent_negative_balance
-BEFORE UPDATE ON ACCOUNT
-FOR EACH ROW
-BEGIN
-    IF NEW.AvailableBalance < 0 THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Cannot update: Balance cannot be negative';
-    END IF;
-END$$
-
+DROP TRIGGER IF EXISTS trg_audit_customer_update$$
 CREATE TRIGGER trg_audit_customer_update
 AFTER UPDATE ON CUSTOMER
 FOR EACH ROW
@@ -966,10 +934,13 @@ BEGIN
            SUBSTRING_INDEX(USER(), '@', 1);
 END$$
 
+DELIMITER ;
+
 -- ============================================================
--- 24. VIEWS
+-- 13. VIEWS
 -- ============================================================
 
+DROP VIEW IF EXISTS v_customer_balance_tier;
 CREATE VIEW v_customer_balance_tier AS
 SELECT 
     c.CustomerID,
@@ -980,12 +951,13 @@ SELECT
     fn_get_customer_tier(a.AvailableBalance) AS CustomerTier,
     fn_calculate_age(c.DateOfBirth) AS Age,
     fn_total_customer_transactions(c.CustomerID) AS TotalTransactions,
-    k.status AS KYCStatus
+    COALESCE(k.status, 'unverified') AS KYCStatus
 FROM CUSTOMER c
 JOIN ACCOUNT a ON c.CustomerID = a.CustomerID
 LEFT JOIN KYC_VERIFICATIONS k ON c.CustomerID = k.customer_id
 WHERE c.IsActive = 1;
 
+DROP VIEW IF EXISTS v_daily_transaction_summary;
 CREATE VIEW v_daily_transaction_summary AS
 SELECT 
     DATE(TransactionDate) AS TransactionDate,
@@ -999,6 +971,7 @@ FROM TRANSACTION
 GROUP BY DATE(TransactionDate)
 ORDER BY TransactionDate DESC;
 
+DROP VIEW IF EXISTS v_account_summary;
 CREATE VIEW v_account_summary AS
 SELECT 
     a.AccountNumber,
@@ -1017,6 +990,7 @@ JOIN ACCOUNTPRODUCT ap ON a.ProductID = ap.ProductID
 JOIN BRANCH b ON a.BranchID = b.BranchID
 WHERE c.IsActive = 1;
 
+DROP VIEW IF EXISTS v_loan_summary;
 CREATE VIEW v_loan_summary AS
 SELECT 
     l.loan_id,
@@ -1028,20 +1002,21 @@ SELECT
     l.status,
     l.application_date,
     COUNT(e.emi_id) AS TotalPaidEMIs,
-    SUM(CASE WHEN e.status = 'Paid' THEN e.emi_amount ELSE 0 END) AS TotalPaidAmount,
-    (l.loan_amount - SUM(CASE WHEN e.status = 'Paid' THEN e.principal_amount ELSE 0 END)) AS OutstandingPrincipal
+    COALESCE(SUM(CASE WHEN e.status = 'Paid' THEN e.emi_amount ELSE 0 END), 0) AS TotalPaidAmount,
+    (l.loan_amount - COALESCE(SUM(CASE WHEN e.status = 'Paid' THEN e.principal_amount ELSE 0 END), 0)) AS OutstandingPrincipal
 FROM LOANS l
 JOIN CUSTOMER c ON l.customer_id = c.CustomerID
 JOIN LOAN_PRODUCTS lp ON l.loan_product_id = lp.loan_product_id
 LEFT JOIN LOAN_EMI_SCHEDULE e ON l.loan_id = e.loan_id
-GROUP BY l.loan_id;
+GROUP BY l.loan_id, c.FirstName, c.LastName, lp.product_name, l.loan_amount, l.emi_amount, l.tenure_months, l.status, l.application_date;
 
+DROP VIEW IF EXISTS v_bill_payment_summary;
 CREATE VIEW v_bill_payment_summary AS
 SELECT 
     bp.bill_payment_id,
     CONCAT(c.FirstName, ' ', c.LastName) AS CustomerName,
     bc.category_name AS BillCategory,
-    bp.provider_id,
+    bpr.provider_name AS ProviderName,
     bp.account_number,
     bp.amount,
     bp.payment_date,
@@ -1054,120 +1029,214 @@ JOIN BILL_CATEGORIES bc ON bpr.category_id = bc.category_id
 WHERE bp.status != 'Cancelled';
 
 -- ============================================================
--- 25. SAMPLE DATA
+-- 14. SEED DATA
+-- Default password for all demo users is: password
+-- Bcrypt Hash: $2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
 -- ============================================================
 
-INSERT INTO ZONE (ZoneName) VALUES ('Dhaka Division'), ('Chittagong Division'), ('Khulna Division');
-INSERT INTO REGION (RegionName, ZoneID) VALUES ('Dhaka Metro',1), ('Chittagong Metro',2), ('Khulna Metro',3);
+INSERT INTO ZONE (ZoneName) VALUES 
+('Dhaka Division'), 
+('Chittagong Division'), 
+('Sylhet Division'), 
+('Khulna Division'),
+('Rajshahi Division');
 
-INSERT INTO BRANCH (BranchName, IFSCCode, Address, City, RegionID) VALUES
-('Dhaka Main Branch','ASHA0001001','Motijheel C/A','Dhaka',1),
-('Chittagong Branch','ASHA0002001','Agrabad C/A','Chittagong',2),
-('Khulna Branch','ASHA0003001','KDA Avenue','Khulna',3);
+INSERT INTO REGION (RegionName, ZoneID) VALUES 
+('Dhaka Central Metro', 1), 
+('Chittagong Metro', 2), 
+('Sylhet Metro', 3), 
+('Khulna Metro', 4),
+('Rajshahi Metro', 5);
+
+INSERT INTO BRANCH (BranchName, IFSCCode, Address, City, RegionID, Phone, Email) VALUES
+('Motijheel Corporate Head Branch', 'ASHA0001001', '71 Motijheel C/A', 'Dhaka', 1, '+880 2 9560001', 'motijheel@ashabank.com.bd'),
+('Gulshan Premium Branch',          'ASHA0001002', 'Road 11, Block D, Banani', 'Dhaka', 1, '+880 2 9880002', 'gulshan@ashabank.com.bd'),
+('Agrabad Commercial Branch',        'ASHA0002001', 'Agrabad Commercial Area', 'Chittagong', 2, '+880 31 712001', 'agrabad@ashabank.com.bd'),
+('Zindabazar Metro Branch',         'ASHA0003001', 'East Zindabazar', 'Sylhet', 3, '+880 821 721001', 'sylhet@ashabank.com.bd'),
+('KDA Avenue Branch',               'ASHA0004001', '12 KDA Avenue', 'Khulna', 4, '+880 41 720001', 'khulna@ashabank.com.bd');
 
 INSERT INTO DEPARTMENT (DepartmentName) VALUES 
-('Retail Banking'), ('Operations'), ('Customer Service'), ('Loan Department'), ('IT');
+('Retail Banking'), 
+('Corporate Banking'), 
+('Customer Experience'), 
+('Credit & Loans'), 
+('Information Technology & Security'),
+('Compliance & Audit');
 
 INSERT INTO DESIGNATION (DesignationName) VALUES 
-('Branch Manager'), ('Senior Officer'), ('Officer'), ('Teller'), ('IT Specialist');
+('Branch Manager'), 
+('Senior Relationship Manager'), 
+('Customer Service Officer'), 
+('Senior Teller'), 
+('IT System Administrator');
 
 INSERT INTO EMPLOYEE (FirstName, LastName, Email, Phone, DepartmentID, DesignationID, BranchID, HireDate, Salary, IsActive) VALUES
-('Rajesh', 'Sharma', 'rajesh@ashabank.bd', '01710000001', 1, 1, 1, '2015-03-01', 85000.00, 1),
-('Priya', 'Mehta', 'priya@ashabank.bd', '01710000002', 2, 2, 2, '2016-06-15', 55000.00, 1),
-('Amit', 'Verma', 'amit@ashabank.bd', '01710000003', 3, 3, 3, '2018-01-10', 45000.00, 1);
+('Tariqul', 'Islam',  'tariqul@ashabank.com.bd', '01710000001', 1, 1, 1, '2016-03-01', 95000.00, 1),
+('Fatema',  'Zohra',  'fatema@ashabank.com.bd',  '01710000002', 2, 2, 2, '2018-05-15', 75000.00, 1),
+('Kamrul',  'Hasan',  'kamrul@ashabank.com.bd',  '01710000003', 3, 3, 3, '2020-01-10', 50000.00, 1),
+('Shakil',  'Ahmed',  'shakil@ashabank.com.bd',  '01710000004', 4, 2, 1, '2019-07-20', 65000.00, 1),
+('Nusrat',  'Jahan',  'nusrat@ashabank.com.bd',  '01710000005', 5, 5, 1, '2021-02-01', 70000.00, 1);
 
-UPDATE BRANCH SET ManagerEmployeeID=1 WHERE BranchID=1;
-UPDATE BRANCH SET ManagerEmployeeID=2 WHERE BranchID=2;
-UPDATE BRANCH SET ManagerEmployeeID=3 WHERE BranchID=3;
+UPDATE BRANCH SET ManagerEmployeeID = 1 WHERE BranchID = 1;
+UPDATE BRANCH SET ManagerEmployeeID = 2 WHERE BranchID = 2;
+UPDATE BRANCH SET ManagerEmployeeID = 3 WHERE BranchID = 3;
 
+-- Admin Users (Password: password)
 INSERT INTO ADMIN_USER (Username, PasswordHash, Role, EmployeeID, IsActive) VALUES
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'superadmin', 1, 1);
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'superadmin', 1, 1),
+('manager_tariq', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'manager', 1, 1);
 
-INSERT INTO CUSTOMERCATEGORY (CategoryName) VALUES ('Regular'), ('Premium'), ('Senior Citizen'), ('Student');
+-- Staff Users (Password: password)
+INSERT INTO STAFF (first_name, last_name, email, phone, username, password_hash, role, department, join_date, is_active) VALUES
+('Rajesh', 'Sharma', 'rajesh@ashabank.com.bd', '01710000011', 'rajesh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'manager', 'Operations', '2018-01-01', 1),
+('Fatema', 'Zohra',  'fatema_staff@ashabank.com.bd', '01710000012', 'fatema', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'officer', 'Customer Support', '2020-06-01', 1);
 
-INSERT INTO CUSTOMER (FirstName, LastName, DateOfBirth, Gender, Email, Phone, Address, City, NationalID, CustomerCategoryID, PrimaryBranchID, CreatedAt, IsActive) VALUES
-('Arjun', 'Kapoor', '1990-05-15', 'Male', 'arjun.kapoor@gmail.com', '01710000101', '42 Gulshan Avenue', 'Dhaka', 'BD123456789', 1, 1, NOW(), 1),
-('Sanya', 'Malhotra', '1988-11-22', 'Female', 'sanya.malhotra@gmail.com', '01710000102', '8 GEC Circle', 'Chittagong', 'BD987654321', 2, 2, NOW(), 1),
-('Kiran', 'Bose', '1975-03-08', 'Female', 'kiran.bose@gmail.com', '01710000103', '15 Sonadanga', 'Khulna', 'BD456789123', 1, 3, NOW(), 1);
+-- Customer Categories
+INSERT INTO CUSTOMERCATEGORY (CategoryName) VALUES 
+('Regular Individual'), 
+('Priority Banking'), 
+('Senior Citizen'), 
+('Student Account'),
+('Corporate Business');
 
-INSERT INTO ACCOUNTPRODUCT (ProductName, AccountType, InterestRate, MinBalance, MaxWithdrawalLimit, DailyTransferLimit, Description) VALUES
-('Asha Savings Classic', 'Savings', 3.50, 1000.00, 200000.00, 500000.00, 'Standard savings account'),
-('Asha Savings Premium', 'Savings', 4.00, 10000.00, 500000.00, 1000000.00, 'Premium savings account'),
-('Asha Current Pro', 'Current', 0.00, 5000.00, 1000000.00, 2000000.00, 'Business current account');
+-- Sample Customers
+INSERT INTO CUSTOMER (FirstName, LastName, DateOfBirth, Gender, Email, Phone, Address, City, NationalID, CustomerCategoryID, PrimaryBranchID, CreatedAt, IsActive, ReferralCode) VALUES
+('Arjun', 'Kapoor', '1992-05-15', 'Male', 'arjun.kapoor@gmail.com', '01710000101', '42 Gulshan Avenue, Road 71', 'Dhaka', '1992269548100001', 2, 1, NOW(), 1, 'REF1001'),
+('Sanya', 'Malhotra', '1995-11-22', 'Female', 'sanya.malhotra@gmail.com', '01710000102', '8 GEC Circle, Nasirabad', 'Chittagong', '1995269548100002', 1, 3, NOW(), 1, 'REF1002'),
+('Kiran', 'Bose', '1980-03-08', 'Female', 'kiran.bose@gmail.com', '01710000103', '15 Sonadanga R/A', 'Khulna', '1980269548100003', 2, 5, NOW(), 1, 'REF1003'),
+('Tanvir', 'Ahmed', '1998-08-14', 'Male', 'tanvir.ahmed@gmail.com', '01710000104', 'House 22, Road 4, Dhanmondi', 'Dhaka', '1998269548100004', 1, 1, NOW(), 1, 'REF1004'),
+('Nadia', 'Islam', '1994-04-18', 'Female', 'nadia.islam@gmail.com', '01710000105', 'Shahjalal Upashohor, Sector B', 'Sylhet', '1994269548100005', 4, 4, NOW(), 1, 'REF1005');
 
-INSERT INTO ACCOUNT (AccountNumber, ProductID, CustomerID, BranchID, OpeningDate, AvailableBalance, AccountStatus) VALUES
-(10000000001, 1, 1, 1, '2023-01-15', 45250.75, 'Active'),
-(10000000002, 1, 2, 2, '2023-02-20', 128900.00, 'Active'),
-(10000000003, 2, 3, 3, '2022-11-01', 350000.00, 'Active');
-
-INSERT INTO CARDS (CardNumber, CustomerID, AccountNumber, ExpiryDate, CVV, CardType, CardStatus, DailyLimit) VALUES
-('4532123456789012', 1, 10000000001, DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '123', 'Debit', 'Active', 500000),
-('4532987654321098', 2, 10000000002, DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '456', 'Debit', 'Active', 500000),
-('4532111122223333', 3, 10000000003, DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '789', 'Debit', 'Active', 500000);
-
-INSERT INTO NOMINEE (CustomerID, NomineeName, NomineeRelation, NomineePhone) VALUES
-(1, 'Sita Kapoor', 'Spouse', '01710000201'),
-(2, 'Raj Malhotra', 'Father', '01710000202');
-
-INSERT INTO TRANSACTIONTYPE (TypeName, Description, Fee) VALUES
-('Deposit', 'Money deposited into account', 0.00),
-('Withdrawal', 'Money withdrawn from account', 0.00),
-('Transfer', 'Fund transfer between accounts', 0.00),
-('NEFT', 'National Electronic Funds Transfer', 5.00),
-('UPI', 'Unified Payment Interface', 0.00),
-('Bill Payment', 'Payment of utility bills', 0.00),
-('Loan EMI', 'Loan EMI payment', 0.00),
-('Interest', 'Interest credited', 0.00);
-
-INSERT INTO TRANSACTION (TransactionTypeID, TransactionAmount, TransactionDate, FromAccountNumber, ToAccountNumber, FromCustomerID, ToCustomerID, Description, TransactionStatus, ReferenceNumber) VALUES
-(1, 5000.00, NOW() - INTERVAL 10 DAY, NULL, 10000000001, NULL, 1, 'Initial Deposit', 'Completed', 'DEP001'),
-(3, 10000.00, NOW() - INTERVAL 8 DAY, 10000000001, 10000000002, 1, 2, 'Personal Transfer', 'Completed', 'TXN001'),
-(2, 2000.00, NOW() - INTERVAL 5 DAY, 10000000002, NULL, 2, NULL, 'ATM Withdrawal', 'Completed', 'WDL001'),
-(1, 25000.00, NOW() - INTERVAL 3 DAY, NULL, 10000000003, NULL, 3, 'Salary Credit', 'Completed', 'DEP002'),
-(3, 5000.00, NOW() - INTERVAL 2 DAY, 10000000003, 10000000001, 3, 1, 'Transfer to Friend', 'Completed', 'TXN002');
-
+-- Digital Banking Logins (Password: password)
 INSERT INTO DIGITALBANKINGUSER (CustomerID, Username, PasswordHash, IsActive, CreatedAt) VALUES
 (1, 'arjun.kapoor', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
 (2, 'sanya.malhotra', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
-(3, 'kiran.bose', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
+(3, 'kiran.bose', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
+(4, 'tanvir.ahmed', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
+(5, 'nadia.islam', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
 
-INSERT INTO STAFF (first_name, last_name, email, phone, username, password_hash, role, department, join_date, is_active) VALUES
-('Rajesh', 'Sharma', 'rajesh@ashabank.bd', '01710000001', 'rajesh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'manager', 'Operations', CURDATE(), 1);
+-- Account Products
+INSERT INTO ACCOUNTPRODUCT (ProductName, AccountType, InterestRate, MinBalance, MaxWithdrawalLimit, DailyTransferLimit, Description) VALUES
+('Asha Classic Savings', 'Savings', 4.50, 1000.00, 200000.00, 500000.00, 'Everyday digital savings account with free debit card and 24/7 internet banking.'),
+('Asha Platinum High-Yield', 'Savings', 6.00, 10000.00, 500000.00, 1000000.00, 'Premium account for high balances with tiered interest and airport lounge perks.'),
+('Asha Business Current Pro', 'Current', 0.00, 5000.00, 2000000.00, 5000000.00, 'Seamless corporate transactions with zero charges on digital bulk salary payouts.'),
+('Asha Student Smart Account', 'Student', 5.00, 100.00, 50000.00, 100000.00, 'Zero balance maintenance and subsidized fee for students aged 18 to 25.'),
+('Asha Term Deposit (FDR)', 'Fixed Deposit', 8.50, 50000.00, 0.00, 0.00, 'Guaranteed return investment scheme with monthly or maturity profit payout.');
 
-INSERT INTO NOTIFICATIONS (customer_id, title, message, type, created_at) VALUES
-(1, 'Welcome to Asha Bank!', 'Thank you for joining Asha Bank. We are delighted to have you.', 'success', NOW()),
-(2, 'KYC Verification Required', 'Please complete your KYC verification to activate all features.', 'warning', NOW());
+-- Accounts
+INSERT INTO ACCOUNT (AccountNumber, ProductID, CustomerID, BranchID, OpeningDate, AvailableBalance, AccountStatus) VALUES
+(10000000001, 1, 1, 1, '2023-01-15', 78450.50, 'Active'),
+(10000000002, 1, 2, 3, '2023-02-20', 145200.00, 'Active'),
+(10000000003, 2, 3, 5, '2022-11-01', 485000.00, 'Active'),
+(10000000004, 1, 4, 1, '2023-05-10', 32000.00, 'Active'),
+(10000000005, 4, 5, 4, '2023-09-01', 18500.00, 'Active');
 
-INSERT INTO FEEDBACK (customer_id, subject, message, type, status, created_at) VALUES
-(1, 'Great Service', 'The mobile banking app is very user friendly!', 'feedback', 'pending', NOW());
+-- Cards
+INSERT INTO CARDS (CardNumber, CustomerID, AccountNumber, CardHolderName, ExpiryDate, CVV, CardType, CardStatus, DailyLimit) VALUES
+('4532123456789012', 1, 10000000001, 'ARJUN KAPOOR', DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '123', 'Debit', 'Active', 200000.00),
+('4532987654321098', 2, 10000000002, 'SANYA MALHOTRA', DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '456', 'Debit', 'Active', 200000.00),
+('4532111122223333', 3, 10000000003, 'KIRAN BOSE', DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '789', 'Credit', 'Active', 500000.00),
+('4532444455556666', 4, 10000000004, 'TANVIR AHMED', DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '321', 'Debit', 'Active', 100000.00),
+('4532777788889999', 5, 10000000005, 'NADIA ISLAM', DATE_ADD(CURDATE(), INTERVAL 5 YEAR), '654', 'Debit', 'Active', 50000.00);
 
-INSERT INTO KYC_VERIFICATIONS (customer_id, nid_number, status, submitted_at) VALUES
-(1, '12345678901234567', 'pending', NOW()),
-(2, '98765432109876543', 'verified', NOW());
+-- Nominees
+INSERT INTO NOMINEE (CustomerID, NomineeName, NomineeRelation, NomineePhone, NomineeDOB, NomineeAddress) VALUES
+(1, 'Sita Kapoor', 'Spouse', '01710000201', '1994-02-10', '42 Gulshan Avenue, Dhaka'),
+(2, 'Raj Malhotra', 'Father', '01710000202', '1965-08-25', '8 GEC Circle, Chittagong'),
+(3, 'Debabrata Bose', 'Spouse', '01710000203', '1976-12-04', '15 Sonadanga, Khulna');
 
+-- Transaction Types
+INSERT INTO TRANSACTIONTYPE (TypeName, Description, Fee) VALUES
+('Deposit', 'Cash or digital fund deposit into bank account', 0.00),
+('Withdrawal', 'ATM or branch counter cash withdrawal', 0.00),
+('Transfer', 'Inter-bank or intra-bank instant money transfer', 0.00),
+('BEFTN / NPSB', 'Electronic funds clearance transfer', 0.00),
+('Mobile Wallet Link', 'Transfer to bKash / Nagad / Upay wallet', 5.00),
+('Bill Payment', 'Utility, education, or municipal bill payment', 0.00),
+('Loan EMI Payment', 'Scheduled monthly loan installment payment', 0.00),
+('Interest Credit', 'Quarterly or monthly savings interest credit', 0.00);
+
+-- Sample Transactions
+INSERT INTO TRANSACTION (TransactionTypeID, TransactionAmount, TransactionDate, FromAccountNumber, ToAccountNumber, FromCustomerID, ToCustomerID, Description, TransactionStatus, ReferenceNumber) VALUES
+(1, 50000.00, DATE_SUB(NOW(), INTERVAL 14 DAY), NULL, 10000000001, NULL, 1, 'Initial Account Opening Deposit', 'Completed', 'DEP-10001'),
+(3, 12000.00, DATE_SUB(NOW(), INTERVAL 10 DAY), 10000000001, 10000000002, 1, 2, 'Funds Transfer to Sanya', 'Completed', 'TXN-20001'),
+(2, 5000.00, DATE_SUB(NOW(), INTERVAL 7 DAY), 10000000002, NULL, 2, NULL, 'ATM Cash Withdrawal (Motijheel)', 'Completed', 'WDL-30001'),
+(1, 150000.00, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, 10000000003, NULL, 3, 'Business Dividend Deposit', 'Completed', 'DEP-10002'),
+(3, 15000.00, DATE_SUB(NOW(), INTERVAL 3 DAY), 10000000003, 10000000004, 3, 4, 'Consulting Payment to Tanvir', 'Completed', 'TXN-20002'),
+(6, 3250.00, DATE_SUB(NOW(), INTERVAL 2 DAY), 10000000001, NULL, 1, NULL, 'Electricity Bill Payment - DESCO', 'Completed', 'BIL-40001'),
+(8, 450.50, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, 10000000001, NULL, 1, 'Monthly Interest Credited @ 4.5%', 'Completed', 'INT-50001');
+
+-- Bill Categories & Providers
 INSERT INTO BILL_CATEGORIES (category_name, category_icon) VALUES
 ('Electricity', 'fa-bolt'),
-('Water', 'fa-tint'),
-('Gas', 'fa-fire'),
-('Mobile Recharge', 'fa-mobile-alt'),
-('DTH/Cable', 'fa-tv'),
-('Insurance', 'fa-shield-alt');
+('Water & Sanitation', 'fa-tint'),
+('Gas Utility', 'fa-fire'),
+('Mobile Recharge & Postpaid', 'fa-mobile-alt'),
+('Internet & Broadband', 'fa-wifi'),
+('Insurance & DPS', 'fa-shield-alt');
 
 INSERT INTO BILL_PROVIDERS (category_id, provider_name, provider_code) VALUES
-(1, 'DESCO', 'DESCO'),
-(1, 'DPDC', 'DPDC'),
-(2, 'DWASA', 'DWASA'),
-(3, 'Titas Gas', 'TITAS'),
-(4, 'Grameenphone', 'GP'),
-(4, 'Robi', 'ROBI'),
-(5, 'Dish TV', 'DISHTV');
+(1, 'DESCO (Dhaka Electric Supply Company)', 'DESCO'),
+(1, 'DPDC (Dhaka Power Distribution Co)', 'DPDC'),
+(1, 'NESCO (Northern Electricity Supply)', 'NESCO'),
+(2, 'DWASA (Dhaka Water Supply)', 'DWASA'),
+(2, 'CWASA (Chittagong WASA)', 'CWASA'),
+(3, 'Titas Gas Transmission', 'TITAS'),
+(3, 'Karnaphuli Gas Distribution', 'KGDCL'),
+(4, 'Grameenphone Postpaid', 'GP'),
+(4, 'Robi Axiata', 'ROBI'),
+(4, 'Banglalink', 'BL'),
+(5, 'AmberIT High-Speed Fiber', 'AMBER'),
+(6, 'MetLife Bangladesh', 'METLIFE');
 
-INSERT INTO LOAN_PRODUCTS (product_name, loan_type, min_amount, max_amount, min_tenure_months, max_tenure_months, interest_rate, processing_fee) VALUES
-('Home Loan', 'Home', 500000, 5000000, 60, 240, 8.50, 5000),
-('Personal Loan', 'Personal', 50000, 500000, 12, 60, 12.00, 1000),
-('Car Loan', 'Car', 300000, 3000000, 24, 84, 9.50, 3000),
-('Education Loan', 'Education', 100000, 2000000, 12, 120, 7.00, 2000);
+-- Sample Bill Payment
+INSERT INTO BILL_PAYMENTS (customer_id, from_account, provider_id, account_number, amount, fee, total_amount, payment_date, status, reference_number) VALUES
+(1, 10000000001, 1, 'DESCO-99882211', 3250.00, 0.00, 3250.00, DATE_SUB(NOW(), INTERVAL 2 DAY), 'Completed', 'BP-887701');
 
-UPDATE CUSTOMER SET ReferralCode = CONCAT('REF', CustomerID, SUBSTRING(MD5(RAND()), 1, 6)) WHERE CustomerID > 0;
+-- Loan Products
+INSERT INTO LOAN_PRODUCTS (product_name, loan_type, min_amount, max_amount, min_tenure_months, max_tenure_months, interest_rate, processing_fee, is_active) VALUES
+('Asha Dream Home Loan', 'Home', 500000.00, 20000000.00, 60, 300, 8.50, 5000.00, 1),
+('Asha Express Personal Loan', 'Personal', 50000.00, 1500000.00, 12, 60, 10.50, 1000.00, 1),
+('Asha Auto & EV Loan', 'Car', 300000.00, 5000000.00, 24, 72, 9.25, 3000.00, 1),
+('Asha Higher Education Loan', 'Education', 100000.00, 3000000.00, 12, 84, 7.50, 1500.00, 1),
+('Asha SME Shujog Loan', 'SME', 200000.00, 10000000.00, 12, 84, 8.75, 2500.00, 1);
 
-SELECT '✅ ASHA BANK DATABASE READY' AS Status;
+-- Sample Loan
+INSERT INTO LOANS (customer_id, loan_product_id, loan_amount, tenure_months, interest_rate, emi_amount, status, application_date, approval_date) VALUES
+(1, 2, 200000.00, 24, 10.50, 9270.00, 'Active', DATE_SUB(NOW(), INTERVAL 3 MONTH), DATE_SUB(NOW(), INTERVAL 80 DAY));
+
+-- Generate sample EMI records
+INSERT INTO LOAN_EMI_SCHEDULE (loan_id, due_date, emi_amount, principal_amount, interest_amount, outstanding_balance, status, paid_date) VALUES
+(1, DATE_SUB(CURDATE(), INTERVAL 2 MONTH), 9270.00, 7520.00, 1750.00, 192480.00, 'Paid', DATE_SUB(CURDATE(), INTERVAL 2 MONTH)),
+(1, DATE_SUB(CURDATE(), INTERVAL 1 MONTH), 9270.00, 7585.00, 1685.00, 184895.00, 'Paid', DATE_SUB(CURDATE(), INTERVAL 1 MONTH)),
+(1, CURDATE(), 9270.00, 7652.00, 1618.00, 177243.00, 'Pending', NULL);
+
+-- KYC
+INSERT INTO KYC_VERIFICATIONS (customer_id, nid_number, id_type, status, submitted_at, verified_at, verified_by) VALUES
+(1, '1992269548100001', 'National ID Card', 'verified', DATE_SUB(NOW(), INTERVAL 20 DAY), DATE_SUB(NOW(), INTERVAL 19 DAY), 1),
+(2, '1995269548100002', 'Smart NID', 'verified', DATE_SUB(NOW(), INTERVAL 15 DAY), DATE_SUB(NOW(), INTERVAL 14 DAY), 1),
+(3, '1980269548100003', 'Passport', 'verified', DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 29 DAY), 1),
+(4, '1998269548100004', 'National ID Card', 'pending', DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, NULL);
+
+-- Notifications
+INSERT INTO NOTIFICATIONS (customer_id, title, message, type, is_read, created_at) VALUES
+(1, 'Welcome to Asha Bank Digital!', 'Your internet banking and debit card have been activated. Enjoy seamless banking.', 'success', 0, NOW()),
+(1, 'Security Notice', 'Never share your OTP, PIN, or password with anyone, including bank representatives.', 'info', 0, NOW()),
+(2, 'Statement Available', 'Your monthly account e-statement is now ready to download from your dashboard.', 'info', 1, DATE_SUB(NOW(), INTERVAL 3 DAY));
+
+-- Feedback
+INSERT INTO FEEDBACK (customer_id, subject, message, type, status, created_at) VALUES
+(1, 'Impressive Mobile Banking Speed', 'Fund transfers to other banks via NPSB reflect within seconds. Fantastic experience!', 'feedback', 'resolved', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(4, 'Branch Card Collection Query', 'Can I pick up my new physical contactless debit card from the Dhanmondi sub-branch?', 'inquiry', 'pending', NOW());
+
+-- Cheque Book Request
+INSERT INTO CHEQUE_BOOK_REQUESTS (customer_id, account_number, leaves_count, status, request_date) VALUES
+(1, 10000000001, 25, 'Approved', DATE_SUB(NOW(), INTERVAL 4 DAY));
+
+-- Reward Points
+INSERT INTO REWARD_POINTS (customer_id, points_balance, lifetime_earned) VALUES
+(1, 1450, 2000),
+(2, 620, 800),
+(3, 3890, 4500);
+
+SELECT '✅ ASHA BANK DATABASE V2 REWRITTEN AND INITIALIZED SUCCESSFULLY' AS SetupStatus;
