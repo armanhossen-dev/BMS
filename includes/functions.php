@@ -117,22 +117,34 @@ function time_ago($datetime) {
 
 function require_customer() {
     if (empty($_SESSION['customer_id'])) {
-        header('Location: ' . BASE_URL . '/login.php');
-        exit;
+        if (!empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'client') {
+            $_SESSION['customer_id'] = $_SESSION['user_id'];
+        } else {
+            header('Location: ' . BASE_URL . '/login.php');
+            exit;
+        }
     }
 }
 
 function require_staff() {
     if (empty($_SESSION['staff_id'])) {
-        header('Location: ' . BASE_URL . '/login.php');
-        exit;
+        if (!empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'staff') {
+            $_SESSION['staff_id'] = $_SESSION['user_id'];
+        } else {
+            header('Location: ' . BASE_URL . '/login.php');
+            exit;
+        }
     }
 }
 
 function require_admin() {
     if (empty($_SESSION['admin_id'])) {
-        header('Location: ' . BASE_URL . '/login.php');
-        exit;
+        if (!empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'admin') {
+            $_SESSION['admin_id'] = $_SESSION['user_id'];
+        } else {
+            header('Location: ' . BASE_URL . '/login.php');
+            exit;
+        }
     }
 }
 

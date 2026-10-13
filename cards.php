@@ -56,10 +56,15 @@ require __DIR__ . '/includes/header.php';
     </div>
     <div class="flex justify-between items-center mt-16">
       <span class="badge <?= $card['CardStatus']==='Active'?'badge-success':'badge-danger' ?>"><?= clean($card['CardStatus']) ?></span>
-      <form method="POST" onsubmit="return confirm('<?= $card['CardStatus']==='Active'?'Block':'Unblock' ?> this card?');">
+      <form method="POST">
         <?= csrf_field() ?>
         <input type="hidden" name="card_id" value="<?= $card['CardID'] ?>">
-        <button type="submit" name="toggle_card" class="btn btn-sm <?= $card['CardStatus']==='Active'?'btn-danger':'btn-secondary' ?>">
+        <button type="submit" name="toggle_card" class="btn btn-sm <?= $card['CardStatus']==='Active'?'btn-danger':'btn-secondary' ?>"
+                data-confirm="<?= $card['CardStatus']==='Active'?'Are you sure you want to freeze and block this card? Recurring payments and POS charges will be declined.':'Restore and unblock this card for all transactions?' ?>"
+                data-confirm-title="<?= $card['CardStatus']==='Active'?'Block Card':'Unblock Card' ?>"
+                data-confirm-btn="<?= $card['CardStatus']==='Active'?'Yes, Block Card':'Yes, Unblock' ?>"
+                data-confirm-class="<?= $card['CardStatus']==='Active'?'btn-danger':'btn-primary' ?>"
+                data-confirm-icon="bx-credit-card">
           <?= $card['CardStatus']==='Active' ? 'Block Card' : 'Unblock' ?>
         </button>
       </form>

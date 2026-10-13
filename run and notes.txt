@@ -1,0 +1,174 @@
+================================================================================
+🏦 ASHA BANK (BMS) — PROJECT RUN GUIDE & SYSTEM NOTES
+================================================================================
+
+--------------------------------------------------------------------------------
+1. QUICK START: HOW TO RUN THE PROJECT
+--------------------------------------------------------------------------------
+
+METHOD A: Via XAMPP (Apache + MySQL)
+  1. Open XAMPP Control Panel.
+  2. Start "Apache Web Server".
+  3. Start "MySQL Database" (If it fails on Mac, see Section 2 below).
+  4. Open your browser and navigate to:
+     http://localhost/BMS/
+
+METHOD B: Via Built-in PHP Server (Fastest CLI Method)
+  1. Open Terminal and navigate to the project directory:
+     cd /Applications/XAMPP/xamppfiles/htdocs/BMS
+  2. Start the local PHP development server:
+     php -S localhost:8000
+  3. Open your browser and visit:
+     http://localhost:8000/
+
+
+--------------------------------------------------------------------------------
+2. MAC SPECIFIC ISSUE: XAMPP MYSQL FAILS TO START (PORT 3306 CONFLICT)
+--------------------------------------------------------------------------------
+
+Symptom:
+  In XAMPP Manage Servers, clicking "Start" on MySQL Database attempts to run,
+  turns orange, and immediately stops back to red.
+
+Cause:
+  Homebrew MySQL (`/opt/homebrew/opt/mysql/bin/mysqld`) is already running in
+  the background and occupies port 3306. Two MySQL servers cannot bind to 3306
+  at the same time.
+
+Solution 1 (Recommended if you want XAMPP's MySQL to start):
+  1. Stop Homebrew's MySQL service via Terminal:
+     brew services stop mysql
+
+  2. Verify port 3306 is released:
+     lsof -i :3306
+
+  3. Return to XAMPP Control Panel and click "Start" on MySQL Database.
+     It will now start and turn green.
+
+Solution 2 (Use Homebrew's MySQL with XAMPP Apache):
+  - Homebrew's MySQL is already running with `asha_bank` database loaded!
+  - You do NOT need XAMPP's MySQL if Homebrew MySQL is running.
+  - The PHP app in `config/db.php` connects to `127.0.0.1:3306` seamlessly.
+  - Just leave Apache running in XAMPP and use your site as normal.
+
+
+--------------------------------------------------------------------------------
+3. PROJECT ACCESS URLS
+--------------------------------------------------------------------------------
+
+* Public Landing Page:      http://localhost/BMS/  (or http://localhost:8000/)
+* Authentication / Login:   http://localhost/BMS/login.php
+* New Account Registration: http://localhost/BMS/register.php
+* Customer Dashboard:       http://localhost/BMS/dashboard.php
+* Staff Dashboard Portal:   http://localhost/BMS/staff/dashboard.php
+* Admin Control Center:     http://localhost/BMS/admin/index.php
+* Database Setup Helper:    http://localhost/BMS/setup.php
+* phpMyAdmin (XAMPP):       http://localhost/phpmyadmin
+
+
+--------------------------------------------------------------------------------
+4. DEMO LOGIN CREDENTIALS
+--------------------------------------------------------------------------------
+
++---------+------------------+-------------+---------------------------+
+| Role    | Username         | Password    | Portal Path               |
++---------+------------------+-------------+---------------------------+
+| Admin   | admin            | Admin@123   | /admin/index.php          |
+| Staff   | rajesh           | password    | /staff/dashboard.php      |
+| Client  | arjun.kapoor     | password    | /dashboard.php            |
+| Client  | sanya.malhotra   | password    | /dashboard.php            |
+| Client  | kiran.bose       | password    | /dashboard.php            |
++---------+------------------+-------------+---------------------------+
+
+Note: All client signups created via `register.php` automatically receive:
+- Assigned Account Number
+- Tier-based Virtual Debit Card
+- Initial balance based on deposit selection
+
+
+--------------------------------------------------------------------------------
+5. DATABASE CONFIGURATION & IMPORT
+--------------------------------------------------------------------------------
+
+Configuration File:
+  /Applications/XAMPP/xamppfiles/htdocs/BMS/config/db.php
+
+Default Settings:
+  DB_HOST = '127.0.0.1'
+  DB_PORT = '3306'
+  DB_NAME = 'asha_bank'
+  DB_USER = 'root'
+  DB_PASS = ''
+
+How to Import Schema Manually (CLI):
+  mysql -u root < /Applications/XAMPP/xamppfiles/htdocs/BMS/database.sql
+
+  Or if using XAMPP's bundled binary:
+  /Applications/XAMPP/xamppfiles/bin/mysql -u root < /Applications/XAMPP/xamppfiles/htdocs/BMS/database.sql
+
+Why CLI or phpMyAdmin Import is Preferred:
+  The database schema contains `DELIMITER $$` blocks for stored procedures,
+  triggers, and functions. Native CLI or phpMyAdmin import handles this cleanly.
+
+
+--------------------------------------------------------------------------------
+6. KEY FEATURES OVERVIEW
+--------------------------------------------------------------------------------
+
+1. Client Portal:
+   - Modern Overview Dashboard (Total Balance, Recent Activity, Spending Chart)
+   - Send Money (Instant transfers with balance & recipient validation)
+   - Deposits (Supports bKash, Nagad, Rocket, Upay, Branch cash)
+   - Withdrawals (ATM, Branch, Mobile Banking)
+   - Cards (Dynamic gradient styling, block/unblock, card reveal modal)
+   - Profile & KYC (NID verification, Nominee management, reactivation requests)
+   - Loans & EMI Calculator (Home, Car, Personal, Education with schedule)
+   - Utilities & Bill Pay (Electricity, Gas, Water, Mobile, auto-pay)
+   - Cheque Management (Cheque book request, stop payments)
+
+2. Staff Portal (/staff/dashboard.php):
+   - Review and approve/reject pending KYC submissions
+   - Customer feedback inbox & reply manager
+   - Internal staff requests sent directly to Admin
+
+3. Admin Portal (/admin/index.php):
+   - Bank-wide metrics (Total reserve, customer count, daily transaction charts)
+   - Customer account activation, freezing, and reactivation approvals
+   - Staff user management (add, edit, toggle active status)
+   - System broadcast messages sent to all customer accounts
+
+
+--------------------------------------------------------------------------------
+7. DESIGN SYSTEM & MODERN UI SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+- Typography: Apple System font stack ("SF Pro Display", Inter, -apple-system)
+- Layout Inspiration: Cosmos.so, VengenceUI, and minimal dark/light SaaS style
+- Ambient Effects: Unicorn.studio inspired flowing ambient backdrop
+- Iconography: Boxicons (https://boxicons.com/) via CDN
+- Theme Switching:
+  * Persistent Light / Dark mode toggling via localStorage
+  * CSS Custom Properties variables defined in `assets/css/style.css`
+  * Theme switcher available directly in header navigation
+
+
+--------------------------------------------------------------------------------
+8. USEFUL MAC TERMINAL COMMANDS
+--------------------------------------------------------------------------------
+
+- Stop Homebrew MySQL:
+  brew services stop mysql
+
+- Start Homebrew MySQL:
+  brew services start mysql
+
+- Check what is listening on port 3306:
+  lsof -i :3306
+
+- Test database connection via PHP:
+  php -r "require 'config/db.php'; echo 'DB Connected! Customer Count: ' . \$pdo->query('SELECT COUNT(*) FROM CUSTOMER')->fetchColumn() . PHP_EOL;"
+
+- Check XAMPP Apache status:
+  ps aux | grep httpd | grep -v grep
+
+================================================================================

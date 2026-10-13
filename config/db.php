@@ -15,7 +15,10 @@ if (session_status() === PHP_SESSION_NONE) {
 // ── Environment ──────────────────────────────────────────────
 define('APP_ENV',   'development'); // switch to 'production' in prod
 define('APP_NAME',  'Asha Bank');
-define('APP_URL',   '');            // set base URL if needed
+define('APP_URL',   '/BMS');        // set base URL if needed
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/BMS');
+}
 
 // ── Database credentials (never expose in frontend) ──────────
 define('DB_HOST', '127.0.0.1');
@@ -250,6 +253,40 @@ function getCardTier(float $balance): array {
     if ($balance >= 100000)  return ['name' => 'Gold',          'color' => '#3a2a1a', 'accent' => '#ffd700'];
     if ($balance >= 10000)   return ['name' => 'Silver',        'color' => '#2a3a3a', 'accent' => '#c0c0c0'];
     return                          ['name' => 'Classic',       'color' => '#185FA5', 'accent' => '#ffd700'];
+}
+
+function navIcon(string $icon): string {
+    $map = [
+        'home'          => 'bx bxs-dashboard',
+        'dashboard'     => 'bx bxs-dashboard',
+        'users'         => 'bx bx-user',
+        'customers'     => 'bx bx-group',
+        'activity'      => 'bx bx-trending-up',
+        'transactions'  => 'bx bx-transfer',
+        'credit-card'   => 'bx bx-credit-card',
+        'accounts'      => 'bx bx-credit-card',
+        'briefcase'     => 'bx bx-briefcase',
+        'staff'         => 'bx bx-briefcase',
+        'shield'        => 'bx bx-shield-quarter',
+        'kyc'           => 'bx bx-shield-quarter',
+        'bell'          => 'bx bx-bell',
+        'notifications' => 'bx bx-bell',
+        'bar-chart-2'   => 'bx bx-bar-chart-alt-2',
+        'reports'       => 'bx bx-bar-chart-alt-2',
+        'map-pin'       => 'bx bx-map-pin',
+        'branches'      => 'bx bx-map-pin',
+        'message-dots'  => 'bx bx-message-dots',
+        'feedback'      => 'bx bx-message-dots',
+        'trending-up'   => 'bx bx-trending-up',
+        'settings'      => 'bx bx-cog',
+        'search'        => 'bx bx-search',
+    ];
+    if (str_starts_with($icon, 'bx ') || str_starts_with($icon, 'bxs-') || str_starts_with($icon, 'bx-')) {
+        $cls = str_starts_with($icon, 'bx ') ? $icon : ('bx ' . $icon);
+    } else {
+        $cls = $map[$icon] ?? ('bx bx-' . $icon);
+    }
+    return '<i class="' . htmlspecialchars($cls, ENT_QUOTES, 'UTF-8') . '"></i>';
 }
 
 // ─────────────────────────────────────────────────────────────

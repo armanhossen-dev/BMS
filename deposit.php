@@ -39,9 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->beginTransaction();
 
             // Insert transaction
-            $pdo->prepare("INSERT INTO TRANSACTION (ToAccountID, ToCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
+            $pdo->prepare("INSERT INTO TRANSACTION (ToAccountNumber, ToCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
                 VALUES (?, ?, ?, ?, ?, ?, 'Completed', NOW())")->execute([
-                $accountId, $userId, $typeId, $amount, $desc, $ref
+                $account['AccountNumber'], $userId, $typeId, $amount, $desc, $ref
             ]);
 
             // Update balance

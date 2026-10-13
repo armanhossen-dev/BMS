@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="marigold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F6BA42"/>
+      <stop offset="100%" stop-color="#EAA023"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded Gold Squircle -->
+  <rect width="64" height="64" rx="18" fill="url(#marigold)"/>
+  <!-- Rising Sun Brand Icon -->
+  <g fill="none" stroke="#0B3D2E" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Rising Sun Arc -->
+    <path d="M16 41 A16 16 0 0 1 48 41"/>
+    <!-- Sun Rays -->
+    <path d="M32 15 V22"/>
+    <path d="M17.5 24.5 L22.5 29.5"/>
+    <path d="M46.5 24.5 L41.5 29.5"/>
+    <!-- Horizon Base Line -->
+    <path d="M12 47 H52"/>
+  </g>
+</svg>

@@ -42,6 +42,7 @@ CREATE TABLE BRANCH (
     Longitude DECIMAL(11,8) NULL,
     Phone VARCHAR(30) NULL,
     Email VARCHAR(150) NULL,
+    IsActive TINYINT(1) DEFAULT 1,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (RegionID) REFERENCES REGION(RegionID) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -153,6 +154,7 @@ CREATE TABLE DIGITALBANKINGUSER (
     CustomerID INT NOT NULL UNIQUE,
     Username VARCHAR(100) NOT NULL UNIQUE,
     PasswordHash VARCHAR(255) NOT NULL,
+    TransactionPIN VARCHAR(255) NULL,
     IsActive TINYINT(1) DEFAULT 1,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     LastLogin DATETIME NULL,
@@ -803,7 +805,7 @@ BEGIN
             INSERT INTO NOTIFICATIONS (customer_id, title, message, type)
             VALUES (
                 v_customer, 'Interest Credited', 
-                CONCAT('Monthly interest of ', fn_format_currency(v_interest), ' has been credited to your account.'),
+                CONCAT('Monthly interest of ৳', FORMAT(v_interest, 2), ' has been credited to your account.'),
                 'success'
             );
         END IF;
@@ -915,7 +917,7 @@ BEGIN
             VALUES (
                 NEW.FromCustomerID, 
                 'Large Transaction Alert',
-                CONCAT('A large debit transaction of ', fn_format_currency(NEW.TransactionAmount), ' was processed (Ref: ', NEW.ReferenceNumber, ').'),
+                CONCAT('A large debit transaction of ৳', FORMAT(NEW.TransactionAmount, 2), ' was processed (Ref: ', NEW.ReferenceNumber, ').'),
                 'warning'
             );
         END IF;
@@ -948,9 +950,17 @@ SELECT
     c.LastName,
     a.AccountNumber,
     a.AvailableBalance,
-    fn_get_customer_tier(a.AvailableBalance) AS CustomerTier,
-    fn_calculate_age(c.DateOfBirth) AS Age,
-    fn_total_customer_transactions(c.CustomerID) AS TotalTransactions,
+    CASE 
+        WHEN a.AvailableBalance >= 500000 THEN 'Platinum'
+        WHEN a.AvailableBalance >= 100000 THEN 'Gold'
+        WHEN a.AvailableBalance >= 25000 THEN 'Silver'
+        ELSE 'Bronze'
+    END AS CustomerTier,
+    CASE 
+        WHEN c.DateOfBirth IS NOT NULL THEN TIMESTAMPDIFF(YEAR, c.DateOfBirth, CURDATE())
+        ELSE 0
+    END AS Age,
+    (SELECT COUNT(*) FROM TRANSACTION t WHERE t.FromCustomerID = c.CustomerID OR t.ToCustomerID = c.CustomerID) AS TotalTransactions,
     COALESCE(k.status, 'unverified') AS KYCStatus
 FROM CUSTOMER c
 JOIN ACCOUNT a ON c.CustomerID = a.CustomerID
@@ -983,7 +993,12 @@ SELECT
     a.AvailableBalance,
     a.AccountStatus,
     b.BranchName,
-    fn_get_customer_tier(a.AvailableBalance) AS Tier
+    CASE 
+        WHEN a.AvailableBalance >= 500000 THEN 'Platinum'
+        WHEN a.AvailableBalance >= 100000 THEN 'Gold'
+        WHEN a.AvailableBalance >= 25000 THEN 'Silver'
+        ELSE 'Bronze'
+    END AS Tier
 FROM ACCOUNT a
 JOIN CUSTOMER c ON a.CustomerID = c.CustomerID
 JOIN ACCOUNTPRODUCT ap ON a.ProductID = ap.ProductID

@@ -88,9 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     // Insert transaction record
                     $pdo->prepare(
-                        "INSERT INTO TRANSACTION (FromAccountID, FromCustomerID, ToAccountID, ToCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
+                        "INSERT INTO TRANSACTION (FromAccountNumber, FromCustomerID, ToAccountNumber, ToCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Completed', NOW())"
-                    )->execute([$accountId, $userId, $toAccountId, $toCustomerId, $typeId, $amount, $desc, $ref]);
+                    )->execute([$account['AccountNumber'], $userId, $toAccountNumber, $toCustomerId, $typeId, $amount, $desc, $ref]);
 
                     // Debit sender
                     $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance - ? WHERE AccountID = ?")->execute([$amount, $accountId]);

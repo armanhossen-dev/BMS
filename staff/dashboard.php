@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/language.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_staff();
 
-$staffId = $_SESSION['staff_id'];
+$staffId = (int)($_SESSION['staff_id'] ?? $_SESSION['user_id'] ?? 0);
 $stmt = $pdo->prepare("SELECT * FROM STAFF WHERE staff_id = ?");
 $stmt->execute([$staffId]);
 $staff = $stmt->fetch();
@@ -12,7 +12,7 @@ $staff = $stmt->fetch();
 $tab = $_GET['tab'] ?? 'overview';
 
 /* ---- Actions ---- */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     verify_csrf();
     $action = $_POST['action'] ?? '';
 
@@ -74,6 +74,36 @@ $feedbackList = $pdo->query("SELECT f.*, c.FirstName, c.LastName FROM FEEDBACK f
 $stmt = $pdo->prepare("SELECT * FROM STAFF_MESSAGES WHERE staff_id = ? ORDER BY created_at DESC");
 $stmt->execute([$staffId]);
 $myMessages = $stmt->fetchAll();
+
+// Toast & Login Notifications
+$toast = getToast();
+$isAfterLogin = !empty($_SESSION['just_logged_in']);
+unset($_SESSION['just_logged_in']);
+
+$loginNotifications = [];
+if ($isAfterLogin) {
+    if ($toast) {
+        $loginNotifications[] = [
+            'title'   => 'Welcome Staff',
+            'message' => $toast['message'],
+            'type'    => $toast['type'] ?? 'success'
+        ];
+    }
+    if ($pendingKyc > 0) {
+        $loginNotifications[] = [
+            'title'   => 'KYC Submissions',
+            'message' => "You have {$pendingKyc} pending KYC verification(s) awaiting review.",
+            'type'    => 'warning'
+        ];
+    }
+    if ($pendingFeedback > 0) {
+        $loginNotifications[] = [
+            'title'   => 'Customer Feedback',
+            'message' => "You have {$pendingFeedback} unread feedback tickets.",
+            'type'    => 'info'
+        ];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,6 +114,17 @@ $myMessages = $stmt->fetchAll();
 <script>const BASE_URL = "<?= BASE_URL ?>"; window.CSRF_TOKEN = "<?= csrf_token() ?>";</script>
 </head>
 <body>
+<!-- Toast container (Bottom-Right) -->
+<div id="toastContainer" class="toast-container"></div>
+<?php if ($isAfterLogin && !empty($loginNotifications)): ?>
+<script>
+window.__LOGIN_NOTIFICATIONS__ = <?= json_encode($loginNotifications) ?>;
+</script>
+<?php elseif ($toast): ?>
+<script>
+window.__FLASH_TOAST__ = <?= json_encode($toast) ?>;
+</script>
+<?php endif; ?>
 <div class="app-shell">
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
   <aside class="sidebar" id="sidebar">
@@ -130,17 +171,20 @@ $myMessages = $stmt->fetchAll();
 <?php if ($tab === 'overview'): ?>
   <div class="page-head"><div><h1>Welcome, <?= clean($staff['first_name']) ?></h1><div class="sub">Here's what needs your attention today.</div></div></div>
   <div class="grid grid-3">
-    <div class="card stat-card">
-      <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg></div>
-      <div class="stat-label">Pending KYC</div><div class="stat-value"><?= $pendingKyc ?></div>
+    <div class="stat-card reveal">
+      <div class="stat-card-icon" style="background:rgba(220,38,38,0.08);"><i class='bx bx-shield-quarter' style="font-size:20px;color:#DC2626;"></i></div>
+      <div class="stat-card-label">Pending KYC</div><div class="stat-card-value"><?= $pendingKyc ?></div>
+      <div class="stat-card-sub">Awaiting verification</div>
     </div>
-    <div class="card stat-card">
-      <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-      <div class="stat-label">Today's Transactions</div><div class="stat-value"><?= $todayTxns ?></div>
+    <div class="stat-card reveal">
+      <div class="stat-card-icon" style="background:rgba(37,99,235,0.08);"><i class='bx bx-transfer-alt' style="font-size:20px;color:#2563EB;"></i></div>
+      <div class="stat-card-label">Today's Transactions</div><div class="stat-card-value"><?= $todayTxns ?></div>
+      <div class="stat-card-sub">Completed transactions</div>
     </div>
-    <div class="card stat-card">
-      <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7"/></svg></div>
-      <div class="stat-label">Pending Feedback</div><div class="stat-value"><?= $pendingFeedback ?></div>
+    <div class="stat-card reveal">
+      <div class="stat-card-icon" style="background:rgba(217,119,6,0.08);"><i class='bx bx-message-dots' style="font-size:20px;color:#D97706;"></i></div>
+      <div class="stat-card-label">Pending Feedback</div><div class="stat-card-value"><?= $pendingFeedback ?></div>
+      <div class="stat-card-sub">Support queries</div>
     </div>
   </div>
 

@@ -45,6 +45,8 @@ try {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="alternate icon" href="favicon.svg">
 
     <style>
         /* ══════════════════════════════════════════════════
@@ -112,33 +114,102 @@ try {
 
         /* ── Announcement bar ─────────────────────────── */
         .announcement {
-            background: var(--ink);
-            color: rgba(255,255,255,0.8);
+            position: relative;
+            background: #0f0f11;
+            color: #d1d5db;
             text-align: center;
-            padding: 10px 24px;
+            padding: 10px 48px;
             font-size: 13px;
+            font-weight: 450;
             letter-spacing: -0.01em;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s var(--ease);
+            max-height: 54px;
+            overflow: hidden;
+            z-index: 101;
+        }
+        [data-theme="dark"] .announcement {
+            background: #121215;
+            color: #d4d4d8;
+            border-bottom: 1px solid var(--border);
+        }
+        .announcement.hide {
+            opacity: 0;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-bottom-width: 0;
+            pointer-events: none;
+        }
+        .announcement-icon {
+            font-size: 15px;
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+        }
+        [data-theme="dark"] .announcement-icon {
+            color: #a1a1aa;
         }
         .announcement a {
-            color: #fff;
+            color: #ffffff;
             font-weight: 600;
             text-decoration: underline;
-            text-underline-offset: 2px;
+            text-underline-offset: 3px;
+            transition: opacity 0.2s;
         }
-        .announcement i { font-size: 14px; opacity: 0.6; }
+        .announcement a:hover {
+            opacity: 0.85;
+        }
         .announcement .close-ann {
             position: absolute;
-            right: 20px;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
             cursor: pointer;
-            opacity: 0.5;
-            background: none;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
             border: none;
-            color: white;
+            color: #94a3b8;
             font-size: 18px;
+            border-radius: 6px;
+            transition: all 0.2s var(--ease);
+        }
+        .announcement .close-ann:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+        [data-theme="dark"] .announcement .close-ann {
+            color: #a1a1aa;
+        }
+        [data-theme="dark"] .announcement .close-ann:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+        /* Subtle progress bar indicating the 30-second duration */
+        .announcement-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.25);
+            width: 100%;
+            transform-origin: left;
+            animation: announcementTimer 30s linear forwards;
+        }
+        [data-theme="dark"] .announcement-progress {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        @keyframes announcementTimer {
+            from { transform: scaleX(1); }
+            to   { transform: scaleX(0); }
         }
 
         /* ── Navigation ───────────────────────────────── */
@@ -168,13 +239,16 @@ try {
             margin-right: 8px;
         }
         .nav-logo {
-            width: 32px; height: 32px;
-            background: var(--ink);
-            border-radius: var(--r);
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
+            border-radius: 11px;
             display: flex; align-items: center; justify-content: center;
-            color: var(--bg);
-            font-size: 16px;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(234, 160, 35, 0.25);
+        }
+        .nav-logo svg {
+            width: 20px; height: 20px;
+            display: block;
         }
         .nav-logo-text {
             font-size: 16px;
@@ -409,7 +483,7 @@ try {
         }
         .hero-stat {
             flex: 1;
-            padding: 20px 16px;
+            padding: 22px 18px;
             text-align: center;
             border-right: 1px solid var(--border);
             transition: background var(--dur);
@@ -417,17 +491,18 @@ try {
         .hero-stat:last-child { border-right: none; }
         .hero-stat:hover { background: var(--bg-3); }
         .hero-stat-value {
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 700;
             color: var(--ink);
             letter-spacing: -0.04em;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         .hero-stat-label {
-            font-size: 11.5px;
+            font-size: 12px;
             color: var(--ink-faint);
             letter-spacing: -0.01em;
+            font-weight: 500;
         }
 
         /* ── Dashboard Preview ────────────────────────── */
@@ -632,27 +707,52 @@ try {
         /* Mini card inside bento */
         .mini-bank-card {
             background: var(--ink);
-            border-radius: var(--r-lg);
-            padding: 20px;
+            border-radius: var(--r-xl);
+            padding: 24px 26px;
             color: white;
-            margin-top: 20px;
-            aspect-ratio: 16/9;
-            max-width: 240px;
+            margin-top: 24px;
+            aspect-ratio: 1.586;
+            width: 100%;
+            max-width: 320px;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 16px 36px rgba(0,0,0,0.12);
         }
         .mini-bank-card::before {
             content: '';
             position: absolute;
-            top: -30%;
-            right: -20%;
-            width: 140px; height: 140px;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            top: -25%;
+            right: -15%;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
             border-radius: 50%;
+            pointer-events: none;
         }
-        .mini-card-num { font-size: 12px; letter-spacing: 0.12em; color: rgba(255,255,255,0.5); margin-bottom: 16px; font-family: monospace; }
-        .mini-card-balance { font-size: 20px; font-weight: 700; letter-spacing: -0.04em; }
-        .mini-card-label  { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; }
+        .mini-card-num { 
+            font-size: 14px; 
+            letter-spacing: 0.14em; 
+            color: rgba(255,255,255,0.65); 
+            font-family: monospace; 
+            margin-top: auto; 
+            padding-top: 18px; 
+        }
+        .mini-card-balance { 
+            font-size: 25px; 
+            font-weight: 700; 
+            letter-spacing: -0.04em; 
+            color: #ffffff;
+        }
+        .mini-card-label { 
+            font-size: 11px; 
+            color: rgba(255,255,255,0.45); 
+            text-transform: uppercase; 
+            letter-spacing: 0.08em; 
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
 
         /* Transfer mini UI */
         .transfer-ui {
@@ -733,61 +833,213 @@ try {
             letter-spacing: -0.01em;
         }
 
-        /* ── Testimonials ─────────────────────────────── */
+        /* ── Testimonials (Infinite Marquee) ─────────── */
         .testimonials-section {
             padding: 96px 0;
             overflow: hidden;
+            position: relative;
+        }
+        .testimonials-header {
+            margin-bottom: 48px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .testimonials-header .reveal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+        }
+        .testimonials-header .section-tag {
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 16px;
+        }
+        .testimonials-header .section-title {
+            text-align: center;
+        }
+        .testimonials-marquee {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding: 16px 0;
+            mask-image: linear-gradient(to right, transparent 0%, black 80px, black calc(100% - 80px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 80px, black calc(100% - 80px), transparent 100%);
+        }
+        .testimonials-marquee::before,
+        .testimonials-marquee::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .testimonials-marquee::before {
+            left: 0;
+            background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
+        }
+        .testimonials-marquee::after {
+            right: 0;
+            background: linear-gradient(to left, var(--bg) 0%, transparent 100%);
         }
         .testimonials-track {
             display: flex;
-            gap: 16px;
-            margin-top: 48px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            padding-bottom: 4px;
+            gap: 20px;
+            width: max-content;
         }
-        .testimonials-track::-webkit-scrollbar { display: none; }
+        .testimonials-group {
+            display: flex;
+            gap: 20px;
+            flex-shrink: 0;
+            animation: marqueeScroll 45s linear infinite;
+            will-change: transform;
+        }
+        /* Pause on hover */
+        .testimonials-marquee:hover .testimonials-group {
+            animation-play-state: paused;
+        }
+        @keyframes marqueeScroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(-100% - 20px));
+            }
+        }
         .testimonial-card {
             flex-shrink: 0;
-            width: 320px;
-            background: var(--bg-2);
+            width: 360px;
+            max-width: 85vw;
+            min-width: 0;
+            background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: var(--r-xl);
-            padding: 24px;
+            border-radius: 18px;
+            padding: 26px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: all 0.3s var(--ease);
+            cursor: default;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            text-align: left;
+            box-sizing: border-box;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+        }
+        [data-theme="dark"] .testimonial-card {
+            background: var(--bg-2);
+            box-shadow: 0 4px 22px rgba(0,0,0,0.22);
+        }
+        .testimonial-card > div {
+            min-width: 0;
+            width: 100%;
         }
         .testimonial-card:hover {
             border-color: var(--border-2);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.08);
         }
         .t-stars {
-            display: flex; gap: 2px; margin-bottom: 14px;
+            display: flex; gap: 4px; margin-bottom: 16px;
         }
         .t-stars i { color: #F59E0B; font-size: 14px; }
         .t-quote {
-            font-size: 14px;
+            font-size: 13.5px;
             color: var(--ink-2);
-            line-height: 1.65;
-            margin-bottom: 18px;
+            line-height: 1.6;
+            margin-bottom: 22px;
             letter-spacing: -0.01em;
+            flex-grow: 1;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            display: block;
+            width: 100%;
+        }
+        .t-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            margin-top: auto;
+            padding-top: 4px;
         }
         .t-author {
             display: flex;
             align-items: center;
             gap: 10px;
+            min-width: 0;
+            flex: 1;
         }
         .t-avatar-img {
-            width: 32px; height: 32px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+        .t-avatar-fallback {
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: var(--border-2);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
             font-weight: 700;
             color: var(--ink);
             flex-shrink: 0;
         }
-        .t-author-name { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; }
-        .t-author-role { font-size: 12px; color: var(--ink-faint); }
+        .t-author-meta {
+            min-width: 0;
+            overflow: hidden;
+        }
+        .t-author-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        .t-author-role {
+            font-size: 12px;
+            color: var(--ink-faint);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        .t-rating-tag {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .t-tag-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-faint);
+            letter-spacing: 0.04em;
+        }
+        .t-tag-score {
+            font-size: 14px;
+            font-weight: 700;
+            color: #F59E0B;
+            letter-spacing: -0.02em;
+        }
 
         /* ── CTA Section ──────────────────────────────── */
         .cta-section {
@@ -865,12 +1117,16 @@ try {
             margin-bottom: 16px;
         }
         .footer-logo-mark {
-            width: 30px; height: 30px;
-            background: var(--ink);
-            border-radius: var(--r);
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            color: var(--bg);
-            font-size: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(234, 160, 35, 0.25);
+        }
+        .footer-logo-mark svg {
+            width: 18px; height: 18px;
+            display: block;
         }
         .footer-logo-text {
             font-size: 15px;
@@ -983,13 +1239,16 @@ try {
         }
         .modal-close:hover { background: var(--bg-3); color: var(--ink); }
         .modal-logo {
-            width: 40px; height: 40px;
-            background: var(--ink);
-            border-radius: var(--r-md);
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
+            border-radius: 13px;
             display: flex; align-items: center; justify-content: center;
-            color: var(--bg);
-            font-size: 20px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(234, 160, 35, 0.3);
+        }
+        .modal-logo svg {
+            width: 24px; height: 24px;
+            display: block;
         }
         .modal-title {
             font-size: 22px;
@@ -1154,18 +1413,21 @@ try {
 
 <!-- Announcement Bar -->
 <div class="announcement" id="announcementBar">
-    <i class='bx bx-info-circle'></i>
-    New: Instant transfers are now free for all accounts. <a href="register.php">Open an account →</a>
-    <button class="close-ann" onclick="document.getElementById('announcementBar').style.display='none';" aria-label="Close">
+    <i class='bx bx-info-circle announcement-icon'></i>
+    <span>New: Instant transfers are now free for all accounts. <a href="register.php">Open an account →</a></span>
+    <button class="close-ann" id="closeAnnBtn" aria-label="Close announcement">
         <i class='bx bx-x'></i>
     </button>
+    <div class="announcement-progress"></div>
 </div>
 
 <!-- Navigation -->
 <nav class="nav">
     <div class="container nav-inner">
         <a href="index.php" class="nav-brand">
-            <div class="nav-logo"><i class='bx bxs-bank'></i></div>
+            <div class="nav-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+            </div>
             <span class="nav-logo-text">Asha Bank</span>
         </a>
 
@@ -1351,9 +1613,11 @@ try {
                 <h3 class="bento-title">Virtual & Physical Cards</h3>
                 <p class="bento-desc">Get your card instantly. Freeze, unfreeze, and set spending limits from your dashboard.</p>
                 <div class="mini-bank-card">
-                    <div class="mini-card-label">Available Balance</div>
-                    <div class="mini-card-balance">৳ 42,850.00</div>
-                    <div class="mini-card-num" style="margin-top:auto;padding-top:16px;">•••• •••• •••• 4291</div>
+                    <div>
+                        <div class="mini-card-label">Available Balance</div>
+                        <div class="mini-card-balance">৳ 42,850.00</div>
+                    </div>
+                    <div class="mini-card-num">•••• •••• •••• 4291</div>
                 </div>
             </div>
 
@@ -1403,6 +1667,20 @@ try {
                 <h3 class="bento-title">24/7 Support</h3>
                 <p class="bento-desc">Our team is always available to help. Live chat, phone, and email support around the clock.</p>
             </div>
+
+            <!-- Card 7: Virtual & Debit Cards -->
+            <div class="bento-card reveal reveal-delay-1">
+                <div class="bento-icon"><i class='bx bx-credit-card-front'></i></div>
+                <h3 class="bento-title">Smart Virtual Cards</h3>
+                <p class="bento-desc">Generate instant virtual debit cards with custom spending limits, 1-tap lock/unlock, and zero foreign markup.</p>
+            </div>
+
+            <!-- Card 8: Automated Bill Payments -->
+            <div class="bento-card reveal reveal-delay-2">
+                <div class="bento-icon"><i class='bx bx-receipt'></i></div>
+                <h3 class="bento-title">One-Click Bill Pay</h3>
+                <p class="bento-desc">Pay electricity, gas, water, internet, and mobile recharges with automatic schedules and zero fees.</p>
+            </div>
         </div>
     </div>
 </section>
@@ -1442,40 +1720,99 @@ try {
 <!-- ═══════════════════════════════════ -->
 <section class="testimonials-section" id="about">
     <div class="container">
-        <div class="reveal">
-            <div class="section-tag"><i class='bx bx-user-voice'></i> Testimonials</div>
-            <h2 class="section-title">Loved by customers<br>across Bangladesh</h2>
-        </div>
-    </div>
-    <div class="container">
-        <div class="testimonials-track">
-            <?php
-            $testimonials = [
-                ['name' => 'Farhan Islam', 'role' => 'Entrepreneur, Dhaka', 'quote' => 'Switching to Asha Bank was the best financial decision I made. The dashboard is beautiful and transfers are truly instant.'],
-                ['name' => 'Nasrin Akter', 'role' => 'Teacher, Chittagong', 'quote' => 'I love how clean the interface is. No clutter, just what I need. Customer support is also excellent.'],
-                ['name' => 'Rafiqul Hasan', 'role' => 'Software Engineer', 'quote' => 'The spending analytics feature helped me save 20% more every month. Absolutely love this bank.'],
-                ['name' => 'Mitu Begum', 'role' => 'Small Business Owner', 'quote' => 'Finally a bank that feels modern. The mobile experience is seamless and the fees are transparent.'],
-                ['name' => 'Jahangir Alam', 'role' => 'Freelancer, Sylhet', 'quote' => 'Receiving international payments and managing my finances has never been this easy. Highly recommend.'],
-            ];
-            foreach($testimonials as $t): ?>
-            <div class="testimonial-card">
-                <div class="t-stars">
-                    <i class='bx bxs-star'></i>
-                    <i class='bx bxs-star'></i>
-                    <i class='bx bxs-star'></i>
-                    <i class='bx bxs-star'></i>
-                    <i class='bx bxs-star'></i>
-                </div>
-                <p class="t-quote">"<?= htmlspecialchars($t['quote']) ?>"</p>
-                <div class="t-author">
-                    <div class="t-avatar-img"><?= strtoupper(substr($t['name'], 0, 1)) ?></div>
-                    <div>
-                        <div class="t-author-name"><?= htmlspecialchars($t['name']) ?></div>
-                        <div class="t-author-role"><?= htmlspecialchars($t['role']) ?></div>
-                    </div>
-                </div>
+        <div class="testimonials-header">
+            <div class="reveal">
+                <div class="section-tag"><i class='bx bx-user-voice'></i> Testimonials</div>
+                <h2 class="section-title">Loved by customers<br>across Bangladesh</h2>
             </div>
-            <?php endforeach; ?>
+        </div>
+        <div class="testimonials-marquee">
+            <div class="testimonials-track">
+                <?php
+                $testimonials = [
+                    [
+                        'name' => 'Farhan Islam',
+                        'role' => 'Dhaka',
+                        'quote' => 'Switching to Asha Bank was the best financial decision I made. The dashboard is clean, intuitive, and transfers are truly instant.',
+                        'score' => '5.0',
+                        'avatar' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80'
+                    ],
+                    [
+                        'name' => 'Nasrin Akter',
+                        'role' => 'Chittagong',
+                        'quote' => 'I love how clean the interface is. No clutter, just what I need. Customer support is prompt and genuinely helpful.',
+                        'score' => '4.9',
+                        'avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+                    ],
+                    [
+                        'name' => 'Rafiqul Hasan',
+                        'role' => 'Sylhet',
+                        'quote' => 'The spending analytics feature helped me save 20% more every month. Best modern personal banking platform in Bangladesh.',
+                        'score' => '5.0',
+                        'avatar' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80'
+                    ],
+                    [
+                        'name' => 'Mitu Begum',
+                        'role' => 'Rajshahi',
+                        'quote' => 'Finally a bank that feels modern. The mobile experience is seamless and zero hidden fees make budgeting completely stress-free.',
+                        'score' => '4.8',
+                        'avatar' => 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80'
+                    ],
+                    [
+                        'name' => 'Jahangir Alam',
+                        'role' => 'Sylhet',
+                        'quote' => 'Receiving international payments and managing business finances has never been this easy. Highly recommend to everyone.',
+                        'score' => '5.0',
+                        'avatar' => 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80'
+                    ],
+                    [
+                        'name' => 'Tania Rahman',
+                        'role' => 'Dhaka',
+                        'quote' => 'The minimal aesthetic and instant bKash/Nagad transfers make daily personal banking a delight to use every single day.',
+                        'score' => '5.0',
+                        'avatar' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80'
+                    ],
+                    [
+                        'name' => 'Kamal Hossain',
+                        'role' => 'Khulna',
+                        'quote' => 'Clear exchange rates, zero hidden charges, and quick loan applications. Asha Bank is setting a brand new standard.',
+                        'score' => '4.9',
+                        'avatar' => 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&auto=format&fit=crop&q=80'
+                    ],
+                ];
+                for ($loop = 0; $loop < 2; $loop++): ?>
+                <div class="testimonials-group" <?= $loop === 1 ? 'aria-hidden="true"' : '' ?>>
+                    <?php foreach($testimonials as $t): ?>
+                    <div class="testimonial-card">
+                        <div>
+                            <div class="t-stars">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                            </div>
+                            <p class="t-quote"><?= htmlspecialchars($t['quote']) ?></p>
+                        </div>
+                        <div class="t-footer">
+                            <div class="t-author">
+                                <img class="t-avatar-img" src="<?= htmlspecialchars($t['avatar']) ?>" alt="<?= htmlspecialchars($t['name']) ?>" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <div class="t-avatar-fallback" style="display:none;"><?= strtoupper(substr($t['name'], 0, 1)) ?></div>
+                                <div class="t-author-meta">
+                                    <div class="t-author-name"><?= htmlspecialchars($t['name']) ?></div>
+                                    <div class="t-author-role"><?= htmlspecialchars($t['role']) ?></div>
+                                </div>
+                            </div>
+                            <div class="t-rating-tag">
+                                <span class="t-tag-label">RATING</span>
+                                <span class="t-tag-score"><?= htmlspecialchars($t['score']) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endfor; ?>
+            </div>
         </div>
     </div>
 </section>
@@ -1504,7 +1841,9 @@ try {
         <div class="footer-grid">
             <div>
                 <div class="footer-brand-logo">
-                    <div class="footer-logo-mark"><i class='bx bxs-bank'></i></div>
+                    <div class="footer-logo-mark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+                    </div>
                     <span class="footer-logo-text">Asha Bank</span>
                 </div>
                 <p class="footer-brand-desc">
@@ -1569,7 +1908,9 @@ try {
             <i class='bx bx-x'></i>
         </button>
 
-        <div class="modal-logo"><i class='bx bxs-bank'></i></div>
+        <div class="modal-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+        </div>
         <h2 class="modal-title">Welcome back</h2>
         <p class="modal-sub">Sign in to your Asha Bank account</p>
 
@@ -1653,7 +1994,39 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 reveals.forEach(el => observer.observe(el));
 
-// ── Helper for CSRF ────────────────────────────────────────────
+
+
+// ── Announcement Bar 30s Auto-Close ────────────────────────────
+const annBar = document.getElementById('announcementBar');
+const closeAnnBtn = document.getElementById('closeAnnBtn');
+
+if (annBar) {
+    function closeAnnouncement() {
+        annBar.classList.add('hide');
+        setTimeout(() => {
+            annBar.style.display = 'none';
+        }, 400);
+    }
+
+    let autoCloseTimer = null;
+
+    // Check if dismissed in this session
+    if (sessionStorage.getItem('asha_ann_dismissed') === 'true') {
+        annBar.style.display = 'none';
+    } else {
+        // Auto-close after 30 seconds
+        autoCloseTimer = setTimeout(() => {
+            closeAnnouncement();
+        }, 30000);
+    }
+
+    // Manual close button
+    closeAnnBtn?.addEventListener('click', () => {
+        if (autoCloseTimer) clearTimeout(autoCloseTimer);
+        sessionStorage.setItem('asha_ann_dismissed', 'true');
+        closeAnnouncement();
+    });
+}
 </script>
 
 <?php

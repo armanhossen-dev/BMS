@@ -53,9 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'Insufficient balance at time of processing.';
                 } else {
                     // Insert transaction
-                    $pdo->prepare("INSERT INTO TRANSACTION (FromAccountID, FromCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
+                    $pdo->prepare("INSERT INTO TRANSACTION (FromAccountNumber, FromCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
                         VALUES (?, ?, ?, ?, ?, ?, 'Completed', NOW())")->execute([
-                        $accountId, $userId, $typeId, $amount, $desc, $ref
+                        $account['AccountNumber'], $userId, $typeId, $amount, $desc, $ref
                     ]);
 
                     // Debit
@@ -81,15 +81,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// History
-$history = $pdo->prepare(
-    "SELECT t.*, tt.TypeName FROM TRANSACTION t
+// Withdrawal History & Statistics
+$historyStmt = $pdo->prepare(
+    "SELECT t.*, tt.TypeName 
+     FROM TRANSACTION t
      JOIN TRANSACTIONTYPE tt ON t.TransactionTypeID = tt.TransactionTypeID
-     WHERE t.FromCustomerID = ? AND tt.TypeName = 'Withdrawal'
-     ORDER BY t.TransactionDate DESC LIMIT 8"
+     WHERE (t.FromCustomerID = ? OR t.FromAccountNumber = ?) 
+       AND (tt.TypeName = 'Withdrawal' OR t.TransactionTypeID = 2)
+     ORDER BY t.TransactionDate DESC 
+     LIMIT 25"
 );
-$history->execute([$userId]);
-$history = $history->fetchAll();
+$historyStmt->execute([$userId, $account['AccountNumber']]);
+$history = $historyStmt->fetchAll();
+
+$statsStmt = $pdo->prepare(
+    "SELECT COUNT(*) AS total_count, COALESCE(SUM(TransactionAmount), 0) AS total_amount
+     FROM TRANSACTION t
+     JOIN TRANSACTIONTYPE tt ON t.TransactionTypeID = tt.TransactionTypeID
+     WHERE (t.FromCustomerID = ? OR t.FromAccountNumber = ?) 
+       AND (tt.TypeName = 'Withdrawal' OR t.TransactionTypeID = 2)
+       AND t.TransactionStatus = 'Completed'"
+);
+$statsStmt->execute([$userId, $account['AccountNumber']]);
+$stats = $statsStmt->fetch();
+$totalWithdrawn     = (float)($stats['total_amount'] ?? 0);
+$totalWithdrawCount = (int)($stats['total_count'] ?? 0);
 
 $pageTitle  = 'Withdraw';
 $activePage = 'withdraw';
@@ -102,7 +118,7 @@ include 'includes/header.php';
         <p>Withdraw cash from your account securely.</p>
     </div>
 
-    <div style="display:grid;grid-template-columns:460px 1fr;gap:24px;align-items:start;">
+    <div class="transaction-page-grid" style="display:grid;grid-template-columns:460px 1fr;gap:24px;align-items:start;">
 
         <div>
             <!-- Balance indicator -->
@@ -175,21 +191,27 @@ include 'includes/header.php';
                         </div>
 
                         <!-- Summary -->
-                        <div id="withdrawSummary" style="display:none;background:#fff8f1;border:1px solid #ffe0b2;border-radius:12px;padding:16px;margin-bottom:20px;">
-                            <div style="font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">Summary</div>
-                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                                <span style="font-size:13px;color:var(--ink-muted);">Withdraw Amount</span>
-                                <span style="font-size:13px;font-weight:600;color:var(--red);" id="wSummaryAmount">৳0</span>
+                        <div id="withdrawSummary" style="display:none;background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:12px;padding:16px;margin-bottom:20px;">
+                            <div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                                <i class='bx bx-calculator'></i> Transaction Summary
                             </div>
-                            <div style="height:1px;background:#ffe0b2;margin:8px 0;"></div>
-                            <div style="display:flex;justify-content:space-between;">
-                                <span style="font-size:13px;font-weight:600;">Remaining Balance</span>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                <span style="font-size:13px;color:var(--text-muted);">Withdraw Amount</span>
+                                <span style="font-size:13px;font-weight:600;color:var(--red);" id="wSummaryAmount">৳0.00</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                <span style="font-size:13px;color:var(--text-muted);">Processing Fee</span>
+                                <span style="font-size:13px;font-weight:600;color:var(--green);">৳0.00 (Free)</span>
+                            </div>
+                            <div style="height:1px;background:var(--border-subtle);margin:10px 0;"></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:13px;font-weight:600;color:var(--text-primary);">Remaining Balance</span>
                                 <span style="font-size:15px;font-weight:700;" id="wSummaryBalance">৳<?= number_format($balance, 2) ?></span>
                             </div>
                         </div>
 
                         <button type="submit" class="btn btn-danger w-full btn-lg">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                            <i class='bx bx-log-out-circle' style="font-size:18px;"></i>
                             Confirm Withdrawal
                         </button>
                     </form>
@@ -198,34 +220,189 @@ include 'includes/header.php';
         </div>
 
         <!-- History -->
-        <div class="card reveal">
-            <div class="card-header"><h4>Withdrawal History</h4></div>
+        <div class="card reveal" style="overflow:hidden;">
+            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:18px 24px;border-bottom:1px solid var(--border-subtle);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:38px;height:38px;border-radius:10px;background:rgba(239,68,68,0.1);color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+                        <i class='bx bx-history'></i>
+                    </div>
+                    <div>
+                        <h4 style="margin:0;font-size:16px;font-weight:700;">Withdrawal History</h4>
+                        <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);">Recent counter & ATM cash disbursements</p>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="badge badge-neutral" style="font-size:11.5px;padding:4px 10px;">
+                        <?= count($history) ?> <?= count($history) === 1 ? 'record' : 'records' ?>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Mini Summary Metrics Strip -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:1px;background:var(--border-subtle);border-bottom:1px solid var(--border-subtle);">
+                <div style="background:var(--bg-card);padding:14px 20px;">
+                    <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Total Withdrawn</div>
+                    <div style="font-size:18px;font-weight:700;color:#EF4444;letter-spacing:-0.02em;">
+                        <?= formatBDT($totalWithdrawn) ?>
+                    </div>
+                </div>
+                <div style="background:var(--bg-card);padding:14px 20px;">
+                    <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Successful Withdrawals</div>
+                    <div style="font-size:18px;font-weight:700;color:var(--text-primary);letter-spacing:-0.02em;">
+                        <?= $totalWithdrawCount ?> <span style="font-size:12px;font-weight:500;color:var(--text-muted);">completed</span>
+                    </div>
+                </div>
+                <div style="background:var(--bg-card);padding:14px 20px;">
+                    <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Primary Account</div>
+                    <div style="font-size:14px;font-family:'SF Mono','Fira Code',monospace;font-weight:600;color:var(--text-secondary);letter-spacing:0.04em;">
+                        <?= e($account['AccountNumber']) ?>
+                    </div>
+                </div>
+            </div>
+
             <?php if (empty($history)): ?>
-            <div class="empty-state">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <h3>No withdrawals yet</h3>
-                <p>Your withdrawal history will appear here.</p>
+            <div class="empty-state" style="padding:48px 24px;">
+                <div style="width:60px;height:60px;border-radius:50%;background:rgba(239,68,68,0.08);color:#EF4444;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:30px;">
+                    <i class='bx bx-money-withdraw'></i>
+                </div>
+                <h3 style="margin-bottom:6px;font-size:16px;">No withdrawals yet</h3>
+                <p style="font-size:13.5px;max-width:340px;margin:0 auto 18px;color:var(--text-muted);">Your cash and ATM withdrawal records along with printable receipts will appear here.</p>
+                <?php if ($maxWithdraw > 0): ?>
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('amount').focus();">
+                    <i class='bx bx-plus'></i> Make a withdrawal
+                </button>
+                <?php endif; ?>
             </div>
             <?php else: ?>
             <div class="table-wrapper">
-                <table>
+                <table style="width:100%;margin-bottom:0;">
                     <thead>
-                        <tr><th>Date</th><th>Amount</th><th>Description</th><th>Reference</th><th>Status</th></tr>
+                        <tr>
+                            <th style="padding-left:24px;">Date & Time</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Reference</th>
+                            <th>Status</th>
+                            <th style="text-align:right;padding-right:24px;">Receipt</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($history as $txn): ?>
                         <tr>
-                            <td><?= formatDate($txn['TransactionDate'], 'd M Y') ?><br><span style="font-size:11px;color:var(--ink-faint);"><?= formatDate($txn['TransactionDate'], 'g:i A') ?></span></td>
-                            <td><strong style="color:var(--red);">-<?= formatBDT($txn['TransactionAmount']) ?></strong></td>
-                            <td><?= e($txn['Description']) ?></td>
-                            <td><code style="font-size:12px;"><?= e($txn['ReferenceNumber']) ?></code></td>
-                            <td><span class="badge badge-<?= $txn['TransactionStatus']==='Completed' ? 'success' : 'warning' ?>"><?= e($txn['TransactionStatus']) ?></span></td>
+                            <td style="padding-left:24px;">
+                                <div style="font-weight:600;color:var(--text-primary);font-size:13px;"><?= formatDate($txn['TransactionDate'], 'd M Y') ?></div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:4px;">
+                                    <i class='bx bx-time-five' style="font-size:11px;"></i> <?= formatDate($txn['TransactionDate'], 'g:i A') ?>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#EF4444;font-size:14px;letter-spacing:-0.02em;">
+                                    <i class='bx bx-down-arrow-alt' style="font-size:16px;background:rgba(239,68,68,0.1);border-radius:50%;padding:2px;"></i>
+                                    -<?= formatBDT($txn['TransactionAmount']) ?>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-size:13px;font-weight:600;color:var(--text-primary);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<?= e($txn['Description'] ?: 'Cash Withdrawal') ?>">
+                                    <?= e($txn['Description'] ?: 'Cash Withdrawal') ?>
+                                </div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">Cash Disbursement</div>
+                            </td>
+                            <td>
+                                <div style="display:inline-flex;align-items:center;gap:6px;">
+                                    <code style="font-size:11.5px;font-family:'SF Mono','Fira Code',monospace;padding:3px 7px;background:var(--bg-subtle);border-radius:6px;border:1px solid var(--border-subtle);letter-spacing:0.04em;">
+                                        <?= e($txn['ReferenceNumber']) ?>
+                                    </code>
+                                    <button type="button" class="btn btn-ghost btn-sm" style="padding:4px 6px;height:auto;font-size:13px;color:var(--text-muted);"
+                                            onclick="copyReference('<?= e($txn['ReferenceNumber']) ?>')" title="Copy reference">
+                                        <i class='bx bx-copy'></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-<?= $txn['TransactionStatus']==='Completed' ? 'success' : ($txn['TransactionStatus']==='Failed' ? 'danger' : 'warning') ?>" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;">
+                                    <i class='bx bx-<?= $txn['TransactionStatus']==='Completed' ? 'check-circle' : 'time' ?>'></i>
+                                    <?= e($txn['TransactionStatus']) ?>
+                                </span>
+                            </td>
+                            <td style="text-align:right;padding-right:24px;">
+                                <button type="button" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;"
+                                        onclick="showWithdrawReceipt(<?= htmlspecialchars(json_encode([
+                                            'ref'      => $txn['ReferenceNumber'],
+                                            'amount'   => formatBDT($txn['TransactionAmount']),
+                                            'date'     => formatDate($txn['TransactionDate'], 'd M Y, g:i A'),
+                                            'account'  => $account['AccountNumber'],
+                                            'desc'     => $txn['Description'] ?: 'Cash Withdrawal',
+                                            'status'   => $txn['TransactionStatus']
+                                        ]), ENT_QUOTES, 'UTF-8') ?>)">
+                                    <i class='bx bx-receipt'></i> Voucher
+                                </button>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
             <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div id="withdrawReceiptModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:18px;max-width:440px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.25);overflow:hidden;animation:modalIn 0.2s cubic-bezier(0.16,1,0.3,1);">
+        <div style="background:linear-gradient(135deg, #1E293B 0%, #0F172A 100%);padding:22px;color:#FFFFFF;position:relative;">
+            <button type="button" onclick="closeWithdrawReceipt()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#FFFFFF;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">
+                <i class='bx bx-x'></i>
+            </button>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <div style="width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bx-building-house' style="font-size:14px;"></i>
+                </div>
+                <span style="font-weight:700;font-size:14px;letter-spacing:-0.01em;">Asha Bank</span>
+            </div>
+            <h3 style="margin:0 0 2px;color:#FFFFFF;font-size:18px;font-weight:700;">Debit Advice Voucher</h3>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7);">Official Cash Withdrawal Receipt</div>
+        </div>
+        <div style="padding:22px;">
+            <div style="text-align:center;padding:12px 0 16px;border-bottom:1px dashed var(--border-subtle);">
+                <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Amount Debited</div>
+                <div id="receiptAmount" style="font-size:26px;font-weight:800;color:#EF4444;letter-spacing:-0.03em;">৳0.00</div>
+                <span class="badge badge-success" style="margin-top:6px;display:inline-flex;align-items:center;gap:4px;">
+                    <i class='bx bx-check-circle'></i> Completed
+                </span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <span style="color:var(--text-muted);">Reference No</span>
+                    <span id="receiptRef" style="font-family:monospace;font-weight:600;color:var(--text-primary);">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <span style="color:var(--text-muted);">Date & Time</span>
+                    <span id="receiptDate" style="font-weight:500;color:var(--text-primary);">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <span style="color:var(--text-muted);">Debited Account</span>
+                    <span id="receiptAccount" style="font-family:monospace;font-weight:600;color:var(--text-primary);">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <span style="color:var(--text-muted);">Description</span>
+                    <span id="receiptDesc" style="font-weight:500;color:var(--text-primary);max-width:200px;text-align:right;">Cash Withdrawal</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <span style="color:var(--text-muted);">Service Fee</span>
+                    <span style="font-weight:600;color:var(--green);">৳0.00</span>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:20px;">
+                <button type="button" class="btn btn-outline" style="flex:1;" onclick="window.print()">
+                    <i class='bx bx-printer'></i> Print Voucher
+                </button>
+                <button type="button" class="btn btn-primary" style="flex:1;" onclick="closeWithdrawReceipt()">
+                    Done
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -249,7 +426,39 @@ function updateSummary() {
         summary.style.display = 'none';
     }
 }
-amountInput.addEventListener('input', updateSummary);
+if (amountInput) {
+    amountInput.addEventListener('input', updateSummary);
+}
+
+function copyReference(ref) {
+    navigator.clipboard.writeText(ref).then(function() {
+        if (typeof showToast === 'function') {
+            showToast('Reference copied: ' + ref, 'success');
+        } else {
+            alert('Reference copied: ' + ref);
+        }
+    }).catch(function() {
+        prompt('Copy reference number:', ref);
+    });
+}
+
+function showWithdrawReceipt(data) {
+    document.getElementById('receiptAmount').textContent  = '-' + data.amount;
+    document.getElementById('receiptRef').textContent     = data.ref;
+    document.getElementById('receiptDate').textContent    = data.date;
+    document.getElementById('receiptAccount').textContent = data.account;
+    document.getElementById('receiptDesc').textContent    = data.desc;
+    const modal = document.getElementById('withdrawReceiptModal');
+    modal.style.display = 'flex';
+}
+
+function closeWithdrawReceipt() {
+    document.getElementById('withdrawReceiptModal').style.display = 'none';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeWithdrawReceipt();
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>

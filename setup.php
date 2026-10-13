@@ -42,9 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Try CLI import first if shell_exec is available
         $imported = false;
+        $mysqlBin = file_exists('/Applications/XAMPP/xamppfiles/bin/mysql') ? '/Applications/XAMPP/xamppfiles/bin/mysql' : 'mysql';
         if (function_exists('exec')) {
             $passParam = !empty($pass) ? "-p" . escapeshellarg($pass) : "";
-            $cmd = sprintf('mysql -h %s -P %d -u %s %s < %s 2>&1',
+            $cmd = sprintf('%s -h %s -P %d -u %s %s --force < %s 2>&1',
+                escapeshellcmd($mysqlBin),
                 escapeshellarg($host),
                 $port,
                 escapeshellarg($user),
@@ -54,8 +56,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $output = [];
             $returnVar = 0;
             @exec($cmd, $output, $returnVar);
-            if ($returnVar === 0) {
-                $imported = true;
+
+            try {
+                $checkPdo = new PDO("mysql:host=$host;port=$port;dbname=$dbName", $user, $pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT
+                ]);
+                $tables = $checkPdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+                if (count($tables) >= 30) {
+                    $imported = true;
+                }
+            } catch (Exception $e) {
+                // fall through to PDO parser
             }
         }
 
@@ -73,6 +84,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $currentDelimiter = ';';
             $buffer = '';
             
+            $executeStmt = function($stmt, $pdo) {
+                $stmt = trim($stmt);
+                if (empty($stmt)) return;
+                try {
+                    $pdo->exec($stmt);
+                } catch (PDOException $ex) {
+                    $msg = $ex->getMessage();
+                    $isProcError = (
+                        str_contains($msg, 'mysql.proc') ||
+                        str_contains($msg, '1558') ||
+                        str_contains($msg, '1728') ||
+                        str_contains($msg, 'Column count of mysql.proc is wrong') ||
+                        str_contains($msg, 'Cannot load from mysql.proc')
+                    );
+                    $isRoutineStmt = (
+                        stripos($stmt, 'PROCEDURE') !== false ||
+                        stripos($stmt, 'FUNCTION') !== false
+                    );
+                    // If it's a known MariaDB mysql.proc mismatch on stored routines, skip non-fatally
+                    if ($isProcError && $isRoutineStmt) {
+                        return;
+                    }
+                    throw $ex;
+                }
+            };
+
             foreach ($lines as $line) {
                 $trimmed = trim($line);
                 if (str_starts_with(strtoupper($trimmed), 'DELIMITER ')) {
@@ -85,19 +122,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($currentDelimiter === ';' && str_ends_with($trimmed, ';')) {
                     $stmt = trim($buffer);
                     if (!empty($stmt)) {
-                        $pdo->exec($stmt);
+                        $executeStmt($stmt, $pdo);
                     }
                     $buffer = '';
                 } elseif ($currentDelimiter === '$$' && str_ends_with($trimmed, '$$')) {
                     $stmt = trim(substr(trim($buffer), 0, -2));
                     if (!empty($stmt)) {
-                        $pdo->exec($stmt);
+                        $executeStmt($stmt, $pdo);
                     }
                     $buffer = '';
                 }
             }
             if (!empty(trim($buffer))) {
-                $pdo->exec(trim($buffer));
+                $executeStmt(trim($buffer), $pdo);
             }
         }
 
@@ -121,17 +158,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asha Bank Database Setup & Verification</title>
+<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+<link rel="alternate icon" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    body { font-family: 'Inter', -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px 20px; line-height: 1.5; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px 20px; line-height: 1.5; margin: 0; }
     .container { max-width: 640px; margin: 0 auto; background: #1e293b; padding: 32px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); }
     h1 { font-size: 24px; margin-bottom: 8px; color: #38bdf8; display: flex; align-items: center; gap: 10px; }
     p { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
-    .badge { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+    .badge { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; line-height: 1.5; word-break: break-word; }
     .badge-success { background: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
     .badge-danger { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; }
     .card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-family: monospace; font-size: 13px; color: #38bdf8; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; text-decoration: none; transition: 0.2s; }
+    .btn { display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; text-decoration: none; transition: 0.2s; }
     .btn-primary { background: #0284c7; color: white; margin-bottom: 12px; }
     .btn-primary:hover { background: #0369a1; }
     .btn-secondary { background: #334155; color: #f8fafc; }

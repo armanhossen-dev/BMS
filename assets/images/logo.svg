@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
+  <defs>
+    <linearGradient id="marigold-logo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F6BA42"/>
+      <stop offset="100%" stop-color="#EAA023"/>
+    </linearGradient>
+  </defs>
+  <!-- Squircle Icon Mark -->
+  <rect x="0" y="4" width="40" height="40" rx="12" fill="url(#marigold-logo)"/>
+  <g fill="none" stroke="#0B3D2E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 29 A10 10 0 0 1 30 29"/>
+    <path d="M20 13 V17.5"/>
+    <path d="M11 19 L14 22"/>
+    <path d="M29 19 L26 22"/>
+    <path d="M8 33 H32"/>
+  </g>
+  <!-- Brand Text -->
+  <text x="52" y="32" font-family="'Bricolage Grotesque', 'Hind Siliguri', system-ui, sans-serif" font-size="22" font-weight="700" fill="currentColor" letter-spacing="-0.02em">Asha Bank</text>
+</svg>

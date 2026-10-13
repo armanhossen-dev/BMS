@@ -15,7 +15,7 @@ $balance = (float)($account['AvailableBalance'] ?? 0);
 $tier    = getCardTier($balance);
 
 // Get card
-$cardStmt = $pdo->prepare("SELECT * FROM CARDS WHERE CustomerID = ? AND IsActive = 1 LIMIT 1");
+$cardStmt = $pdo->prepare("SELECT * FROM CARDS WHERE CustomerID = ? AND CardStatus = 'Active' LIMIT 1");
 $cardStmt->execute([$userId]);
 $card = $cardStmt->fetch();
 
@@ -86,88 +86,184 @@ include 'includes/header.php';
     </a>
 </div>
 
-<!-- ── Top row: Balance card + Quick stats ───────────────────── -->
-<div style="display:grid;grid-template-columns:340px 1fr;gap:20px;margin-bottom:20px;align-items:start;">
+<!-- ── Top Overview Grid: Big Credit Card + Analytics Rows ────────────── -->
+<div class="dashboard-overview-grid reveal" style="display:grid;grid-template-columns:390px 1fr;gap:20px;margin-bottom:20px;align-items:stretch;">
 
-    <!-- Balance card -->
-    <div class="bank-card reveal"
-         style="background:linear-gradient(145deg,<?= e($tier['color']) ?> 0%,<?= e(adjustBrightness($tier['color'] ?? '#185FA5', 20)) ?> 100%);">
-        <div>
-            <div class="bank-card-chip"></div>
-            <div class="bank-card-number">
-                <?= $card ? maskCardNumber($card['CardNumber']) : '**** **** **** ****' ?>
+    <!-- Left: Big and Perfect Credit Card -->
+    <div class="bank-card"
+         style="background:linear-gradient(135deg, <?= e($tier['color']) ?> 0%, <?= e(adjustBrightness($tier['color'] ?? '#185FA5', 25)) ?> 60%, <?= e(adjustBrightness($tier['color'] ?? '#185FA5', -15)) ?> 100%); width:100%; max-width:390px; min-height:246px; border-radius:18px; padding:22px 24px; display:flex; flex-direction:column; justify-content:space-between; position:relative; overflow:hidden; box-shadow:0 18px 36px -10px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.12) inset;">
+        <!-- Specular shine overlays -->
+        <div style="position:absolute;top:-40%;right:-20%;width:240px;height:240px;background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+        <div style="position:absolute;bottom:-40%;left:-20%;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+        <!-- Card Top: Brand & Contactless Icon -->
+        <div style="display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" width="16" height="16"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+                </div>
+                <span style="font-weight:700;font-size:15px;letter-spacing:-0.02em;color:#FFFFFF;">Asha Bank</span>
+            </div>
+            <i class='bx bx-rfid' style="font-size:24px;color:rgba(255,255,255,0.85);transform:rotate(90deg);" title="Contactless Payment"></i>
+        </div>
+
+        <!-- Card Middle: Realistic EMV Chip & Embossed Card Number -->
+        <div style="position:relative;z-index:2;margin:12px 0 8px;">
+            <div class="bank-card-chip" style="width:42px;height:30px;border-radius:6px;background:linear-gradient(135deg,#FFE382 0%,#D4A843 50%,#9E751D 100%);border:1px solid rgba(0,0,0,0.25);position:relative;overflow:hidden;box-shadow:inset 0 1px 2px rgba(255,255,255,0.4);">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 12px,rgba(0,0,0,0.15) 12px,rgba(0,0,0,0.15) 14px);opacity:0.6;"></div>
+                <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,0.25);"></div>
+            </div>
+            <div class="bank-card-number" style="font-family:'SF Mono','Fira Code',monospace;font-size:18.5px;font-weight:600;letter-spacing:0.18em;color:#FFFFFF;text-shadow:0 1px 2px rgba(0,0,0,0.6);margin-top:12px;margin-bottom:0;">
+                <?= $card ? maskCardNumber($card['CardNumber']) : '•••• •••• •••• ••••' ?>
             </div>
         </div>
-        <div class="bank-card-bottom">
+
+        <!-- Card Bottom: Cardholder, Expiry, Tier & Visa -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:2;">
             <div>
-                <div class="bank-card-holder"><?= e($account['FirstName'] . ' ' . $account['LastName']) ?></div>
-                <div class="bank-card-expiry">VALID <?= $card ? date('m/y', strtotime($card['ExpiryDate'])) : '—' ?></div>
+                <div style="font-size:8.5px;text-transform:uppercase;letter-spacing:0.09em;color:rgba(255,255,255,0.55);margin-bottom:2px;">Cardholder</div>
+                <div style="font-size:13.5px;font-weight:600;color:#FFFFFF;letter-spacing:0.03em;text-transform:uppercase;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    <?= e($account['FirstName'] . ' ' . $account['LastName']) ?>
+                </div>
+            </div>
+            <div style="text-align:center;padding:0 8px;">
+                <div style="font-size:8.5px;text-transform:uppercase;letter-spacing:0.09em;color:rgba(255,255,255,0.55);margin-bottom:2px;">Expires</div>
+                <div style="font-size:13px;font-weight:600;color:#FFFFFF;letter-spacing:0.05em;">
+                    <?= $card ? date('m/y', strtotime($card['ExpiryDate'])) : '12/30' ?>
+                </div>
             </div>
             <div style="text-align:right;">
-                <div class="bank-card-tier"><?= e($tier['name']) ?></div>
-                <div class="bank-card-network">VISA</div>
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.75);margin-bottom:2px;">
+                    <?= e($tier['name']) ?>
+                </div>
+                <div style="font-size:19px;font-weight:900;letter-spacing:0.04em;color:#FFFFFF;font-style:italic;line-height:1;">
+                    VISA
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Stats grid -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="stat-card reveal">
-            <div class="stat-card-icon" style="background:rgba(22,163,74,0.08);">
-                <i class='bx bx-wallet' style="font-size:20px;color:#16A34A;"></i>
-            </div>
-            <div class="stat-card-label">Available Balance</div>
-            <div class="stat-card-value" style="color:#16A34A;"><?= formatBDT($balance) ?></div>
-            <div class="stat-card-sub"><?= e($account['AccountType'] ?? 'Savings') ?> · <?= e($account['AccountStatus']) ?></div>
-        </div>
-        <div class="stat-card reveal">
-            <div class="stat-card-icon" style="background:rgba(59,130,246,0.08);">
-                <i class='bx bx-trending-up' style="font-size:20px;color:#3B82F6;"></i>
-            </div>
-            <div class="stat-card-label">Total Received</div>
-            <div class="stat-card-value"><?= formatBDT($totalReceived) ?></div>
-            <div class="stat-card-sub">All-time credits</div>
-        </div>
-        <div class="stat-card reveal">
-            <div class="stat-card-icon" style="background:rgba(239,68,68,0.08);">
-                <i class='bx bx-trending-down' style="font-size:20px;color:#EF4444;"></i>
-            </div>
-            <div class="stat-card-label">Total Sent</div>
-            <div class="stat-card-value"><?= formatBDT($totalSent) ?></div>
-            <div class="stat-card-sub">All-time debits</div>
-        </div>
-        <div class="stat-card reveal">
-            <div class="stat-card-icon" style="background:rgba(245,158,11,0.08);">
-                <i class='bx bx-transfer' style="font-size:20px;color:#F59E0B;"></i>
-            </div>
-            <div class="stat-card-label">Transactions</div>
-            <div class="stat-card-value"><?= $txnCount ?></div>
-            <div class="stat-card-sub">Total count</div>
-        </div>
-    </div>
-</div>
+    <!-- Right: Analytics Rows (Row 1: 3 columns, Row 2: 4 columns) -->
+    <div style="display:flex;flex-direction:column;gap:14px;justify-content:space-between;">
 
-<!-- ── Account info strip ──────────────────────────────────── -->
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;" class="reveal">
-    <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;padding:16px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Account Number</div>
-        <div style="font-size:15px;font-weight:600;font-family:monospace;color:var(--text-primary);"><?= e($account['AccountNumber']) ?></div>
-    </div>
-    <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;padding:16px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Branch</div>
-        <div style="font-size:15px;font-weight:600;color:var(--text-primary);"><?= e($account['BranchName'] ?? '—') ?></div>
-        <div style="font-size:12px;color:var(--text-muted);"><?= e($account['IFSCCode'] ?? '') ?></div>
-    </div>
-    <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;padding:16px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">KYC Status</div>
-        <?php if ($kyc): ?>
-        <span class="badge badge-<?= $kyc['status']==='verified' ? 'success' : ($kyc['status']==='rejected' ? 'danger' : 'warning') ?>">
-            <i class='bx bx-<?= $kyc['status']==='verified' ? 'check-shield' : 'shield-x' ?>'></i>
-            <?= ucfirst($kyc['status']) ?>
-        </span>
-        <?php else: ?>
-        <span class="badge badge-neutral">Not submitted</span>
-        <?php endif; ?>
+        <!-- Row 1: 3 Columns (Available Balance, Total Received, Total Sent) -->
+        <div class="overview-row-3" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:14px;">
+            <div class="stat-card" style="padding:14px 16px;min-height:114px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                    <div class="stat-card-label" style="margin-bottom:0;">Available Balance</div>
+                    <div class="stat-card-icon" style="position:static;width:30px;height:30px;font-size:17px;background:rgba(22,163,74,0.08);color:#16A34A;">
+                        <i class='bx bx-wallet'></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="stat-card-value" style="font-size:22px;color:#16A34A;margin-bottom:2px;letter-spacing:-0.03em;">
+                        <?= formatBDT($balance) ?>
+                    </div>
+                    <div class="stat-card-sub" style="font-size:11.5px;"><?= e($account['AccountType'] ?? 'Savings') ?> · <?= e($account['AccountStatus']) ?></div>
+                </div>
+            </div>
+
+            <div class="stat-card" style="padding:14px 16px;min-height:114px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                    <div class="stat-card-label" style="margin-bottom:0;">Total Received</div>
+                    <div class="stat-card-icon" style="position:static;width:30px;height:30px;font-size:17px;background:rgba(59,130,246,0.08);color:#3B82F6;">
+                        <i class='bx bx-trending-up'></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="stat-card-value" style="font-size:22px;margin-bottom:2px;letter-spacing:-0.03em;">
+                        <?= formatBDT($totalReceived) ?>
+                    </div>
+                    <div class="stat-card-sub" style="font-size:11.5px;">All-time credits</div>
+                </div>
+            </div>
+
+            <div class="stat-card" style="padding:14px 16px;min-height:114px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                    <div class="stat-card-label" style="margin-bottom:0;">Total Sent</div>
+                    <div class="stat-card-icon" style="position:static;width:30px;height:30px;font-size:17px;background:rgba(239,68,68,0.08);color:#EF4444;">
+                        <i class='bx bx-trending-down'></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="stat-card-value" style="font-size:22px;margin-bottom:2px;letter-spacing:-0.03em;">
+                        <?= formatBDT($totalSent) ?>
+                    </div>
+                    <div class="stat-card-sub" style="font-size:11.5px;">All-time debits</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: 4 Columns (Transactions, Account Number, Branch, KYC Status) -->
+        <div class="overview-row-4" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;">
+            <div class="stat-card" style="padding:14px 16px;min-height:114px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                    <div class="stat-card-label" style="margin-bottom:0;">Transactions</div>
+                    <div class="stat-card-icon" style="position:static;width:30px;height:30px;font-size:17px;background:rgba(245,158,11,0.08);color:#F59E0B;">
+                        <i class='bx bx-transfer'></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="stat-card-value" style="font-size:22px;margin-bottom:2px;letter-spacing:-0.03em;">
+                        <?= $txnCount ?>
+                    </div>
+                    <div class="stat-card-sub" style="font-size:11.5px;">Total count</div>
+                </div>
+            </div>
+
+            <div class="stat-card" style="padding:14px 16px;min-height:114px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                    <div class="stat-card-label" style="margin-bottom:0;">Account Number</div>
+                    <div class="stat-card-icon" style="position:static;width:30px;height:30px;font-size:17px;background:rgba(100,116,139,0.08);color:#64748B;">
+                        <i class='bx bx-credit-card-front'></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="stat-card-value" style="font-size:15px;font-family:'SF Mono','Fira Code',monospace;font-weight:600;margin-bottom:2px;letter-spacing:0.02em;">
+                        <?= e($account['AccountNumber']) ?>
+                    </div>
+                    <div class="stat-card-sub" style="font-size:11.5px;"><?= e($account['AccountType'] ?? 'Savings') ?> Account</div>
+                </div>
+            </div>
+
+            <div class="stat-card" style="padding:14px 16px;min-height:114px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                    <div class="stat-card-label" style="margin-bottom:0;">Branch</div>
+                    <div class="stat-card-icon" style="position:static;width:30px;height:30px;font-size:17px;background:rgba(2,132,199,0.08);color:#0284C7;">
+                        <i class='bx bx-buildings'></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="stat-card-value" style="font-size:13.5px;font-weight:600;margin-bottom:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<?= e($account['BranchName'] ?? '—') ?>">
+                        <?= e($account['BranchName'] ?? '—') ?>
+                    </div>
+                    <div class="stat-card-sub" style="font-size:11.5px;"><?= e($account['IFSCCode'] ?? 'Corporate Branch') ?></div>
+                </div>
+            </div>
+
+            <div class="stat-card" style="padding:14px 16px;min-height:114px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                    <div class="stat-card-label" style="margin-bottom:0;">KYC Status</div>
+                    <div class="stat-card-icon" style="position:static;width:30px;height:30px;font-size:17px;background:rgba(22,163,74,0.08);color:#16A34A;">
+                        <i class='bx bx-shield-quarter'></i>
+                    </div>
+                </div>
+                <div>
+                    <div style="margin-bottom:4px;">
+                        <?php if ($kyc): ?>
+                        <span class="badge badge-<?= $kyc['status']==='verified' ? 'success' : ($kyc['status']==='rejected' ? 'danger' : 'warning') ?>" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:11px;">
+                            <i class='bx bx-<?= $kyc['status']==='verified' ? 'check-shield' : 'shield-x' ?>'></i>
+                            <?= ucfirst($kyc['status']) ?>
+                        </span>
+                        <?php else: ?>
+                        <span class="badge badge-neutral" style="padding:3px 8px;font-size:11px;">Not submitted</span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="stat-card-sub" style="font-size:11.5px;"><?= $kyc && $kyc['status']==='verified' ? 'Identity verified' : 'Identity review' ?></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -203,13 +299,13 @@ include 'includes/header.php';
                 <span class="qa-label">Cards</span>
             </a>
             <a href="notifications.php" class="quick-action">
-                <div class="qa-icon" style="background:var(--bg-muted);color:var(--text-secondary);">
+                <div class="qa-icon" style="background:rgba(147,51,234,0.08);color:#9333EA;">
                     <i class='bx bx-bell'></i>
                 </div>
                 <span class="qa-label">Alerts</span>
             </a>
             <a href="feedback.php" class="quick-action">
-                <div class="qa-icon" style="background:var(--bg-muted);color:var(--text-secondary);">
+                <div class="qa-icon" style="background:rgba(14,165,233,0.08);color:#0EA5E9;">
                     <i class='bx bx-support'></i>
                 </div>
                 <span class="qa-label">Support</span>

@@ -41,8 +41,45 @@ if ($role === 'staff' || $role === 'admin') {
     } catch (\Exception $e) {}
 }
 
-// Toast
+// Toast & Login Notifications
 $toast = getToast();
+$isAfterLogin = !empty($_SESSION['just_logged_in']);
+unset($_SESSION['just_logged_in']);
+
+$loginNotifications = [];
+if ($isAfterLogin) {
+    if ($toast) {
+        $loginNotifications[] = [
+            'title'   => 'Login Successful',
+            'message' => $toast['message'],
+            'type'    => $toast['type'] ?? 'success'
+        ];
+    }
+    // For clients, also queue unread notifications (up to 3 latest unread)
+    if ($role === 'client') {
+        try {
+            $stmtNotif = $pdo->prepare("SELECT notification_id, title, message, type FROM NOTIFICATIONS WHERE customer_id = ? AND is_read = 0 ORDER BY created_at DESC LIMIT 3");
+            $stmtNotif->execute([$userId]);
+            $unreads = $stmtNotif->fetchAll();
+            foreach ($unreads as $un) {
+                $loginNotifications[] = [
+                    'id'      => $un['notification_id'] ?? null,
+                    'title'   => $un['title'] ?: 'Notification',
+                    'message' => $un['message'],
+                    'type'    => $un['type'] ?: 'info'
+                ];
+            }
+        } catch (\Exception $e) {}
+    } elseif ($role === 'staff' || $role === 'admin') {
+        if ($pendingKYC > 0) {
+            $loginNotifications[] = [
+                'title'   => 'KYC Compliance',
+                'message' => "You have {$pendingKYC} pending KYC verification(s) awaiting review.",
+                'type'    => 'warning'
+            ];
+        }
+    }
+}
 
 // Build nav items based on role — [slug, label, boxicon-class, href, badge?]
 $navGroups = [];
@@ -104,19 +141,23 @@ if ($role === 'client') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="<?= $rootUrl ?>assets/images/favicon.svg">
+    <link rel="alternate icon" href="<?= $rootUrl ?>favicon.svg">
     <link rel="stylesheet" href="<?= $rootUrl ?>assets/css/style.css">
     <link rel="stylesheet" href="<?= $rootUrl ?>assets/css/components.css">
 </head>
 <body>
 
-<!-- Toast container -->
+<!-- Toast container (Bottom-Right) -->
 <div id="toastContainer" class="toast-container"></div>
 
-<?php if ($toast): ?>
+<?php if ($isAfterLogin && !empty($loginNotifications)): ?>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    Toast.show(<?= json_encode($toast['message']) ?>, <?= json_encode($toast['type']) ?>);
-});
+window.__LOGIN_NOTIFICATIONS__ = <?= json_encode($loginNotifications) ?>;
+</script>
+<?php elseif ($toast): ?>
+<script>
+window.__FLASH_TOAST__ = <?= json_encode($toast) ?>;
 </script>
 <?php endif; ?>
 
@@ -131,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- Logo -->
     <a href="<?= $rootUrl ?>index.php" class="sidebar-logo">
         <div class="sidebar-logo-mark">
-            <i class='bx bxs-bank' style="font-size:18px;"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
         </div>
         <div>
             <div class="sidebar-logo-text">Asha Bank</div>
@@ -170,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="sidebar-user-role"><?= e($role) ?></div>
             </div>
         </div>
-        <a href="<?= $rootUrl ?>logout.php" class="btn btn-ghost w-full" style="color:rgba(255,255,255,0.45);justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px;">
+        <a href="<?= $rootUrl ?>logout.php" class="btn btn-ghost w-full sidebar-signout" style="justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px;">
             <i class='bx bx-log-out' style="font-size:18px;"></i>
             Sign Out
         </a>

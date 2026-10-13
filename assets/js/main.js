@@ -5,7 +5,7 @@
 
 'use strict';
 
-// ── Toast System ─────────────────────────────────────────────
+// ── Toast System (Bottom-Right, 1s display + fadeaway) ────────
 const Toast = {
     container: null,
 
@@ -19,7 +19,8 @@ const Toast = {
         }
     },
 
-    show(message, type = 'success', duration = 4000) {
+    show(message, type = 'success', duration = 1000, title = '') {
+        this.init();
         const icons = {
             success: `<i class='bx bx-check-circle'></i>`,
             danger:  `<i class='bx bx-x-circle'></i>`,
@@ -28,24 +29,72 @@ const Toast = {
         };
         const el = document.createElement('div');
         el.className = `toast toast-${type}`;
+
+        const contentHtml = title
+            ? `<div class="toast-content"><div class="toast-title">${title}</div><div class="toast-message">${message}</div></div>`
+            : `<div class="toast-content"><div class="toast-message">${message}</div></div>`;
+
         el.innerHTML = `
             ${icons[type] || icons.info}
-            <span>${message}</span>
+            ${contentHtml}
             <button class="toast-close" aria-label="Dismiss">
                 <i class='bx bx-x'></i>
             </button>`;
+
         el.querySelector('.toast-close').addEventListener('click', () => this.dismiss(el));
         this.container.appendChild(el);
-        if (duration > 0) setTimeout(() => this.dismiss(el), duration);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            el.classList.add('toast-visible');
+        });
+
+        if (duration > 0) {
+            setTimeout(() => this.dismiss(el), duration);
+        }
         return el;
     },
 
     dismiss(el) {
         if (!el || !el.parentNode) return;
-        el.style.transition = 'opacity 0.25s, transform 0.25s';
-        el.style.opacity = '0';
-        el.style.transform = 'translateX(16px)';
-        setTimeout(() => el.parentNode && el.parentNode.removeChild(el), 260);
+        el.classList.remove('toast-visible');
+        el.classList.add('toast-fadeaway');
+        setTimeout(() => {
+            if (el && el.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+        }, 360);
+    },
+
+    /**
+     * Plays a sequence of notifications:
+     * - Initial 1s (1000ms) delay after login
+     * - Each notification is visible for 1s (1000ms)
+     * - Then smoothly fades away before the next one appears
+     */
+    playSequence(items, initialDelay = 1000, itemDuration = 1000) {
+        if (!Array.isArray(items) || items.length === 0) return;
+        this.init();
+
+        setTimeout(() => {
+            let index = 0;
+            const showNext = () => {
+                if (index >= items.length) return;
+                const item = items[index++];
+                const msg   = typeof item === 'string' ? item : (item.message || '');
+                const title = typeof item === 'object' ? (item.title || '') : '';
+                const type  = typeof item === 'object' ? (item.type || 'success') : 'success';
+
+                this.show(msg, type, itemDuration, title);
+
+                // Wait for display duration (1000ms) + fadeaway animation (360ms) + small gap (100ms)
+                setTimeout(() => {
+                    showNext();
+                }, itemDuration + 460);
+            };
+
+            showNext();
+        }, initialDelay);
     }
 };
 
@@ -133,14 +182,14 @@ const Modal = {
         const modal = id ? document.getElementById(id) : document.querySelector('.modal-overlay.active');
         if (!modal) return;
         modal.classList.remove('active');
-        modal.style.display = '';
+        modal.style.display = 'none';
         document.body.style.overflow = '';
     },
 
     init() {
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) this.close();
+                if (e.target === overlay) this.close(overlay.id);
             });
         });
         document.querySelectorAll('[data-modal-close]').forEach(btn => {
@@ -158,6 +207,119 @@ const Modal = {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') this.close();
         });
+    }
+};
+
+// ── Universal Confirm Dialog ──────────────────────────────────
+const ConfirmDialog = {
+    overlay: null,
+
+    init() {
+        document.addEventListener('click', (e) => {
+            const trigger = e.target.closest('[data-confirm]');
+            if (!trigger) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const promptText = trigger.dataset.confirm || 'Are you sure you want to proceed?';
+            const title = trigger.dataset.confirmTitle || 'Please Confirm';
+            const confirmBtnText = trigger.dataset.confirmBtn || 'Confirm';
+            const confirmBtnClass = trigger.dataset.confirmClass || 'btn-primary';
+            const icon = trigger.dataset.confirmIcon || 'bx-help-circle';
+            const subtext = trigger.dataset.confirmSub || 'This action cannot be undone.';
+
+            this.show({
+                title,
+                message: promptText,
+                subtext,
+                confirmText: confirmBtnText,
+                confirmBtnClass,
+                icon,
+                onConfirm: () => {
+                    if (trigger.tagName === 'A') {
+                        window.location.href = trigger.href;
+                    } else if (trigger.tagName === 'BUTTON' || trigger.tagName === 'INPUT') {
+                        const form = trigger.closest('form');
+                        if (form) {
+                            if (trigger.name) {
+                                const hidden = document.createElement('input');
+                                hidden.type = 'hidden';
+                                hidden.name = trigger.name;
+                                hidden.value = trigger.value || '1';
+                                form.appendChild(hidden);
+                            }
+                            form.submit();
+                        }
+                    }
+                }
+            });
+        });
+    },
+
+    show({
+        title = 'Please Confirm',
+        message = 'Are you sure you want to proceed?',
+        subtext = 'This action cannot be undone.',
+        confirmText = 'Confirm',
+        confirmBtnClass = 'btn-primary',
+        cancelText = 'Cancel',
+        icon = 'bx-help-circle',
+        previewHtml = '',
+        onConfirm = () => {}
+    }) {
+        if (!this.overlay) {
+            this.overlay = document.createElement('div');
+            this.overlay.className = 'modal-overlay';
+            this.overlay.id = 'appUniversalConfirmModal';
+            document.body.appendChild(this.overlay);
+        }
+
+        this.overlay.innerHTML = `
+            <div class="modal" style="max-width:440px;" role="dialog" aria-modal="true">
+                <div class="modal-header">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text-primary);flex-shrink:0;">
+                            <i class='bx ${icon}'></i>
+                        </div>
+                        <h3 style="margin:0;font-size:16px;font-weight:600;">${title}</h3>
+                    </div>
+                    <button class="modal-close" type="button" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body" style="padding:var(--sp-5) var(--sp-6);">
+                    <p style="font-size:14px;color:var(--text-secondary);line-height:1.5;margin-bottom:${previewHtml ? '14px' : '0'};">${message}</p>
+                    ${previewHtml}
+                    ${subtext ? `<p style="font-size:12px;color:var(--text-muted);margin-top:12px;margin-bottom:0;">${subtext}</p>` : ''}
+                </div>
+                <div class="modal-footer" style="padding:var(--sp-4) var(--sp-6);">
+                    <button type="button" class="btn btn-outline btn-sm confirm-cancel-btn">${cancelText}</button>
+                    <button type="button" class="btn btn-sm ${confirmBtnClass} confirm-ok-btn">${confirmText}</button>
+                </div>
+            </div>
+        `;
+
+        this.overlay.classList.add('active');
+        this.overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        const closeModal = () => {
+            this.overlay.classList.remove('active');
+            this.overlay.style.display = 'none';
+            document.body.style.overflow = '';
+        };
+
+        this.overlay.querySelector('.modal-close').onclick = closeModal;
+        this.overlay.querySelector('.confirm-cancel-btn').onclick = closeModal;
+        this.overlay.onclick = (e) => {
+            if (e.target === this.overlay) closeModal();
+        };
+
+        const okBtn = this.overlay.querySelector('.confirm-ok-btn');
+        okBtn.onclick = () => {
+            closeModal();
+            onConfirm();
+        };
+        okBtn.focus();
     }
 };
 
@@ -324,10 +486,18 @@ document.addEventListener('DOMContentLoaded', () => {
     Theme.init();
     Sidebar.init();
     Modal.init();
+    ConfirmDialog.init();
     ScrollReveal.init();
     TableSearch.init();
     Forms.init();
     Dropdown.init();
+
+    // Trigger after-login notification sequence or flash toast
+    if (window.__LOGIN_NOTIFICATIONS__ && Array.isArray(window.__LOGIN_NOTIFICATIONS__) && window.__LOGIN_NOTIFICATIONS__.length > 0) {
+        Toast.playSequence(window.__LOGIN_NOTIFICATIONS__, 1000, 1000);
+    } else if (window.__FLASH_TOAST__) {
+        Toast.show(window.__FLASH_TOAST__.message, window.__FLASH_TOAST__.type || 'success', 1000, window.__FLASH_TOAST__.title || '');
+    }
 
     // Animate counters
     document.querySelectorAll('[data-counter]').forEach(el => {
@@ -342,7 +512,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Expose globals
-window.Toast   = Toast;
-window.Modal   = Modal;
-window.Sidebar = Sidebar;
-window.Theme   = Theme;
+window.Toast         = Toast;
+window.showToast     = (msg, type = 'success', duration = 1000, title = '') => Toast.show(msg, type, duration, title);
+window.Modal         = Modal;
+window.ConfirmDialog = ConfirmDialog;
+window.Sidebar       = Sidebar;
+window.Theme         = Theme;
