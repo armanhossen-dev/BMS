@@ -3,7 +3,8 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 header('Content-Type: application/json');
 
-if (empty($_SESSION['customer_id'])) {
+$customerId = (int)($_SESSION['customer_id'] ?? $_SESSION['user_id'] ?? 0);
+if ($customerId <= 0) {
     echo json_encode(['success' => false, 'message' => 'Please log in again.']);
     exit;
 }
@@ -12,8 +13,9 @@ if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', 
     exit;
 }
 
-$customerId = $_SESSION['customer_id'];
-$type = in_array($_POST['type'] ?? '', ['feedback','complaint','suggestion','issue']) ? $_POST['type'] : 'feedback';
+$rawType = $_POST['type'] ?? 'feedback';
+$map = ['feedback' => 'feedback', 'suggestion' => 'feedback', 'complaint' => 'complaint', 'issue' => 'complaint', 'inquiry' => 'inquiry'];
+$type = $map[$rawType] ?? 'feedback';
 $subject = trim($_POST['subject'] ?? '');
 $message = trim(substr($_POST['message'] ?? '', 0, 500));
 
