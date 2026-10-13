@@ -6,8 +6,8 @@ $userId    = $_SESSION['user_id'];
 $account   = getUserAccount($pdo, $userId);
 if (!$account) redirect('logout.php');
 
-$balance   = (float)$account['AvailableBalance'];
-$accountId = $account['AccountID'];
+$balance       = (float)$account['AvailableBalance'];
+$accountNumber = $account['AccountNumber'];
 $minBal    = (float)($account['MinBalance'] ?? 500);
 $maxWithdraw = $balance - $minBal;
 
@@ -44,10 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->beginTransaction();
 
                 // Lock the account row
-                $pdo->prepare("SELECT AvailableBalance FROM ACCOUNT WHERE AccountID = ? FOR UPDATE")->execute([$accountId]);
+                $pdo->prepare("SELECT AvailableBalance FROM ACCOUNT WHERE AccountNumber = ? FOR UPDATE")->execute([$accountNumber]);
 
                 // Re-check balance inside transaction
-                $freshBal = (float)$pdo->query("SELECT AvailableBalance FROM ACCOUNT WHERE AccountID=$accountId")->fetchColumn();
+                $checkStmt = $pdo->prepare("SELECT AvailableBalance FROM ACCOUNT WHERE AccountNumber = ?");
+                $checkStmt->execute([$accountNumber]);
+                $freshBal = (float)$checkStmt->fetchColumn();
                 if ($freshBal - $minBal < $amount) {
                     $pdo->rollBack();
                     $error = 'Insufficient balance at time of processing.';
@@ -55,11 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Insert transaction
                     $pdo->prepare("INSERT INTO TRANSACTION (FromAccountNumber, FromCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
                         VALUES (?, ?, ?, ?, ?, ?, 'Completed', NOW())")->execute([
-                        $account['AccountNumber'], $userId, $typeId, $amount, $desc, $ref
+                        $accountNumber, $userId, $typeId, $amount, $desc, $ref
                     ]);
 
                     // Debit
-                    $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance - ? WHERE AccountID = ?")->execute([$amount, $accountId]);
+                    $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance - ? WHERE AccountNumber = ?")->execute([$amount, $accountNumber]);
 
                     // Notification
                     $pdo->prepare("INSERT INTO NOTIFICATIONS (customer_id, title, message, type, created_at) VALUES (?, ?, ?, 'warning', NOW())")->execute([

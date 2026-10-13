@@ -30,6 +30,7 @@ define('DB_PASS', '');
 // ── Currency ─────────────────────────────────────────────────
 define('CURRENCY_SYMBOL', '৳');
 define('CURRENCY_CODE',   'BDT');
+define('APP_CURRENCY',    CURRENCY_SYMBOL);
 
 // ── Error handling ───────────────────────────────────────────
 if (APP_ENV === 'development') {

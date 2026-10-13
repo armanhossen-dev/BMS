@@ -6,9 +6,9 @@ $userId    = $_SESSION['user_id'];
 $account   = getUserAccount($pdo, $userId);
 if (!$account) redirect('logout.php');
 
-$balance   = (float)$account['AvailableBalance'];
-$accountId = $account['AccountID'];
-$minBal    = (float)($account['MinBalance'] ?? 500);
+$balance       = (float)$account['AvailableBalance'];
+$accountNumber = $account['AccountNumber'];
+$minBal        = (float)($account['MinBalance'] ?? 500);
 
 $error     = '';
 $recipient = null;
@@ -21,15 +21,24 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'lookup') {
     if (!$acn) { echo json_encode(['error' => 'Account number required']); exit; }
 
     $r = $pdo->prepare(
-        "SELECT a.AccountNumber, a.AccountID, c.CustomerID, c.FirstName, c.LastName, c.Email, a.AccountType, a.AccountStatus
-         FROM ACCOUNT a JOIN CUSTOMER c ON a.CustomerID = c.CustomerID
+        "SELECT a.AccountNumber, c.CustomerID, c.FirstName, c.LastName, c.Email, ap.AccountType, a.AccountStatus
+         FROM ACCOUNT a
+         JOIN CUSTOMER c ON a.CustomerID = c.CustomerID
+         JOIN ACCOUNTPRODUCT ap ON a.ProductID = ap.ProductID
          WHERE a.AccountNumber = ? AND c.CustomerID != ? AND a.AccountStatus = 'Active' LIMIT 1"
     );
     $r->execute([$acn, $userId]);
     $rec = $r->fetch();
 
     if ($rec) {
-        echo json_encode(['success' => true, 'name' => $rec['FirstName'] . ' ' . $rec['LastName'], 'type' => $rec['AccountType'], 'account' => $rec['AccountNumber'], 'id' => $rec['CustomerID'], 'accountId' => $rec['AccountID']]);
+        echo json_encode([
+            'success' => true,
+            'name' => $rec['FirstName'] . ' ' . $rec['LastName'],
+            'type' => $rec['AccountType'],
+            'account' => $rec['AccountNumber'],
+            'id' => $rec['CustomerID'],
+            'accountId' => $rec['AccountNumber']
+        ]);
     } else {
         echo json_encode(['error' => 'Account not found or inactive.']);
     }
@@ -44,9 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $desc            = sanitize($_POST['description'] ?? 'Fund Transfer');
     $pin             = $_POST['pin'] ?? '';
     $toCustomerId    = (int)($_POST['to_customer_id'] ?? 0);
-    $toAccountId     = (int)($_POST['to_account_id'] ?? 0);
 
-    if (!$toAccountNumber || !$toCustomerId || !$toAccountId) {
+    if (!$toAccountNumber || !$toCustomerId) {
         $error = 'Please look up a valid recipient account first.';
     } elseif ($amount <= 0) {
         $error = 'Please enter a valid amount.';
@@ -74,14 +82,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->beginTransaction();
 
                 // Lock both accounts in a deterministic order
-                $ids = [$accountId, $toAccountId];
-                sort($ids);
-                foreach ($ids as $lockId) {
-                    $pdo->prepare("SELECT AvailableBalance FROM ACCOUNT WHERE AccountID = ? FOR UPDATE")->execute([$lockId]);
+                $accs = [$accountNumber, $toAccountNumber];
+                sort($accs);
+                foreach ($accs as $lockAcc) {
+                    $pdo->prepare("SELECT AvailableBalance FROM ACCOUNT WHERE AccountNumber = ? FOR UPDATE")->execute([$lockAcc]);
                 }
 
                 // Re-check sender balance
-                $freshBal = (float)$pdo->query("SELECT AvailableBalance FROM ACCOUNT WHERE AccountID=$accountId")->fetchColumn();
+                $checkStmt = $pdo->prepare("SELECT AvailableBalance FROM ACCOUNT WHERE AccountNumber = ?");
+                $checkStmt->execute([$accountNumber]);
+                $freshBal = (float)$checkStmt->fetchColumn();
                 if ($freshBal - $minBal < $amount) {
                     $pdo->rollBack();
                     $error = 'Insufficient balance at time of processing.';
@@ -90,13 +100,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->prepare(
                         "INSERT INTO TRANSACTION (FromAccountNumber, FromCustomerID, ToAccountNumber, ToCustomerID, TransactionTypeID, TransactionAmount, Description, ReferenceNumber, TransactionStatus, TransactionDate)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Completed', NOW())"
-                    )->execute([$account['AccountNumber'], $userId, $toAccountNumber, $toCustomerId, $typeId, $amount, $desc, $ref]);
+                    )->execute([$accountNumber, $userId, $toAccountNumber, $toCustomerId, $typeId, $amount, $desc, $ref]);
 
                     // Debit sender
-                    $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance - ? WHERE AccountID = ?")->execute([$amount, $accountId]);
+                    $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance - ? WHERE AccountNumber = ?")->execute([$amount, $accountNumber]);
 
                     // Credit receiver
-                    $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance + ? WHERE AccountID = ?")->execute([$amount, $toAccountId]);
+                    $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance + ? WHERE AccountNumber = ?")->execute([$amount, $toAccountNumber]);
 
                     // Notify both
                     $recipientName = $pdo->query("SELECT FirstName FROM CUSTOMER WHERE CustomerID=$toCustomerId")->fetchColumn();

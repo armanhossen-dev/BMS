@@ -1122,13 +1122,13 @@ INSERT INTO CUSTOMER (FirstName, LastName, DateOfBirth, Gender, Email, Phone, Ad
 ('Tanvir', 'Ahmed', '1998-08-14', 'Male', 'tanvir.ahmed@gmail.com', '01710000104', 'House 22, Road 4, Dhanmondi', 'Dhaka', '1998269548100004', 1, 1, NOW(), 1, 'REF1004'),
 ('Nadia', 'Islam', '1994-04-18', 'Female', 'nadia.islam@gmail.com', '01710000105', 'Shahjalal Upashohor, Sector B', 'Sylhet', '1994269548100005', 4, 4, NOW(), 1, 'REF1005');
 
--- Digital Banking Logins (Password: password)
-INSERT INTO DIGITALBANKINGUSER (CustomerID, Username, PasswordHash, IsActive, CreatedAt) VALUES
-(1, 'arjun.kapoor', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
-(2, 'sanya.malhotra', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
-(3, 'kiran.bose', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
-(4, 'tanvir.ahmed', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW()),
-(5, 'nadia.islam', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, NOW());
+-- Digital Banking Logins (Password: password, PIN: 1234)
+INSERT INTO DIGITALBANKINGUSER (CustomerID, Username, PasswordHash, TransactionPIN, IsActive, CreatedAt) VALUES
+(1, 'arjun.kapoor', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$2y$12$jUkCNy.8TDE1AhfGa1d57eF0lMkseOSQocJ/rGTh9dLJTH4isJc9C', 1, NOW()),
+(2, 'sanya.malhotra', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$2y$12$jUkCNy.8TDE1AhfGa1d57eF0lMkseOSQocJ/rGTh9dLJTH4isJc9C', 1, NOW()),
+(3, 'kiran.bose', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$2y$12$jUkCNy.8TDE1AhfGa1d57eF0lMkseOSQocJ/rGTh9dLJTH4isJc9C', 1, NOW()),
+(4, 'tanvir.ahmed', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$2y$12$jUkCNy.8TDE1AhfGa1d57eF0lMkseOSQocJ/rGTh9dLJTH4isJc9C', 1, NOW()),
+(5, 'nadia.islam', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$2y$12$jUkCNy.8TDE1AhfGa1d57eF0lMkseOSQocJ/rGTh9dLJTH4isJc9C', 1, NOW());
 
 -- Account Products
 INSERT INTO ACCOUNTPRODUCT (ProductName, AccountType, InterestRate, MinBalance, MaxWithdrawalLimit, DailyTransferLimit, Description) VALUES

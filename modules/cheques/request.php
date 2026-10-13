@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$owns) { $error = 'Invalid account.'; }
     else {
-        $pdo->prepare("INSERT INTO CHEQUE_BOOK_REQUESTS (customer_id,account_number,number_of_leaves,delivery_address,status) VALUES (?,?,?,?, 'Pending')")
-            ->execute([$customerId, $accountNum, $leaves, $address]);
+        $pdo->prepare("INSERT INTO CHEQUE_BOOK_REQUESTS (customer_id, account_number, leaves_count, status) VALUES (?, ?, ?, 'Pending')")
+            ->execute([$customerId, $accountNum, $leaves]);
         notify($customerId, 'Cheque Book Requested', "Your request for a $leaves-leaf cheque book has been submitted.", 'info');
         $success = 'Cheque book request submitted successfully.';
     }
@@ -71,7 +71,7 @@ require __DIR__ . '/../../includes/header.php';
     <?php else: foreach ($requests as $r): ?>
       <div class="flex justify-between items-center" style="padding:12px 0;border-bottom:1px solid var(--border-soft);">
         <div>
-          <div class="text-sm" style="font-weight:600;"><?= $r['number_of_leaves'] ?> Leaves</div>
+          <div class="text-sm" style="font-weight:600;"><?= $r['leaves_count'] ?? 25 ?> Leaves</div>
           <div class="text-dim text-xs"><?= mask_account($r['account_number']) ?> · <?= time_ago($r['request_date']) ?></div>
         </div>
         <span class="badge <?= $r['status']==='Delivered'?'badge-success':($r['status']==='Cancelled'?'badge-danger':'badge-warning') ?>"><?= clean($r['status']) ?></span>

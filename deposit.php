@@ -6,8 +6,8 @@ $userId  = $_SESSION['user_id'];
 $account = getUserAccount($pdo, $userId);
 if (!$account) redirect('logout.php');
 
-$balance   = (float)$account['AvailableBalance'];
-$accountId = $account['AccountID'];
+$balance       = (float)$account['AvailableBalance'];
+$accountNumber = $account['AccountNumber'];
 
 $success = '';
 $error   = '';
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             // Update balance
-            $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance + ? WHERE AccountID = ?")->execute([$amount, $accountId]);
+            $pdo->prepare("UPDATE ACCOUNT SET AvailableBalance = AvailableBalance + ? WHERE AccountNumber = ?")->execute([$amount, $accountNumber]);
 
             // Notification
             $pdo->prepare("INSERT INTO NOTIFICATIONS (customer_id, title, message, type, created_at) VALUES (?, ?, ?, 'success', NOW())")->execute([

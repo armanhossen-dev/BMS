@@ -86,7 +86,7 @@ built responsive from desktop down to mobile.
 ## 📁 File Structure
 
 ```
-asha_bank/
+BMS/
 ├── index.php                    Landing page
 ├── login.php                    Role-based authentication
 ├── register.php                 Customer registration (auto account + card)
@@ -170,7 +170,7 @@ labeled "basic" and CLI import is the recommended path.
 Edit `config/db.php`:
 
 ```php
-define('DB_HOST', 'localhost');
+define('DB_HOST', '127.0.0.1');
 define('DB_NAME', 'asha_bank');
 define('DB_USER', 'root');
 define('DB_PASS', '');
@@ -181,7 +181,7 @@ define('DB_PASS', '');
 Also in `config/db.php`:
 
 ```php
-define('BASE_URL', '/asha_bank');
+define('BASE_URL', '/BMS');
 ```
 
 Change this if you deploy under a different folder name, or to `''` if the

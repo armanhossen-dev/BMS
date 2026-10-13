@@ -38,7 +38,8 @@ function flash($key, $msg = null, $type = 'info') {
 }
 
 function currency($amount) {
-    return APP_CURRENCY . ' ' . number_format((float)$amount, 2);
+    $symbol = defined('APP_CURRENCY') ? APP_CURRENCY : (defined('CURRENCY_SYMBOL') ? CURRENCY_SYMBOL : '৳');
+    return $symbol . ' ' . number_format((float)$amount, 2);
 }
 
 function tier_for_balance($balance) {
