@@ -334,13 +334,20 @@ include 'includes/header.php';
             <?php foreach ($transactions as $txn):
                 $isCredit = $txn['ToCustomerID'] == $userId;
                 $type     = strtolower($txn['TypeName'] ?? 'transfer');
+                $desc     = strtolower($txn['Description'] ?? '');
                 $iconClass = $isCredit ? 'credit' : 'debit';
-                if (strpos($type, 'transfer') !== false) $iconClass = 'transfer';
+                if (strpos($type, 'transfer') !== false) {
+                    $iconClass = 'transfer';
+                } elseif (strpos($type, 'fee') !== false || strpos($desc, 'maintenance') !== false || strpos($desc, 'custody') !== false || strpos($desc, 'storage') !== false) {
+                    $iconClass = 'fee';
+                }
             ?>
-            <div class="txn-item">
+            <div class="txn-row">
                 <div class="txn-icon <?= $iconClass ?>">
                     <?php if ($iconClass === 'credit'): ?>
                     <i class='bx bx-log-in-circle'></i>
+                    <?php elseif ($iconClass === 'fee'): ?>
+                    <i class='bx bx-shield-quarter'></i>
                     <?php elseif ($iconClass === 'debit'): ?>
                     <i class='bx bx-log-out-circle'></i>
                     <?php else: ?>
@@ -348,10 +355,10 @@ include 'includes/header.php';
                     <?php endif; ?>
                 </div>
                 <div class="txn-info">
-                    <div class="txn-description"><?= e($txn['Description'] ?: $txn['TypeName']) ?></div>
+                    <div class="txn-title"><?= e($txn['Description'] ?: $txn['TypeName']) ?></div>
                     <div class="txn-date"><?= formatDate($txn['TransactionDate'], 'd M Y, g:i A') ?></div>
                 </div>
-                <div style="text-align:right;">
+                <div style="text-align:right;flex-shrink:0;">
                     <div class="txn-amount <?= $isCredit ? 'credit' : 'debit' ?>">
                         <?= $isCredit ? '+' : '-' ?><?= formatBDT($txn['TransactionAmount']) ?>
                     </div>
@@ -406,7 +413,8 @@ include 'includes/header.php';
                     ['Product', $account['ProductName'] ?? '—'],
                     ['Type',    $account['AccountType'] ?? '—'],
                     ['Min Balance', formatBDT($account['MinBalance'] ?? 0)],
-                    ['Interest Rate', ($account['InterestRate'] ?? 0) . '% p.a.'],
+                    ['Interest Rate', '0.00% (Interest-Free)'],
+                    ['Storage & Custody Fee', '0.001% p.a.'],
                     ['Opened', formatDate($account['OpeningDate'] ?? '')],
                     ['Status', ucfirst($account['AccountStatus'])],
                 ]; foreach ($rows as [$k,$v]): ?>

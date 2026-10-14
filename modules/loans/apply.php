@@ -27,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($tenure < $product['min_tenure_months'] || $tenure > $product['max_tenure_months']) {
         $error = "Tenure must be between {$product['min_tenure_months']} and {$product['max_tenure_months']} months.";
     } else {
-        $rate = $product['interest_rate'];
+        $rate = (float)$product['interest_rate'];
         $monthlyRate = $rate / 12 / 100;
-        $emi = $amount * $monthlyRate * pow(1 + $monthlyRate, $tenure) / (pow(1 + $monthlyRate, $tenure) - 1);
+        $emi = $monthlyRate > 0 ? ($amount * $monthlyRate * pow(1 + $monthlyRate, $tenure) / (pow(1 + $monthlyRate, $tenure) - 1)) : ($amount / $tenure);
         $total = $emi * $tenure;
 
         $stmt = $pdo->prepare("INSERT INTO LOANS (customer_id,loan_product_id,loan_amount,tenure_months,interest_rate,emi_amount,total_payable,status,disbursement_account,purpose)
@@ -70,7 +70,7 @@ require __DIR__ . '/../../includes/header.php';
               data-min="<?= $p['min_amount'] ?>" data-max="<?= $p['max_amount'] ?>"
               data-mintenure="<?= $p['min_tenure_months'] ?>" data-maxtenure="<?= $p['max_tenure_months'] ?>"
               data-rate="<?= $p['interest_rate'] ?>">
-              <?= clean($p['product_name']) ?> (<?= $p['interest_rate'] ?>% p.a.)
+              <?= clean($p['product_name']) ?> (<?= (float)$p['interest_rate'] > 0 ? $p['interest_rate'] . '% p.a.' : '0% Interest' ?>)
             </option>
           <?php endforeach; ?>
         </select>
@@ -121,7 +121,7 @@ function updateLoanCalc() {
   const tenure = parseInt(document.getElementById('loanTenure').value) || 0;
   if (amount > 0 && tenure > 0) {
     const mr = rate / 12 / 100;
-    const emi = amount * mr * Math.pow(1+mr, tenure) / (Math.pow(1+mr, tenure) - 1);
+    const emi = mr > 0 ? (amount * mr * Math.pow(1+mr, tenure) / (Math.pow(1+mr, tenure) - 1)) : (amount / tenure);
     document.getElementById('emiPreview').textContent = '<?= APP_CURRENCY ?> ' + emi.toFixed(2);
   }
 }

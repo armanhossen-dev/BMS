@@ -117,48 +117,61 @@
 }
 
 /* ── Transaction row ──────────────────────────────────────── */
-.txn-row {
+.txn-row,
+.txn-item {
     display: flex;
     align-items: center;
     gap: var(--sp-4);
-    padding: var(--sp-3) 0;
+    padding: 14px 4px;
     border-bottom: 1px solid var(--border);
-    transition: background var(--dur);
+    transition: background var(--dur), padding var(--dur);
 }
-.txn-row:last-child { border-bottom: none; }
-.txn-row:hover { background: var(--bg-subtle); border-radius: var(--r); padding-left: 8px; }
+.txn-row:last-child,
+.txn-item:last-child { border-bottom: none; }
+.txn-row:hover,
+.txn-item:hover { background: var(--bg-subtle); border-radius: var(--r); padding-left: 10px; padding-right: 10px; }
 .txn-icon {
-    width: 36px; height: 36px;
+    width: 38px; height: 38px;
     border-radius: var(--r);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    font-size: 16px;
+    font-size: 18px;
 }
-.txn-icon.credit { background: var(--success-bg); color: var(--success); }
-.txn-icon.debit  { background: var(--danger-bg);  color: var(--danger); }
-.txn-icon.transfer { background: var(--info-bg);  color: var(--info); }
+.txn-icon.credit   { background: var(--success-bg); color: var(--success); }
+.txn-icon.debit    { background: var(--danger-bg);  color: var(--danger); }
+.txn-icon.transfer { background: var(--info-bg);    color: var(--info); }
+.txn-icon.fee      { background: var(--warning-bg); color: var(--warning); }
 .txn-info { flex: 1; min-width: 0; }
-.txn-title {
+.txn-title,
+.txn-description {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
     letter-spacing: -0.01em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.4;
 }
 .txn-date {
     font-size: 12px;
     color: var(--text-muted);
+    margin-top: 2px;
 }
 .txn-amount {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     white-space: nowrap;
     letter-spacing: -0.02em;
 }
 .txn-amount.credit { color: var(--success); }
 .txn-amount.debit  { color: var(--danger); }
+.txn-ref {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    margin-top: 2px;
+}
 
 /* ── Quick action grid ────────────────────────────────────── */
 .quick-actions {

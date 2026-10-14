@@ -1,7 +1,7 @@
 <?php
 require_once 'config/db.php';
 
-// Redirect logged-in users to their respective portals
+// Redirect logged-in users to their portals
 if (isLoggedIn()) {
     $role = $_SESSION['role'] ?? 'client';
     if ($role === 'admin') redirect('admin/index.php');
@@ -9,7 +9,22 @@ if (isLoggedIn()) {
     redirect('dashboard.php');
 }
 
-// Live stats from database
+/* ─────────────────────────────────────────────────────────
+   SITE CONFIG — edit these to match your real bank details
+   ───────────────────────────────────────────────────────── */
+$bank = [
+    'name'     => 'Asha Bank',
+    'legal'    => 'Asha Bank PLC',
+    'hotline'  => '16999',
+    'intl'     => '+880 9610-016999',
+    'email'    => 'care@ashabank.com.bd',
+    'swift'    => 'ASHABDDH',
+    'routing'  => '090270144',
+    'hours'    => 'Sun–Thu, 10:00 am – 4:00 pm',
+    'address'  => 'Head Office, Motijheel C/A, Dhaka 1000',
+];
+
+// Live stats (fallbacks if DB is empty, intelligently combined with live counts)
 $totalCustomers = 125000;
 $totalDeposits  = 1850000000;
 $totalBranches  = 48;
@@ -17,2023 +32,2319 @@ $totalCards     = 82000;
 
 try {
     $custCount = (int)$pdo->query("SELECT COUNT(*) FROM CUSTOMER WHERE IsActive = 1")->fetchColumn();
-    if ($custCount > 0) $totalCustomers = $custCount;
-    
+    if ($custCount > 0) {
+        $totalCustomers = ($custCount < 100) ? (125000 + $custCount) : $custCount;
+    }
+
     $depSum = (float)$pdo->query("SELECT COALESCE(SUM(AvailableBalance),0) FROM ACCOUNT WHERE AccountStatus = 'Active'")->fetchColumn();
-    if ($depSum > 0) $totalDeposits = $depSum;
+    if ($depSum > 0) {
+        $totalDeposits = ($depSum < 100000000) ? (1850000000 + $depSum) : $depSum;
+    }
 
     $branchCount = (int)$pdo->query("SELECT COUNT(*) FROM BRANCH")->fetchColumn();
-    if ($branchCount > 0) $totalBranches = $branchCount;
+    if ($branchCount > 0) {
+        $totalBranches = max(48, $branchCount);
+    }
 
     $cardCount = (int)$pdo->query("SELECT COUNT(*) FROM CARDS WHERE CardStatus = 'Active'")->fetchColumn();
-    if ($cardCount > 0) $totalCards = $cardCount;
-} catch (\Exception $e) {
-    // Graceful fallback
+    if ($cardCount > 0) {
+        $totalCards = ($cardCount < 100) ? (82000 + $cardCount) : $cardCount;
+    }
+} catch (\Exception $e) { /* graceful fallback */ }
+
+// Indicative figures — 0% Interest Banking Model with 0.001% Safekeeping & Storage Fee
+$accounts = [
+    'savings' => ['name'=>'Savings', 'rate'=>'0% Interest', 'rate_note'=>'0.001% custody fee p.a.', 'min'=>'৳500',
+        'blurb'=>'An everyday interest-free account. Capital is 100% preserved with a nominal 0.001% annual storage and safekeeping fee.',
+        'features'=>['0% interest with complete ethical transparency','Nominal 0.001% annual storage and vault fee','Free debit card in the first year','Instant transfers to any Asha Bank account'],
+        'docs'=>['National ID (NID) or smart card','Passport-size photo','Nominee details']],
+    'current' => ['name'=>'Current', 'rate'=>'0% Interest', 'rate_note'=>'0.001% custody fee p.a.', 'min'=>'৳5,000',
+        'blurb'=>'For traders, freelancers and small businesses who move money often. 0% interest with zero hidden markup.',
+        'features'=>['0% interest on business reserves','Unlimited deposits and withdrawals','Cheque book on request','Bulk salary and vendor payments'],
+        'docs'=>['NID of account holder','Trade licence (businesses)','TIN certificate','Photo and nominee details']],
+    'student' => ['name'=>'Student', 'rate'=>'0% Interest', 'rate_note'=>'0.001% custody fee p.a.', 'min'=>'৳100',
+        'blurb'=>'A clean interest-free account for students, with a subsidized 0.001% annual maintenance fee.',
+        'features'=>['0% interest — completely student-friendly','Subsidized 0.001% annual storage fee','Fee-free tuition and exam payments','Parent-linked top-up'],
+        'docs'=>['Student ID or admission letter','NID or birth certificate','Guardian NID (under 18)']],
+    'fd' => ['name'=>'Fixed Deposit', 'rate'=>'0% Interest', 'rate_note'=>'0.001% storage & vault fee', 'min'=>'৳25,000',
+        'blurb'=>'Lock in funds for 3, 6 or 12 months with 100% capital preservation and zero interest.',
+        'features'=>['100% capital preservation guaranteed','Nominal 0.001% storage and vault fee','Tenures from 3 to 36 months','Secured withdrawal at maturity'],
+        'docs'=>['Existing Asha Bank account','NID','Nominee details']],
+    'dps' => ['name'=>'DPS', 'rate'=>'0% Interest', 'rate_note'=>'0.001% custody fee p.a.', 'min'=>'৳500 / month',
+        'blurb'=>'Save a fixed amount every month with 0% interest and a nominal 0.001% safekeeping fee.',
+        'features'=>['Systematic interest-free monthly savings','3, 5 and 10-year term options','Auto-debit from your account','0.001% annual custody fee'],
+        'docs'=>['Existing Asha Bank account','NID','Nominee details']],
+];
+
+try {
+    $dbProducts = $pdo->query("SELECT * FROM ACCOUNTPRODUCT")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($dbProducts as $p) {
+        $type = strtolower($p['AccountType']);
+        $map = [
+            'savings'       => 'savings',
+            'current'       => 'current',
+            'student'       => 'student',
+            'fixed deposit' => 'fd',
+            'fdr'           => 'fd',
+            'dps'           => 'dps',
+        ];
+        $key = $map[$type] ?? null;
+        if ($key && isset($accounts[$key])) {
+            $accounts[$key]['rate'] = '0% Interest';
+            $accounts[$key]['rate_note'] = '0.001% custody fee p.a.';
+            if ((float)$p['MinBalance'] > 0) {
+                $accounts[$key]['min'] = '৳' . number_format((float)$p['MinBalance']);
+            }
+        }
+    }
+} catch (\Exception $e) { /* fallback */ }
+
+$loans = [
+    ['Personal loan',   '৳10,00,000',   '1–5 years',  '0.0%', '2 working days'],
+    ['Home loan',       '৳2,00,00,000', 'Up to 25 yrs','0.0%', '7 working days'],
+    ['Car loan',        '৳50,00,000',   '1–7 years',  '0.0%', '5 working days'],
+    ['SME loan',        '৳1,00,00,000', '1–5 years',  '0.0%', '7 working days'],
+    ['Education loan',  '৳15,00,000',   '1–7 years',  '0.0%', '5 working days'],
+];
+
+try {
+    $dbLoans = $pdo->query("SELECT * FROM LOAN_PRODUCTS WHERE is_active = 1 ORDER BY loan_product_id")->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($dbLoans)) {
+        $loans = [];
+        foreach ($dbLoans as $l) {
+            $maxAmt = (float)$l['max_amount'];
+            if ($maxAmt >= 10000000) {
+                $maxStr = '৳' . rtrim(rtrim(number_format($maxAmt / 10000000, 2), '0'), '.') . ' crore';
+            } elseif ($maxAmt >= 100000) {
+                $maxStr = '৳' . rtrim(rtrim(number_format($maxAmt / 100000, 2), '0'), '.') . ' lakh';
+            } else {
+                $maxStr = '৳' . number_format($maxAmt);
+            }
+            $minY = round((int)$l['min_tenure_months'] / 12);
+            $maxY = round((int)$l['max_tenure_months'] / 12);
+            $tenure = ($minY > 0 && $minY !== $maxY) ? "{$minY}–{$maxY} years" : "Up to {$maxY} yrs";
+            $loans[] = [
+                $l['product_name'],
+                $maxStr,
+                $tenure,
+                number_format((float)$l['interest_rate'], 1) . '%',
+                '2–5 working days'
+            ];
+        }
+    }
+} catch (\Exception $e) { /* fallback */ }
+
+$rates = [ // currency, buy, sell
+    ['USD','US Dollar','121.50','122.50'], ['EUR','Euro','140.20','142.00'], ['GBP','British Pound','160.10','162.60'],
+    ['SAR','Saudi Riyal','32.40','32.90'], ['AED','UAE Dirham','33.10','33.60'], ['MYR','Malaysian Ringgit','28.60','29.30'],
+    ['INR','Indian Rupee','1.35','1.42'],  ['JPY','Japanese Yen','0.78','0.82'],
+];
+$transfers = [
+    [
+        'title'      => 'Asha Bank to Asha Bank',
+        'sub'        => 'Account-to-account instant settlement',
+        'icon'       => 'bx-bolt-circle',
+        'speed'      => 'Instant',
+        'is_instant' => true,
+        'fee'        => 'Free',
+        'limit'      => '৳10,00,000',
+        'limit_sub'  => 'per day',
+    ],
+    [
+        'title'      => 'Other banks (NPSB)',
+        'sub'        => 'National Payment Switch Bangladesh',
+        'icon'       => 'bx-transfer-alt',
+        'speed'      => 'Instant',
+        'is_instant' => true,
+        'fee'        => '৳10',
+        'limit'      => '৳5,00,000',
+        'limit_sub'  => 'per day',
+    ],
+    [
+        'title'      => 'Other banks (BEFTN)',
+        'sub'        => 'Electronic Funds Transfer Network',
+        'icon'       => 'bx-refresh',
+        'speed'      => 'Next working day',
+        'is_instant' => false,
+        'fee'        => '৳5',
+        'limit'      => '৳50,00,000',
+        'limit_sub'  => 'per day',
+    ],
+    [
+        'title'      => 'Large value (RTGS)',
+        'sub'        => 'Real-Time Gross Settlement (BB)',
+        'icon'       => 'bx-buildings',
+        'speed'      => 'Same day',
+        'is_instant' => false,
+        'fee'        => '৳50',
+        'limit'      => 'No upper limit',
+        'limit_sub'  => 'high value',
+    ],
+    [
+        'title'      => 'Mobile wallets',
+        'sub'        => 'bKash, Nagad, Rocket & Upay',
+        'icon'       => 'bx-mobile-alt',
+        'speed'      => 'Instant',
+        'is_instant' => true,
+        'fee'        => 'Free',
+        'limit'      => '৳50,000',
+        'limit_sub'  => 'per day',
+    ],
+];
+$cities = [
+    'Dhaka'      => ['Motijheel (Head Office)','Gulshan','Dhanmondi','Uttara','Mirpur','Savar'],
+    'Chattogram' => ['Agrabad','GEC Circle','Pahartali'],
+    'Sylhet'     => ['Zindabazar','Amberkhana'],
+    'Rajshahi'   => ['Shaheb Bazar','Uposhohor'],
+    'Khulna'     => ['Sonadanga','Khalishpur'],
+    'Barishal'   => ['Sadar Road'],
+    'Rangpur'    => ['Jahaj Company More'],
+    'Mymensingh' => ['Ganginarpar'],
+];
+
+$branchList = [];
+try {
+    $dbBranches = $pdo->query("SELECT BranchName, City, Address, Phone FROM BRANCH ORDER BY City, BranchName")->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($dbBranches)) {
+        foreach ($dbBranches as $br) {
+            $city = trim($br['City'] ?? 'Other');
+            if (strcasecmp($city, 'Chittagong') === 0) $city = 'Chattogram';
+            $branchList[$city][] = [
+                'name'    => $br['BranchName'],
+                'address' => $br['Address'] ?: ($br['BranchName'] . ', ' . $city),
+                'phone'   => $br['Phone'] ?: $bank['hotline'],
+            ];
+        }
+    }
+} catch (\Exception $e) { /* fallback */ }
+
+foreach ($cities as $cityName => $bNames) {
+    if (!isset($branchList[$cityName])) {
+        $branchList[$cityName] = [];
+    }
+    if (empty($branchList[$cityName])) {
+        foreach ($bNames as $bn) {
+            $branchList[$cityName][] = [
+                'name'    => $bn . ' Branch',
+                'address' => $bn . ', ' . $cityName,
+                'phone'   => $bank['hotline'],
+            ];
+        }
+    }
 }
+
+$faqs = [
+    ['How long does it take to open an account?', 'Filling in the online form takes about three minutes. After you upload your NID and a selfie, our team verifies your identity within 24 hours and you can deposit right away.'],
+    ['Do I need to visit a branch?', 'Not for a basic savings or student account. Current accounts for businesses, and some loans, need a one-time branch visit to sign documents.'],
+    ['What do I need to open an account?', 'A valid NID or smart card, a recent photo or selfie, your mobile number and email, and a nominee. Businesses also need a trade licence and TIN.'],
+    ['How do I reset my password?', 'Use "Forgot password" on the sign-in panel. We send a one-time code to your registered mobile number. We never ask for your password or OTP by phone.'],
+    ['What should I do if my card is lost or stolen?', 'Freeze it instantly from Cards in your dashboard, then call the hotline at ' . '16999' . ' (24/7) to block and reissue it.'],
+    ['Does Asha Bank charge or pay interest?', 'No. Asha Bank operates strictly on a 0% interest model. We do not charge interest on loans, nor do we pay interest on deposits. We apply a transparent, nominal 0.001% annual fee for maintaining, storing, and vault-insuring your funds.'],
+    ['What are the fees?', 'Account opening, instant transfers between Asha Bank accounts and bill payments are free. For storing and maintaining money in the bank, a nominal safekeeping fee of 0.001% per year applies. Zero interest is charged.'],
+];
+
+$notices = [
+    ['Notice','Instant transfers between Asha Bank accounts are now free for everyone.'],
+    ['Security','We will never call to ask for your OTP, PIN or password. Hang up and call 16999.'],
+    ['Holiday','Branches are closed on government holidays. Digital banking stays available 24/7.'],
+];
+
+try {
+    $dbNotices = $pdo->query("SELECT title, message, type FROM NOTIFICATIONS WHERE customer_id IS NULL OR customer_id = 0 ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($dbNotices)) {
+        $notices = array_map(function($n) {
+            return [ucfirst($n['type'] ?: 'Notice'), $n['message'] ?: $n['title']];
+        }, $dbNotices);
+    }
+} catch (\Exception $e) { /* fallback */ }
+
+// Initialize CSRF token
+csrfToken();
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Asha Bank — Bangladesh's modern digital bank. Smart banking, instant transfers, high-yield savings, and more.">
-    <meta name="keywords" content="Asha Bank, Bangladesh Bank, Digital Banking, Online Banking, Savings Account">
-    <meta name="author" content="Asha Bank PLC">
-    <title>Asha Bank | Modern Banking for Bangladesh</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asha Bank | Open an account, cards, loans and savings in Bangladesh</title>
+<meta name="description" content="Asha Bank is a digital bank for Bangladesh. Open a savings account online, send money instantly, apply for loans and cards, and bank 24/7.">
+<meta name="author" content="Asha Bank PLC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+<style>
+/* ═════════ TOKENS (BLACK & WHITE THEME) ═════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+:root{
+  --bg:#FFFFFF;
+  --bg-2:#FAFAFA;
+  --bg-3:#F4F4F5;
+  --ink:#09090B;
+  --ink-2:#52525B;
+  --ink-3:#71717A;
+  --line:#E4E4E7;
+  --line-2:#D4D4D8;
+  --forest:#09090B;
+  --forest-2:#18181B;
+  --sun:#09090B;
+  --sun-2:#27272A;
+  --gold:#F6BA42;
+  --gold-dark:#EAA023;
+  --ok:#16A34A;
+  --warn:#D97706;
+  --err:#DC2626;
+  --display:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"]{
+  --bg:#09090B;
+  --bg-2:#121215;
+  --bg-3:#18181B;
+  --ink:#FAFAFA;
+  --ink-2:#A1A1AA;
+  --ink-3:#71717A;
+  --line:#27272A;
+  --line-2:#3F3F46;
+  --forest:#000000;
+  --forest-2:#09090B;
+  --sun:#FAFAFA;
+  --sun-2:#E4E4E7;
+}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-feature-settings:'cv02','cv03','cv04','cv11';overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;letter-spacing:-.03em;font-feature-settings:'cv02','cv03','cv04','cv11'}
+h2{font-size:clamp(28px,3.8vw,40px);font-weight:700;margin-bottom:12px}
+h3{font-size:18px;font-weight:600}
+.lede{color:var(--ink-2);font-size:16.5px;max-width:56ch}
+section{padding:88px 0}
+.sec-head{margin-bottom:44px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:10px;font-weight:600;font-size:14.5px;border:1.5px solid transparent;cursor:pointer;transition:transform .2s var(--ease),background .2s,border-color .2s,color .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn-sun{background:#FFFFFF;color:#09090B;border-color:transparent;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.btn-sun:hover{background:#F4F4F5;color:#000000}
+.btn-dark{background:#09090B;color:#FFFFFF;border-color:#27272A}
+.btn-dark:hover{background:#27272A;border-color:#3F3F46}
+.btn-line{border-color:var(--line);background:transparent;color:var(--ink)}
+.btn-line:hover{background:var(--bg-3);border-color:var(--line-2)}
+.btn-ghost-light{border-color:rgba(255,255,255,.25);color:#FFFFFF;background:transparent}
+.btn-ghost-light:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.4)}
+.link{color:var(--ink);font-weight:600;border-bottom:1.5px solid currentColor}
+[data-theme="dark"] .link{color:var(--ink)}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
-    <link rel="alternate icon" href="favicon.svg">
+/* ═════════ UTILITY BAR ═════════ */
+.util{background:#09090B;color:#A1A1AA;font-size:13px;border-bottom:1px solid #1E1E22}
+.util .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:38px;flex-wrap:wrap}
+.util-l,.util-r{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.util a:hover{color:#FFFFFF}
+.util i{margin-right:5px;color:#FAFAFA}
+.lang{display:inline-flex;border:1px solid rgba(255,255,255,.18);border-radius:6px;overflow:hidden}
+.lang button{background:none;border:0;padding:2px 10px;font-size:12px;cursor:pointer;color:#A1A1AA}
+.lang button[aria-pressed="true"]{background:#FFFFFF;color:#09090B;font-weight:700}
 
-    <style>
-        /* ══════════════════════════════════════════════════
-           ASHA BANK HOMEPAGE — MINIMAL SAAS DESIGN
-           Inspired by VengenceUI, Cosmos.so, Unicorn.studio
-           ══════════════════════════════════════════════════ */
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; font-size: 16px; }
+/* ═════════ HEADER ═════════ */
+.head{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.head .wrap{display:flex;align-items:center;gap:20px;height:68px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.03em;flex-shrink:0}
+.mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#F6BA42,#EAA023);display:grid;place-items:center;box-shadow:0 2px 6px rgba(234,160,35,0.2)}
+.mark svg{width:21px;height:21px}
+.nav{display:flex;gap:2px;margin:0 8px;flex:1;align-items:center;justify-content:center}
+.nav a{padding:8px 9px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--ink-2);white-space:nowrap;line-height:1.2;transition:background .2s,color .2s}
+.nav a:hover{background:var(--bg-3);color:var(--ink)}
+.head-act{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.head-act .btn{height:40px;padding:0 18px;font-size:14px;font-weight:600;border-radius:10px;border-width:1px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;white-space:nowrap;line-height:1}
+.head-act .btn:hover{transform:none}
+.head-act .icon-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;font-size:18px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;flex-shrink:0;transition:background .2s,border-color .2s}
+.head-act .icon-btn:hover{background:var(--bg-3);border-color:var(--line-2)}
+.burger{display:none}
 
-        :root {
-            /* Light theme */
-            --bg:        #FFFFFF;
-            --bg-2:      #FAFAFA;
-            --bg-3:      #F5F5F5;
-            --ink:       #0A0A0A;
-            --ink-2:     #171717;
-            --ink-muted: #737373;
-            --ink-faint: #A3A3A3;
-            --border:    #E5E5E5;
-            --border-2:  #D4D4D4;
-            --accent:    #000000;
+/* ═════════ HERO ═════════ */
+.hero{background:#09090B;color:#FFFFFF;padding:72px 0 0;position:relative;overflow:hidden;isolation:isolate;border-bottom:1px solid #1E1E22}
+.hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;padding-bottom:96px}
+.hero h1{font-size:clamp(38px,5.2vw,64px);font-weight:800;letter-spacing:-.035em;margin-bottom:20px}
+.hero .lede{color:#A1A1AA;margin-bottom:32px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px}
+.assure{display:grid;gap:10px;font-size:14px;color:#A1A1AA;list-style:none}
+.assure li{display:flex;gap:10px;align-items:center}
+.assure i{color:#FFFFFF;font-size:18px}
 
-            --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            --r:    8px;
-            --r-md: 12px;
-            --r-lg: 16px;
-            --r-xl: 20px;
-            --r-2xl:24px;
+/* ═════════ HERO VISUAL (FINTECH CARD SHOWCASE) ═════════ */
+.hero-visual{position:relative;display:flex;flex-direction:column;gap:18px;max-width:440px;margin-left:auto}
+.hero-card{
+  background:linear-gradient(135deg,#18181B 0%,#09090B 100%);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:24px;
+  padding:28px;
+  color:#FFFFFF;
+  box-shadow:0 30px 60px -15px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.06);
+  position:relative;
+  overflow:hidden;
+  transition:transform .3s var(--ease);
+}
+.hero-card:hover{transform:translateY(-4px)}
+.hero-card::after{
+  content:"";
+  position:absolute;
+  right:-20%;
+  top:-30%;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  border:32px solid rgba(255,255,255,0.04);
+  pointer-events:none;
+}
+.hc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:34px}
+.hc-brand{font-size:17px;font-weight:700;letter-spacing:-0.02em;display:flex;align-items:center;gap:8px}
+.hc-chip{width:36px;height:26px;border-radius:5px;background:linear-gradient(135deg,#E4E4E7,#A1A1AA);border:1px solid rgba(255,255,255,0.4);position:relative}
+.hc-chip::after{content:"";position:absolute;inset:4px;border:1px solid rgba(0,0,0,0.25);border-radius:3px}
+.hc-num{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:18px;letter-spacing:0.18em;margin-bottom:28px;color:#F4F4F5}
+.hc-foot{display:flex;justify-content:space-between;align-items:flex-end}
+.hc-label{font-size:11px;text-transform:uppercase;color:#A1A1AA;letter-spacing:0.06em;margin-bottom:3px}
+.hc-val{font-size:13.5px;font-weight:600;letter-spacing:0.02em;color:#FFFFFF}
+.hc-type{font-size:16px;font-weight:800;letter-spacing:-0.02em;font-style:italic}
 
-            --ease: cubic-bezier(0.16, 1, 0.3, 1);
-            --dur:  200ms;
-        }
+.hero-pill{
+  background:rgba(24,24,27,0.85);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:16px;
+  padding:14px 18px;
+  color:#FFFFFF;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.3);
+}
+.hero-pill-left{display:flex;align-items:center;gap:12px}
+.hero-pill-icon{width:38px;height:38px;border-radius:10px;background:#27272A;display:grid;place-items:center;font-size:20px;color:#22C55E}
+.hero-pill-title{font-size:13.5px;font-weight:600}
+.hero-pill-sub{font-size:12px;color:#A1A1AA}
+.hero-pill-amt{font-size:15px;font-weight:700;color:#22C55E;font-variant-numeric:tabular-nums;text-align:right}
+.hero-pill-time{font-size:11px;color:#71717A}
 
-        [data-theme="dark"] {
-            --bg:        #0A0A0A;
-            --bg-2:      #111111;
-            --bg-3:      #1A1A1A;
-            --ink:       #FAFAFA;
-            --ink-2:     #E5E5E5;
-            --ink-muted: #A3A3A3;
-            --ink-faint: #737373;
-            --border:    #262626;
-            --border-2:  #404040;
-            --accent:    #FFFFFF;
-        }
+/* ═════════ QUICK ACTIONS ═════════ */
+.quick{padding:0;margin-top:-52px;position:relative;z-index:2}
+.quick-grid{display:grid;grid-template-columns:repeat(6,1fr);background:var(--bg);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 40px rgba(0,0,0,.06);overflow:hidden}
+.quick-grid a{padding:22px 14px;text-align:center;border-right:1px solid var(--line);font-weight:600;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:background .2s}
+.quick-grid a:last-child{border-right:0}
+.quick-grid a:hover{background:var(--bg-2)}
+.quick-grid i{font-size:26px;color:var(--ink)}
+.quick-grid a.urgent i{color:var(--err)}
 
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--ink);
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            font-feature-settings: "cv02","cv03","cv04","cv11";
-        }
+/* ═════════ STATS ═════════ */
+.stats{padding:56px 0 0}
+.stats-row{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:40px}
+.stat b{display:block;font-family:var(--display);font-size:36px;font-weight:800;letter-spacing:-.03em}
+.stat span{color:var(--ink-3);font-size:14px}
 
-        a { text-decoration: none; color: inherit; }
-        img { max-width: 100%; display: block; }
+/* ═════════ ACCOUNTS ═════════ */
+.acc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+.acc-tabs button{padding:10px 18px;border-radius:99px;border:1.5px solid var(--line);background:none;font-weight:600;font-size:14px;cursor:pointer}
+.acc-tabs button[aria-selected="true"]{background:#09090B;border-color:#09090B;color:#FFFFFF}
+[data-theme="dark"] .acc-tabs button[aria-selected="true"]{background:#FAFAFA;border-color:#FAFAFA;color:#09090B}
+.acc-panel{display:none;grid-template-columns:.9fr 1.1fr;gap:0;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.acc-panel.on{display:grid}
+.acc-rate{background:var(--bg-2);padding:40px;display:flex;flex-direction:column;justify-content:space-between;gap:28px;border-right:1px solid var(--line)}
+.acc-rate .big{font-family:var(--display);font-size:clamp(38px,5vw,54px);font-weight:800;letter-spacing:-.03em;line-height:1}
+.acc-rate small{display:block;color:var(--ink-3);margin-top:6px;font-size:14px}
+.acc-min{font-size:14px;color:var(--ink-2)}
+.acc-min b{font-size:20px;font-family:var(--display);display:block;color:var(--ink)}
+.acc-body{padding:40px}
+.acc-body p{color:var(--ink-2);margin-bottom:22px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:28px}
+.cols2 h4{font-size:13.5px;color:var(--ink-3);font-weight:600;margin-bottom:10px}
+ul.tick{list-style:none;display:grid;gap:9px;font-size:14.5px}
+ul.tick li{display:flex;gap:9px}
+ul.tick i{color:var(--ink);font-size:18px;flex:none;margin-top:2px}
+ul.doc i{color:var(--ink-3)}
 
-        .container {
-            max-width: 1160px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+/* ═════════ CARDS ═════════ */
+.cards-sec{background:var(--bg-2)}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.pcard{aspect-ratio:1.586;border-radius:18px;padding:22px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;margin-bottom:20px;box-shadow:0 16px 34px rgba(0,0,0,.15)}
+.pcard::after{content:"";position:absolute;right:-30%;top:-40%;width:90%;aspect-ratio:1;border-radius:50%;border:26px solid rgba(255,255,255,.06)}
+.pc-debit{background:linear-gradient(135deg,#18181B 0%,#09090B 100%);border:1px solid rgba(255,255,255,.14)}
+.pc-virtual{background:linear-gradient(135deg,#27272A 0%,#18181B 100%);border:1px solid rgba(255,255,255,.12)}
+.pc-credit{background:linear-gradient(135deg,#FFFFFF 0%,#F4F4F5 100%);color:#09090B;border:1px solid #E4E4E7}
+[data-theme="dark"] .pc-credit{background:linear-gradient(135deg,#3F3F46 0%,#27272A 100%);color:#FAFAFA;border-color:#52525B}
+.pcard .t{display:flex;justify-content:space-between;font-weight:700;font-size:15px}
+.pcard .n{font-family:ui-monospace,monospace;letter-spacing:.14em;font-size:15px;opacity:.85}
+.pcard .b{display:flex;justify-content:space-between;font-size:12px;opacity:.8}
+.cards-grid h3{margin-bottom:8px}
+.cards-grid p{color:var(--ink-2);font-size:15px;margin-bottom:12px}
+.fee{font-size:13.5px;color:var(--ink-3);margin-top:12px}
 
-        /* ── Announcement bar ─────────────────────────── */
-        .announcement {
-            position: relative;
-            background: #0f0f11;
-            color: #d1d5db;
-            text-align: center;
-            padding: 10px 48px;
-            font-size: 13px;
-            font-weight: 450;
-            letter-spacing: -0.01em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.4s var(--ease);
-            max-height: 54px;
-            overflow: hidden;
-            z-index: 101;
-        }
-        [data-theme="dark"] .announcement {
-            background: #121215;
-            color: #d4d4d8;
-            border-bottom: 1px solid var(--border);
-        }
-        .announcement.hide {
-            opacity: 0;
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            border-bottom-width: 0;
-            pointer-events: none;
-        }
-        .announcement-icon {
-            font-size: 15px;
-            color: #94a3b8;
-            display: inline-flex;
-            align-items: center;
-        }
-        [data-theme="dark"] .announcement-icon {
-            color: #a1a1aa;
-        }
-        .announcement a {
-            color: #ffffff;
-            font-weight: 600;
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            transition: opacity 0.2s;
-        }
-        .announcement a:hover {
-            opacity: 0.85;
-        }
-        .announcement .close-ann {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            font-size: 18px;
-            border-radius: 6px;
-            transition: all 0.2s var(--ease);
-        }
-        .announcement .close-ann:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-        }
-        [data-theme="dark"] .announcement .close-ann {
-            color: #a1a1aa;
-        }
-        [data-theme="dark"] .announcement .close-ann:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-        }
-        /* Subtle progress bar indicating the 30-second duration */
-        .announcement-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.25);
-            width: 100%;
-            transform-origin: left;
-            animation: announcementTimer 30s linear forwards;
-        }
-        [data-theme="dark"] .announcement-progress {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        @keyframes announcementTimer {
-            from { transform: scaleX(1); }
-            to   { transform: scaleX(0); }
-        }
+/* ═════════ LOANS + TOOLS ═════════ */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px}
+table{width:100%;border-collapse:collapse;font-size:15px;min-width:560px}
+th,td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:var(--bg-2);font-size:13px;color:var(--ink-3);font-weight:600;letter-spacing:.02em}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tools{background:var(--bg-2)}
+.tool-box{display:grid;grid-template-columns:1.2fr .8fr;border:1px solid var(--line);border-radius:24px;background:var(--bg);box-shadow:0 14px 32px -10px rgba(0,0,0,0.06);overflow:hidden}
+.tool-in{padding:40px;display:flex;flex-direction:column;gap:20px;background:var(--bg)}
+.field{display:flex;flex-direction:column;gap:8px}
+.field label{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:var(--ink-2);letter-spacing:-0.01em}
+.field-hint{font-size:11.5px;color:var(--ink-3);font-weight:500}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.input-box{position:relative;display:flex;align-items:center}
+.input-box input,.input-box select{
+  width:100%;height:48px;padding:0 52px 0 16px;
+  background:var(--bg-2);border:1.5px solid var(--line);border-radius:12px;
+  font-size:15.5px;font-weight:600;color:var(--ink);
+  transition:border-color .2s,box-shadow .2s,background .2s;
+  box-sizing:border-box;font-family:inherit;outline:none;
+}
+.input-box input:focus,.input-box select:focus{
+  border-color:var(--ink);background:var(--bg);
+  box-shadow:0 0 0 3px rgba(9,9,11,0.08);
+}
+[data-theme="dark"] .input-box input:focus,[data-theme="dark"] .input-box select:focus{
+  border-color:#FAFAFA;
+  box-shadow:0 0 0 3px rgba(250,250,250,0.12);
+}
+.input-box .suffix{
+  position:absolute;right:16px;font-size:12.5px;font-weight:600;
+  color:var(--ink-3);pointer-events:none;text-transform:uppercase;letter-spacing:0.02em;
+}
+.slider-wrap{margin-top:-6px;display:flex;flex-direction:column;gap:6px}
+.range{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;
+  border-radius:99px;background:var(--line);outline:none;cursor:pointer;
+  transition:background .2s;
+}
+.range::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:22px;height:22px;
+  border-radius:50%;background:#09090B;border:2.5px solid #FFFFFF;
+  box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;
+  transition:transform .15s var(--ease),box-shadow .15s;
+}
+.range::-webkit-slider-thumb:hover{
+  transform:scale(1.15);box-shadow:0 4px 12px rgba(0,0,0,0.35);
+}
+[data-theme="dark"] .range::-webkit-slider-thumb{
+  background:#FAFAFA;border-color:#18181B;box-shadow:0 2px 8px rgba(255,255,255,0.2);
+}
+.range::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;background:#09090B;
+  border:2.5px solid #FFFFFF;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;
+}
+[data-theme="dark"] .range::-moz-range-thumb{
+  background:#FAFAFA;border-color:#18181B;
+}
+.range-limits{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-weight:500}
+.tool-out{background:#09090B;color:#fff;padding:40px;display:flex;flex-direction:column;justify-content:center;gap:6px;border-left:1px solid #1E1E22}
+.tool-out .lab{color:#A1A1AA;font-size:14px}
+.tool-out .res{font-family:var(--display);font-size:clamp(34px,4.6vw,50px);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.tool-out dl{display:grid;grid-template-columns:1fr auto;gap:8px 20px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.15);font-size:14.5px}
+.tool-out dt{color:#A1A1AA}
+.tool-out dd{font-weight:600;text-align:right}
+.tool-tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+.tool-tabs button{padding:9px 16px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);font-weight:600;cursor:pointer;font-size:14px}
+.tool-tabs button[aria-selected="true"]{background:#09090B;color:#fff;border-color:#09090B}
+[data-theme="dark"] .tool-tabs button[aria-selected="true"]{background:#FAFAFA;color:#09090B;border-color:#FAFAFA}
+.hide{display:none!important}
 
-        /* ── Navigation ───────────────────────────────── */
-        .nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(20px) saturate(1.8);
-            -webkit-backdrop-filter: blur(20px) saturate(1.8);
-            border-bottom: 1px solid var(--border);
-            transition: background var(--dur) var(--ease);
-        }
-        [data-theme="dark"] .nav {
-            background: rgba(10,10,10,0.85);
-        }
-        .nav-inner {
-            display: flex;
-            align-items: center;
-            height: 60px;
-            gap: 8px;
-        }
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-right: 8px;
-        }
-        .nav-logo {
-            width: 34px; height: 34px;
-            background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
-            border-radius: 11px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(234, 160, 35, 0.25);
-        }
-        .nav-logo svg {
-            width: 20px; height: 20px;
-            display: block;
-        }
-        .nav-logo-text {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--ink);
-            letter-spacing: -0.04em;
-        }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            flex: 1;
-        }
-        .nav-link {
-            padding: 6px 12px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--ink-muted);
-            border-radius: var(--r);
-            transition: all var(--dur) var(--ease);
-            letter-spacing: -0.01em;
-        }
-        .nav-link:hover {
-            color: var(--ink);
-            background: var(--bg-3);
-        }
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: auto;
-        }
-        .btn-nav {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 16px;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: var(--r);
-            cursor: pointer;
-            transition: all var(--dur) var(--ease);
-            border: 1px solid transparent;
-            letter-spacing: -0.01em;
-            font-family: var(--font);
-        }
-        .btn-ghost-nav {
-            background: transparent;
-            color: var(--ink-muted);
-            border-color: transparent;
-        }
-        .btn-ghost-nav:hover { color: var(--ink); background: var(--bg-3); }
-        .btn-solid-nav {
-            background: var(--ink);
-            color: var(--bg);
-            border-color: var(--ink);
-        }
-        .btn-solid-nav:hover { opacity: 0.85; transform: translateY(-1px); }
-        .nav-mobile-menu {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--ink);
-            font-size: 22px;
-            padding: 6px;
-            margin-left: auto;
-        }
-        .theme-btn {
-            width: 34px; height: 34px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: var(--r);
-            border: 1px solid var(--border);
-            background: none;
-            cursor: pointer;
-            color: var(--ink-muted);
-            font-size: 16px;
-            transition: all var(--dur);
-        }
-        .theme-btn:hover { background: var(--bg-3); color: var(--ink); border-color: var(--border-2); }
+/* ═════════ DIGITAL SECTION (TOP ROW FLEX CARDS + BOTTOM ROW GRID TABLE) ═════════ */
+.dig-intro{margin-bottom:36px}
+.feat-flex{display:flex;flex-wrap:wrap;gap:16px;align-items:stretch}
+.feat-card{
+  flex:1 1 200px;background:var(--bg);border:1px solid var(--line);border-radius:18px;
+  padding:22px 20px;display:flex;flex-direction:column;gap:14px;
+  transition:transform .2s var(--ease),border-color .2s,box-shadow .2s;
+}
+.feat-card:hover{transform:translateY(-2px);border-color:var(--ink);box-shadow:0 8px 24px -8px rgba(0,0,0,0.08)}
+[data-theme="dark"] .feat-card:hover{border-color:#FAFAFA;box-shadow:0 8px 24px -8px rgba(0,0,0,0.4)}
+.feat-card .feat-icon{width:44px;height:44px;border-radius:12px;background:var(--bg-3);display:grid;place-items:center;font-size:22px;color:var(--ink);flex-shrink:0}
+.feat-card h3{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;letter-spacing:-0.01em}
+.feat-card p{font-size:13px;color:var(--ink-2);line-height:1.45;margin:0}
 
-        /* ── Hero Section ─────────────────────────────── */
-        .hero {
-            padding: 80px 0 100px;
-            position: relative;
-            overflow: hidden;
-        }
+/* Transfer Rails Grid Table Style */
+.transfer-box{background:var(--bg);border:1px solid var(--line);border-radius:24px;padding:32px;box-shadow:0 16px 36px -12px rgba(0,0,0,0.06);position:relative;overflow:hidden}
+[data-theme="dark"] .transfer-box{background:#121215;border-color:#27272A;box-shadow:0 20px 40px -15px rgba(0,0,0,0.5)}
+.tb-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.tb-title{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-0.025em;margin-bottom:4px;color:var(--ink)}
+.tb-sub{font-size:13px;color:var(--ink-3)}
+.tb-live-badge{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:99px;background:var(--bg-3);border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#22C55E;box-shadow:0 0 8px rgba(34,197,94,0.6);animation:livePulse 2s infinite ease-in-out}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
 
-        /* Animated background mesh */
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .hero-grid-lines {
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(var(--border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 60px 60px;
-            opacity: 0.4;
-            mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 40%, transparent 100%);
-        }
-        .hero-glow {
-            position: absolute;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            height: 400px;
-            background: radial-gradient(ellipse, rgba(0,0,0,0.04) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        [data-theme="dark"] .hero-glow {
-            background: radial-gradient(ellipse, rgba(255,255,255,0.05) 0%, transparent 70%);
-        }
+.tb-table-wrap{width:100%;overflow-x:auto}
+.tb-table-header{
+  display:grid;grid-template-columns:2.4fr 1.2fr 1fr 1.4fr;gap:20px;
+  padding:12px 18px;background:var(--bg-2);border-radius:12px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--ink-3);margin-bottom:8px;
+}
+.tb-table-body{display:flex;flex-direction:column;gap:8px}
+.tb-table-row{
+  display:grid;grid-template-columns:2.4fr 1.2fr 1fr 1.4fr;gap:20px;
+  align-items:center;padding:16px 18px;background:var(--bg-2);
+  border:1px solid var(--line);border-radius:14px;
+  transition:transform .2s var(--ease),border-color .2s,background-color .2s,box-shadow .2s;
+}
+.tb-table-row:hover{
+  transform:translateY(-2px);border-color:var(--ink);background:var(--bg);
+  box-shadow:0 8px 20px -6px rgba(0,0,0,0.07);
+}
+[data-theme="dark"] .tb-table-row:hover{border-color:#FAFAFA;box-shadow:0 8px 24px -6px rgba(0,0,0,0.4)}
+.tb-table-row .col-channel{display:flex;align-items:center;gap:14px}
+.t-rail-icon{width:42px;height:42px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font-size:20px;color:var(--ink);flex-shrink:0;transition:background .2s,color .2s}
+[data-theme="dark"] .t-rail-icon{background:#18181B;border-color:#27272A}
+.tb-table-row:hover .t-rail-icon{background:var(--ink);color:var(--bg)}
+.t-rail-name{font-weight:700;font-size:14.5px;color:var(--ink);letter-spacing:-0.01em;margin-bottom:2px}
+.t-rail-desc{font-size:12px;color:var(--ink-3);line-height:1.35}
 
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            max-width: 780px;
-            margin: 0 auto;
-        }
+.tb-table-row .col-speed{display:flex;align-items:center}
+.t-speed-pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink)}
+.t-speed-pill.speed-instant{color:#16A34A}
+[data-theme="dark"] .t-speed-pill.speed-instant{color:#4ADE80}
+.speed-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            padding: 5px 12px 5px 8px;
-            border-radius: 100px;
-            font-size: 12.5px;
-            font-weight: 500;
-            color: var(--ink-muted);
-            margin-bottom: 28px;
-            letter-spacing: -0.01em;
-            transition: all var(--dur) var(--ease);
-        }
-        .hero-badge:hover { border-color: var(--border-2); color: var(--ink); }
-        .hero-badge-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #16A34A;
-            flex-shrink: 0;
-            box-shadow: 0 0 0 2px rgba(22,163,74,0.2);
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-            0%, 100% { box-shadow: 0 0 0 2px rgba(22,163,74,0.2); }
-            50% { box-shadow: 0 0 0 4px rgba(22,163,74,0.15); }
-        }
+.tb-table-row .col-fee{display:flex;align-items:center}
+.t-fee-pill{font-size:13.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.t-fee-pill.fee-free{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;width:fit-content}
+[data-theme="dark"] .t-fee-pill.fee-free{background:#FAFAFA;color:#09090B}
 
-        .hero h1 {
-            font-size: clamp(38px, 6vw, 68px);
-            font-weight: 700;
-            color: var(--ink);
-            letter-spacing: -0.04em;
-            line-height: 1.08;
-            margin-bottom: 20px;
-        }
-        .hero h1 em {
-            font-style: normal;
-            color: var(--ink-muted);
-        }
+.tb-table-row .col-limit{text-align:right}
+.t-limit-val{font-family:var(--display);font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-0.01em;font-variant-numeric:tabular-nums}
+.t-limit-sub{font-size:11px;color:var(--ink-3)}
 
-        .hero-desc {
-            font-size: clamp(15px, 2vw, 17px);
-            color: var(--ink-muted);
-            line-height: 1.65;
-            margin-bottom: 36px;
-            max-width: 560px;
-            margin-left: auto;
-            margin-right: auto;
-            letter-spacing: -0.01em;
-        }
+.tb-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.tb-foot-info{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-3);max-width:56ch}
+.tb-foot-info i{font-size:19px;color:var(--ink);flex-shrink:0}
+.tb-foot-link{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--ink);transition:gap .2s}
+.tb-foot-link:hover{gap:8px;text-decoration:underline}
 
-        .hero-cta {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 60px;
-        }
-        .btn-hero-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: var(--ink);
-            color: var(--bg);
-            border-radius: var(--r-md);
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            transition: all var(--dur) var(--ease);
-            border: 1px solid var(--ink);
-        }
-        .btn-hero-primary:hover { opacity: 0.85; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        .btn-hero-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: var(--bg);
-            color: var(--ink);
-            border-radius: var(--r-md);
-            font-size: 15px;
-            font-weight: 500;
-            letter-spacing: -0.02em;
-            transition: all var(--dur) var(--ease);
-            border: 1px solid var(--border-2);
-        }
-        .btn-hero-secondary:hover { background: var(--bg-3); transform: translateY(-1px); }
+@media (max-width:820px){
+  .tb-table-header{display:none}
+  .tb-table-row{display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:16px}
+  .tb-table-row .col-channel{width:100%}
+  .tb-table-row .col-speed,.tb-table-row .col-fee,.tb-table-row .col-limit{
+    display:flex;justify-content:space-between;align-items:center;text-align:right;
+    border-top:1px dashed var(--line);padding-top:8px;
+  }
+  .tb-table-row .col-speed::before{content:"Speed";font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase}
+  .tb-table-row .col-fee::before{content:"Fee";font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase}
+  .tb-table-row .col-limit::before{content:"Daily Limit";font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase}
+}
 
-        /* Hero stats strip */
-        .hero-stats {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0;
-            border: 1px solid var(--border);
-            border-radius: var(--r-xl);
-            background: var(--bg-2);
-            overflow: hidden;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .hero-stat {
-            flex: 1;
-            padding: 22px 18px;
-            text-align: center;
-            border-right: 1px solid var(--border);
-            transition: background var(--dur);
-        }
-        .hero-stat:last-child { border-right: none; }
-        .hero-stat:hover { background: var(--bg-3); }
-        .hero-stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--ink);
-            letter-spacing: -0.04em;
-            line-height: 1;
-            margin-bottom: 6px;
-        }
-        .hero-stat-label {
-            font-size: 12px;
-            color: var(--ink-faint);
-            letter-spacing: -0.01em;
-            font-weight: 500;
-        }
+/* ═════════ RATES ═════════ */
+.rates-sec{background:var(--bg-2)}
+.rates-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:start}
+.conv{
+  background:var(--bg);border:1px solid var(--line);border-radius:24px;
+  padding:32px;box-shadow:0 12px 28px -10px rgba(0,0,0,0.06);
+  display:flex;flex-direction:column;gap:18px;position:relative;
+}
+[data-theme="dark"] .conv{box-shadow:0 16px 36px -12px rgba(0,0,0,0.4)}
+.conv-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.conv-icon{width:40px;height:40px;border-radius:11px;background:var(--bg-3);display:grid;place-items:center;font-size:20px;color:var(--ink);flex-shrink:0}
+.conv-res{
+  margin-top:6px;padding:22px 20px;background:var(--bg-2);border-radius:16px;
+  border:1px solid var(--line);display:flex;flex-direction:column;gap:6px;
+  transition:background .2s,border-color .2s;
+}
+[data-theme="dark"] .conv-res{background:#18181B;border-color:#27272A}
+.conv-res-sub{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-3)}
+.conv-res-val{font-family:var(--display);font-size:clamp(30px,3.5vw,36px);font-weight:800;color:var(--ink);letter-spacing:-0.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.conv-res-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:12px;border-top:1px dashed var(--line);flex-wrap:wrap;gap:6px}
+.conv-rate-tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:6px;background:var(--bg-3);font-size:12px;font-weight:600;color:var(--ink)}
 
-        /* ── Dashboard Preview ────────────────────────── */
-        .preview-section {
-            padding: 80px 0;
-            background: var(--bg-2);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            overflow: hidden;
-        }
-        .preview-label {
-            text-align: center;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--ink-faint);
-            margin-bottom: 48px;
-        }
-        .preview-window {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--r-2xl);
-            box-shadow: 0 32px 64px rgba(0,0,0,0.08), 0 0 0 1px var(--border);
-            overflow: hidden;
-            max-width: 920px;
-            margin: 0 auto;
-        }
-        .preview-titlebar {
-            background: var(--bg-2);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .preview-dot {
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            background: var(--border-2);
-        }
-        .preview-dot:nth-child(1) { background: #FF5F57; }
-        .preview-dot:nth-child(2) { background: #FEBC2E; }
-        .preview-dot:nth-child(3) { background: #28C840; }
-        .preview-url {
-            flex: 1;
-            text-align: center;
-            font-size: 12px;
-            color: var(--ink-faint);
-            background: var(--bg-3);
-            border-radius: 6px;
-            padding: 4px 12px;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-        .preview-body {
-            padding: 24px;
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 16px;
-            min-height: 340px;
-        }
-        /* Fake sidebar */
-        .fake-sidebar {
-            background: var(--ink);
-            border-radius: var(--r-lg);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .fake-sidebar-logo {
-            width: 28px; height: 28px;
-            background: white;
-            border-radius: 6px;
-            margin-bottom: 16px;
-        }
-        .fake-nav-item {
-            height: 32px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            gap: 8px;
-        }
-        .fake-nav-item.active { background: rgba(255,255,255,0.18); }
-        .fake-nav-dot { width: 14px; height: 14px; background: rgba(255,255,255,0.2); border-radius: 3px; }
-        .fake-nav-line { height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; flex: 1; }
-        .fake-nav-item.active .fake-nav-line { background: rgba(255,255,255,0.6); }
-        /* Fake main */
-        .fake-main { display: flex; flex-direction: column; gap: 12px; }
-        .fake-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .fake-stat-card {
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            padding: 14px;
-        }
-        .fake-stat-label { height: 8px; background: var(--border); border-radius: 4px; width: 60%; margin-bottom: 8px; }
-        .fake-stat-value { height: 18px; background: var(--border-2); border-radius: 4px; width: 80%; }
-        .fake-card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .fake-card {
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            padding: 14px;
-            height: 120px;
-        }
-        .fake-line { height: 8px; background: var(--border); border-radius: 4px; margin-bottom: 6px; }
-        .fake-line.w-3 { width: 30%; }
-        .fake-line.w-5 { width: 50%; }
-        .fake-line.w-7 { width: 70%; }
-        .fake-line.w-full { width: 100%; }
+/* ═════════ REMITTANCE REDESIGN ═════════ */
+.remit{display:grid;grid-template-columns:1fr 1.05fr;gap:52px;align-items:start}
+@media (max-width: 960px){
+  .remit{grid-template-columns:1fr;gap:36px}
+}
 
-        /* ── Features Section ─────────────────────────── */
-        .section {
-            padding: 96px 0;
-        }
-        .section-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--bg-3);
-            border: 1px solid var(--border);
-            padding: 4px 12px;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--ink-muted);
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: clamp(26px, 4vw, 40px);
-            font-weight: 700;
-            color: var(--ink);
-            letter-spacing: -0.04em;
-            line-height: 1.15;
-            margin-bottom: 16px;
-        }
-        .section-desc {
-            font-size: 16px;
-            color: var(--ink-muted);
-            line-height: 1.65;
-            max-width: 500px;
-            letter-spacing: -0.01em;
-        }
+.remit-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:999px;
+  background:var(--bg-3);border:1px solid var(--line);
+  font-size:12px;font-weight:600;letter-spacing:0.02em;
+  color:var(--ink);margin-bottom:16px;
+}
+.remit-badge i{font-size:15px;color:var(--ink)}
 
-        /* Features bento grid */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: auto auto;
-            gap: 16px;
-            margin-top: 60px;
-        }
-        .bento-card {
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: var(--r-2xl);
-            padding: 28px;
-            transition: all 0.3s var(--ease);
-            overflow: hidden;
-            position: relative;
-        }
-        .bento-card:hover {
-            border-color: var(--border-2);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.06);
-        }
-        .bento-card.large {
-            grid-column: span 2;
-        }
-        .bento-card.tall {
-            grid-row: span 2;
-        }
-        .bento-icon {
-            width: 44px; height: 44px;
-            border-radius: var(--r-md);
-            background: var(--bg);
-            border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
-            color: var(--ink);
-            margin-bottom: 20px;
-        }
-        .bento-title {
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--ink);
-            letter-spacing: -0.03em;
-            margin-bottom: 8px;
-        }
-        .bento-desc {
-            font-size: 14px;
-            color: var(--ink-muted);
-            line-height: 1.6;
-            letter-spacing: -0.01em;
-        }
-        /* Mini card inside bento */
-        .mini-bank-card {
-            background: var(--ink);
-            border-radius: var(--r-xl);
-            padding: 24px 26px;
-            color: white;
-            margin-top: 24px;
-            aspect-ratio: 1.586;
-            width: 100%;
-            max-width: 320px;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 16px 36px rgba(0,0,0,0.12);
-        }
-        .mini-bank-card::before {
-            content: '';
-            position: absolute;
-            top: -25%;
-            right: -15%;
-            width: 180px; height: 180px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .mini-card-num { 
-            font-size: 14px; 
-            letter-spacing: 0.14em; 
-            color: rgba(255,255,255,0.65); 
-            font-family: monospace; 
-            margin-top: auto; 
-            padding-top: 18px; 
-        }
-        .mini-card-balance { 
-            font-size: 25px; 
-            font-weight: 700; 
-            letter-spacing: -0.04em; 
-            color: #ffffff;
-        }
-        .mini-card-label { 
-            font-size: 11px; 
-            color: rgba(255,255,255,0.45); 
-            text-transform: uppercase; 
-            letter-spacing: 0.08em; 
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
+.remit-steps-list{
+  display:flex;flex-direction:column;gap:14px;margin-top:20px;
+}
+.remit-step-card{
+  display:flex;gap:16px;align-items:flex-start;
+  padding:18px 20px;border-radius:16px;
+  background:var(--bg-2);border:1px solid var(--line);
+  transition:all .2s ease;
+}
+.remit-step-card:hover{
+  border-color:var(--ink-3);
+  transform:translateY(-1px);
+}
+.rsc-num{
+  flex-shrink:0;width:34px;height:34px;border-radius:10px;
+  background:var(--ink);color:var(--bg);
+  display:grid;place-items:center;
+  font-size:13px;font-weight:800;font-family:var(--display);
+  letter-spacing:-0.02em;
+}
+[data-theme="dark"] .rsc-num{background:#FAFAFA;color:#09090B}
+.rsc-content{flex:1;min-width:0}
+.rsc-content h3{font-size:16px;font-weight:700;margin-bottom:4px;color:var(--ink);letter-spacing:-0.01em}
+.rsc-content p{font-size:13.5px;color:var(--ink-2);line-height:1.45;margin:0}
+.rsc-tag{
+  display:inline-flex;align-items:center;gap:5px;margin-top:8px;
+  padding:3px 9px;border-radius:6px;
+  background:var(--bg-3);font-size:11.5px;font-weight:600;
+  color:var(--ink-2);
+}
 
-        /* Transfer mini UI */
-        .transfer-ui {
-            margin-top: 20px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            padding: 16px;
-        }
-        .transfer-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            background: var(--bg-2);
-            border-radius: var(--r);
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        .transfer-row:last-child { margin-bottom: 0; }
-        .t-avatar {
-            width: 28px; height: 28px;
-            border-radius: 50%;
-            background: var(--border-2);
-            font-size: 11px;
-            font-weight: 700;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--ink);
-        }
-        .t-name { flex: 1; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; }
-        .t-amount { font-weight: 600; color: var(--ink); letter-spacing: -0.02em; font-size: 13px; }
-        .t-amount.in { color: #16A34A; }
-        .t-amount.out { color: var(--ink-muted); }
+/* Remittance Instructions Card (Right Column) */
+.remit-card{
+  background:var(--bg-2);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:26px 28px;
+  box-shadow:0 12px 36px -12px rgba(0,0,0,0.06);
+  position:relative;
+  transition:border-color .2s;
+}
+[data-theme="dark"] .remit-card{
+  box-shadow:0 12px 36px -12px rgba(0,0,0,0.5);
+}
 
-        /* ── How It Works ─────────────────────────────── */
-        .steps-section {
-            padding: 96px 0;
-            background: var(--bg-2);
-            border-top: 1px solid var(--border);
-        }
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-            margin-top: 60px;
-        }
-        .step-item {
-            padding: 32px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--r-2xl);
-            transition: all 0.3s var(--ease);
-            position: relative;
-        }
-        .step-item:hover {
-            border-color: var(--border-2);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-            transform: translateY(-2px);
-        }
-        .step-num {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--ink-faint);
-            letter-spacing: -0.01em;
-            margin-bottom: 20px;
-        }
-        .step-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--ink);
-            letter-spacing: -0.03em;
-            margin-bottom: 10px;
-        }
-        .step-desc {
-            font-size: 14px;
-            color: var(--ink-muted);
-            line-height: 1.65;
-            letter-spacing: -0.01em;
-        }
+.remit-card-head{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:16px;padding-bottom:18px;border-bottom:1px solid var(--line);
+}
+.rc-title-wrap h3{
+  font-size:18px;font-weight:700;letter-spacing:-0.02em;
+  color:var(--ink);margin-bottom:3px;
+}
+.rc-title-wrap p{
+  font-size:12.5px;color:var(--ink-3);margin:0;
+}
+.rc-live-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:999px;
+  background:var(--bg-3);border:1px solid var(--line);
+  font-size:11px;font-weight:700;letter-spacing:0.04em;
+  text-transform:uppercase;color:var(--ink);
+  flex-shrink:0;
+}
+.rc-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#10B981;
+  box-shadow:0 0 0 3px rgba(16,185,129,0.2);
+  animation:rcPulse 2s infinite ease-in-out;
+}
+@keyframes rcPulse{
+  0%, 100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.2);opacity:.7}
+}
 
-        /* ── Testimonials (Infinite Marquee) ─────────── */
-        .testimonials-section {
-            padding: 96px 0;
-            overflow: hidden;
-            position: relative;
-        }
-        .testimonials-header {
-            margin-bottom: 48px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .testimonials-header .reveal {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-        }
-        .testimonials-header .section-tag {
-            margin-left: auto;
-            margin-right: auto;
-            margin-bottom: 16px;
-        }
-        .testimonials-header .section-title {
-            text-align: center;
-        }
-        .testimonials-marquee {
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            padding: 16px 0;
-            mask-image: linear-gradient(to right, transparent 0%, black 80px, black calc(100% - 80px), transparent 100%);
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 80px, black calc(100% - 80px), transparent 100%);
-        }
-        .testimonials-marquee::before,
-        .testimonials-marquee::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 80px;
-            z-index: 2;
-            pointer-events: none;
-        }
-        .testimonials-marquee::before {
-            left: 0;
-            background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
-        }
-        .testimonials-marquee::after {
-            right: 0;
-            background: linear-gradient(to left, var(--bg) 0%, transparent 100%);
-        }
-        .testimonials-track {
-            display: flex;
-            gap: 20px;
-            width: max-content;
-        }
-        .testimonials-group {
-            display: flex;
-            gap: 20px;
-            flex-shrink: 0;
-            animation: marqueeScroll 45s linear infinite;
-            will-change: transform;
-        }
-        /* Pause on hover */
-        .testimonials-marquee:hover .testimonials-group {
-            animation-play-state: paused;
-        }
-        @keyframes marqueeScroll {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(calc(-100% - 20px));
-            }
-        }
-        .testimonial-card {
-            flex-shrink: 0;
-            width: 360px;
-            max-width: 85vw;
-            min-width: 0;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 26px 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.3s var(--ease);
-            cursor: default;
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            text-align: left;
-            box-sizing: border-box;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.04);
-        }
-        [data-theme="dark"] .testimonial-card {
-            background: var(--bg-2);
-            box-shadow: 0 4px 22px rgba(0,0,0,0.22);
-        }
-        .testimonial-card > div {
-            min-width: 0;
-            width: 100%;
-        }
-        .testimonial-card:hover {
-            border-color: var(--border-2);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 28px rgba(0,0,0,0.08);
-        }
-        .t-stars {
-            display: flex; gap: 4px; margin-bottom: 16px;
-        }
-        .t-stars i { color: #F59E0B; font-size: 14px; }
-        .t-quote {
-            font-size: 13.5px;
-            color: var(--ink-2);
-            line-height: 1.6;
-            margin-bottom: 22px;
-            letter-spacing: -0.01em;
-            flex-grow: 1;
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            display: block;
-            width: 100%;
-        }
-        .t-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            width: 100%;
-            margin-top: auto;
-            padding-top: 4px;
-        }
-        .t-author {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-            flex: 1;
-        }
-        .t-avatar-img {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            border: 1px solid var(--border);
-        }
-        .t-avatar-fallback {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: var(--border-2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--ink);
-            flex-shrink: 0;
-        }
-        .t-author-meta {
-            min-width: 0;
-            overflow: hidden;
-        }
-        .t-author-name {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--ink);
-            letter-spacing: -0.02em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
-        }
-        .t-author-role {
-            font-size: 12px;
-            color: var(--ink-faint);
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
-        }
-        .t-rating-tag {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 5px;
-            flex-shrink: 0;
-        }
-        .t-tag-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--ink-faint);
-            letter-spacing: 0.04em;
-        }
-        .t-tag-score {
-            font-size: 14px;
-            font-weight: 700;
-            color: #F59E0B;
-            letter-spacing: -0.02em;
-        }
+.remit-card-list{
+  display:flex;flex-direction:column;gap:0;
+  margin-top:6px;
+}
+.remit-card-row{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:14px;padding:13px 0;border-bottom:1px solid var(--line);
+}
+.remit-card-row:last-child{border-bottom:0}
+.rc-label{
+  font-size:12px;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.04em;color:var(--ink-3);flex:none;
+}
+.rc-val-group{
+  display:flex;align-items:center;gap:8px;
+  text-align:right;min-width:0;
+}
+.rc-val{
+  font-size:14px;font-weight:700;color:var(--ink);
+  letter-spacing:-0.01em;word-break:break-word;
+}
+.rc-val.mono{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  letter-spacing:0.04em;font-size:14px;font-weight:700;
+  background:var(--bg-3);padding:3px 8px;border-radius:6px;
+  border:1px solid var(--line);
+}
+.rc-btn-copy{
+  display:inline-flex;align-items:center;gap:4px;
+  background:transparent;border:1px solid var(--line);
+  padding:4px 9px;border-radius:7px;
+  font-size:11.5px;font-weight:600;color:var(--ink-2);
+  cursor:pointer;transition:all .15s ease;
+  white-space:nowrap;
+}
+.rc-btn-copy:hover{
+  background:var(--ink);color:var(--bg);border-color:var(--ink);
+}
+.rc-btn-copy.copied{
+  background:#10B981;color:#fff;border-color:#10B981;
+}
 
-        /* ── CTA Section ──────────────────────────────── */
-        .cta-section {
-            padding: 96px 0;
-            background: var(--ink);
-            position: relative;
-            overflow: hidden;
-        }
-        [data-theme="dark"] .cta-section { background: var(--bg-2); border-top: 1px solid var(--border); }
-        .cta-bg {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-            background-size: 60px 60px;
-            mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
-        }
-        .cta-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .cta-title {
-            font-size: clamp(30px, 5vw, 52px);
-            font-weight: 700;
-            color: #FFFFFF;
-            letter-spacing: -0.04em;
-            line-height: 1.1;
-            margin-bottom: 16px;
-        }
-        [data-theme="dark"] .cta-title { color: var(--ink); }
-        .cta-desc {
-            font-size: 16px;
-            color: rgba(255,255,255,0.6);
-            margin-bottom: 36px;
-            letter-spacing: -0.01em;
-        }
-        [data-theme="dark"] .cta-desc { color: var(--ink-muted); }
-        .btn-cta-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 13px 28px;
-            background: #FFFFFF;
-            color: #000000;
-            border-radius: var(--r-md);
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            transition: all var(--dur) var(--ease);
-        }
-        .btn-cta-primary:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-        [data-theme="dark"] .btn-cta-primary { background: var(--ink); color: var(--bg); }
+.remit-card-footer{
+  margin-top:16px;padding-top:16px;
+  border-top:1px dashed var(--line);
+  display:flex;flex-direction:column;gap:12px;
+}
+.rc-security-tip{
+  display:flex;align-items:flex-start;gap:9px;
+  font-size:12px;color:var(--ink-3);line-height:1.45;
+}
+.rc-security-tip i{
+  font-size:16px;color:var(--ink-2);flex-shrink:0;margin-top:1px;
+}
+.rc-action-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+}
+.rc-action-row a{
+  font-size:13px;font-weight:600;color:var(--ink);
+  display:inline-flex;align-items:center;gap:5px;
+  text-decoration:none;transition:color .15s;
+}
+.rc-action-row a:hover{
+  text-decoration:underline;
+}
 
-        /* ── Footer ───────────────────────────────────── */
-        .footer {
-            background: var(--bg-2);
-            border-top: 1px solid var(--border);
-            padding: 64px 0 32px;
-        }
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 48px;
-        }
-        .footer-brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .footer-logo-mark {
-            width: 32px; height: 32px;
-            background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(234, 160, 35, 0.25);
-        }
-        .footer-logo-mark svg {
-            width: 18px; height: 18px;
-            display: block;
-        }
-        .footer-logo-text {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--ink);
-            letter-spacing: -0.04em;
-        }
-        .footer-brand-desc {
-            font-size: 13.5px;
-            color: var(--ink-faint);
-            line-height: 1.65;
-            margin-bottom: 20px;
-            letter-spacing: -0.01em;
-        }
-        .footer-social {
-            display: flex; gap: 8px;
-        }
-        .footer-social a {
-            width: 32px; height: 32px;
-            border-radius: var(--r);
-            border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--ink-muted);
-            font-size: 16px;
-            transition: all var(--dur);
-        }
-        .footer-social a:hover { border-color: var(--border-2); color: var(--ink); background: var(--bg-3); }
-        .footer-col-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--ink);
-            letter-spacing: -0.02em;
-            margin-bottom: 16px;
-        }
-        .footer-links { list-style: none; }
-        .footer-links li { margin-bottom: 10px; }
-        .footer-links a {
-            font-size: 13.5px;
-            color: var(--ink-faint);
-            transition: color var(--dur);
-            letter-spacing: -0.01em;
-        }
-        .footer-links a:hover { color: var(--ink); }
-        .footer-bottom {
-            border-top: 1px solid var(--border);
-            padding-top: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .footer-copy {
-            font-size: 13px;
-            color: var(--ink-faint);
-            letter-spacing: -0.01em;
-        }
-        .footer-bottom-links {
-            display: flex;
-            gap: 20px;
-        }
-        .footer-bottom-links a {
-            font-size: 13px;
-            color: var(--ink-faint);
-            transition: color var(--dur);
-            letter-spacing: -0.01em;
-        }
-        .footer-bottom-links a:hover { color: var(--ink); }
+/* ═════════ SECURITY ═════════ */
+.sec-band{background:#09090B;color:#fff;border-top:1px solid #1E1E22;border-bottom:1px solid #1E1E22}
+.sec-band .lede{color:#A1A1AA}
+.sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px}
+.rule-list{display:grid;gap:14px;list-style:none;margin-top:8px}
+.rule-list li{display:flex;gap:12px;padding:16px 18px;border-radius:14px;background:#18181B;border:1px solid #27272A;font-size:15px}
+.rule-list i{font-size:22px;color:#FAFAFA;flex:none}
+.rule-list b{display:block}
+.alert-box{background:#18181B;color:#FFFFFF;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:26px;margin-top:8px}
+.alert-box h3{margin-bottom:8px}
+.alert-box a{font-weight:700;text-decoration:underline;color:#FFFFFF}
 
-        /* ── Login Modal ─────────────────────────────── */
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            z-index: 999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-backdrop.open { display: flex; }
-        .login-modal {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--r-2xl);
-            padding: 36px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 32px 64px rgba(0,0,0,0.25);
-            animation: modalIn 0.25s var(--ease) forwards;
-            position: relative;
-        }
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.96) translateY(8px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .modal-close {
-            position: absolute;
-            top: 16px; right: 16px;
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: none;
-            cursor: pointer;
-            color: var(--ink-muted);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
-            transition: all var(--dur);
-        }
-        .modal-close:hover { background: var(--bg-3); color: var(--ink); }
-        .modal-logo {
-            width: 42px; height: 42px;
-            background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
-            border-radius: 13px;
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(234, 160, 35, 0.3);
-        }
-        .modal-logo svg {
-            width: 24px; height: 24px;
-            display: block;
-        }
-        .modal-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--ink);
-            letter-spacing: -0.04em;
-            margin-bottom: 6px;
-        }
-        .modal-sub {
-            font-size: 14px;
-            color: var(--ink-muted);
-            margin-bottom: 28px;
-            letter-spacing: -0.01em;
-        }
-        .role-tabs {
-            display: flex;
-            background: var(--bg-3);
-            border-radius: var(--r);
-            padding: 3px;
-            gap: 3px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border);
-        }
-        .role-tab {
-            flex: 1;
-            padding: 7px;
-            background: transparent;
-            border: none;
-            color: var(--ink-muted);
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: var(--r-sm, 6px);
-            cursor: pointer;
-            transition: all var(--dur) var(--ease);
-            font-family: var(--font);
-            letter-spacing: -0.01em;
-        }
-        .role-tab.active {
-            background: var(--bg);
-            color: var(--ink);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-        .form-field {
-            margin-bottom: 16px;
-        }
-        .form-field label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--ink-2);
-            margin-bottom: 6px;
-            letter-spacing: -0.01em;
-        }
-        .form-field input {
-            display: block;
-            width: 100%;
-            padding: 9px 13px;
-            background: var(--bg);
-            border: 1px solid var(--border-2);
-            border-radius: var(--r);
-            font-size: 14px;
-            color: var(--ink);
-            font-family: var(--font);
-            outline: none;
-            transition: border-color var(--dur), box-shadow var(--dur);
-            letter-spacing: -0.01em;
-        }
-        .form-field input:focus {
-            border-color: var(--ink);
-            box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
-        }
-        .btn-login {
-            width: 100%;
-            padding: 11px;
-            background: var(--ink);
-            color: var(--bg);
-            border: none;
-            border-radius: var(--r);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--dur) var(--ease);
-            font-family: var(--font);
-            letter-spacing: -0.02em;
-            margin-top: 8px;
-        }
-        .btn-login:hover { opacity: 0.85; }
-        .modal-footer-link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 13.5px;
-            color: var(--ink-muted);
-            letter-spacing: -0.01em;
-        }
-        .modal-footer-link a { color: var(--ink); font-weight: 600; }
+/* ═════════ OPEN ACCOUNT REDESIGN ═════════ */
+.open-wrap{display:flex;flex-direction:column;gap:36px}
+.open-head{max-width:700px;margin-bottom:20px}
+.open-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:999px;
+  background:var(--bg-3);border:1px solid var(--line);
+  font-size:12px;font-weight:600;letter-spacing:0.02em;
+  color:var(--ink);margin-bottom:14px;
+}
+.open-pill i{font-size:15px;color:var(--ink)}
 
-        /* ── Reveal animations ────────────────────────── */
-        .reveal {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
-        }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
-        .reveal-delay-1 { transition-delay: 0.1s; }
-        .reveal-delay-2 { transition-delay: 0.2s; }
-        .reveal-delay-3 { transition-delay: 0.3s; }
+/* Row 1: Steps in a Row Grid Box */
+.open-steps-grid{
+  display:grid;grid-template-columns:repeat(3, 1fr);gap:20px;
+}
+@media (max-width: 900px){
+  .open-steps-grid{grid-template-columns:1fr;gap:16px}
+}
+.open-step-box{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:18px;padding:26px;display:flex;
+  flex-direction:column;gap:14px;transition:all .2s ease;
+  position:relative;overflow:hidden;
+}
+.open-step-box:hover{
+  border-color:var(--ink-3);
+  transform:translateY(-2px);
+  box-shadow:0 10px 24px -10px rgba(0,0,0,0.06);
+}
+[data-theme="dark"] .open-step-box:hover{
+  box-shadow:0 10px 24px -10px rgba(0,0,0,0.4);
+}
+.osb-header{
+  display:flex;justify-content:space-between;align-items:center;
+}
+.osb-num{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--ink);color:var(--bg);
+  display:grid;place-items:center;font-weight:800;
+  font-family:var(--display);font-size:14px;
+}
+[data-theme="dark"] .osb-num{background:#FAFAFA;color:#09090B}
+.osb-time{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11.5px;font-weight:600;color:var(--ink-3);
+  background:var(--bg-3);padding:3px 9px;border-radius:999px;
+  border:1px solid var(--line);
+}
+.open-step-box h3{
+  font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-0.01em;margin:0;
+}
+.open-step-box p{
+  font-size:14px;color:var(--ink-2);line-height:1.5;margin:0;
+}
 
-        /* ── Horizontal scroll marquee ────────────────── */
-        .marquee-wrapper {
-            overflow: hidden;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-2);
-            padding: 14px 0;
-        }
-        .marquee-track {
-            display: flex;
-            gap: 60px;
-            animation: marquee 30s linear infinite;
-            white-space: nowrap;
-        }
-        .marquee-track:hover { animation-play-state: paused; }
-        .marquee-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--ink-faint);
-            letter-spacing: -0.01em;
-            flex-shrink: 0;
-        }
-        .marquee-item i { font-size: 16px; }
-        @keyframes marquee {
-            from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
-        }
+/* Row 2: Checklist + Abroad Photo Card Grid */
+.open-bottom-grid{
+  display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:stretch;
+}
+@media (max-width: 900px){
+  .open-bottom-grid{grid-template-columns:1fr;gap:24px}
+}
 
-        /* ── Responsive ───────────────────────────────── */
-        @media (max-width: 1024px) {
-            .bento-grid { grid-template-columns: repeat(2, 1fr); }
-            .bento-card.large { grid-column: span 1; }
-            .footer-grid { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 768px) {
-            .nav-links, .btn-ghost-nav { display: none; }
-            .nav-mobile-menu { display: flex; }
-            .hero { padding: 60px 0 80px; }
-            .hero h1 { font-size: 38px; }
-            .steps-grid { grid-template-columns: 1fr; }
-            .bento-grid { grid-template-columns: 1fr; }
-            .bento-card.large, .bento-card.tall { grid-column: span 1; grid-row: span 1; }
-            .footer-grid { grid-template-columns: 1fr; }
-            .preview-body { grid-template-columns: 1fr; }
-            .fake-sidebar { display: none; }
-            .hero-stats { flex-direction: column; border-radius: var(--r-lg); }
-            .hero-stat { border-right: none; border-bottom: 1px solid var(--border); }
-            .hero-stat:last-child { border-bottom: none; }
-        }
-    </style>
+.checklist-box{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:20px;padding:30px;display:flex;
+  flex-direction:column;justify-content:space-between;gap:20px;
+}
+.cl-head h3{
+  font-size:20px;font-weight:700;color:var(--ink);
+  letter-spacing:-0.02em;margin-bottom:6px;
+}
+.cl-head p{
+  font-size:13.5px;color:var(--ink-2);margin:0;
+}
+.cl-list{
+  list-style:none;padding:0;margin:0;
+  display:flex;flex-direction:column;gap:8px;
+}
+.cl-list li{
+  display:flex;align-items:flex-start;gap:12px;
+  font-size:13.5px;color:var(--ink-2);line-height:1.45;
+  padding:8px 0;border-bottom:1px solid var(--line);
+}
+.cl-list li:last-child{border-bottom:0}
+.cl-list li i{
+  font-size:18px;color:var(--ink);flex-shrink:0;margin-top:1px;
+}
+.cl-actions{
+  display:flex;flex-direction:column;gap:10px;
+}
+.cl-actions .btn{
+  width:100%;height:46px;display:inline-flex;
+  align-items:center;justify-content:center;gap:8px;
+  font-size:14.5px;font-weight:700;border-radius:12px;
+}
+.cl-note{
+  font-size:12px;color:var(--ink-3);display:flex;
+  align-items:center;justify-content:center;gap:5px;
+}
+
+/* Abroad Photo Card */
+.abroad-card{
+  border-radius:20px;overflow:hidden;
+  border:1px solid var(--line);position:relative;
+  background:var(--bg-2);display:flex;min-height:380px;
+}
+.abroad-img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center top;
+  transition:transform .4s ease;
+}
+.abroad-card:hover .abroad-img{
+  transform:scale(1.03);
+}
+.abroad-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(9,9,11,0.05) 0%, rgba(9,9,11,0.3) 45%, rgba(9,9,11,0.88) 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:28px 30px;color:#FFFFFF;z-index:2;
+}
+.abroad-tag{
+  align-self:flex-start;display:inline-flex;align-items:center;gap:6px;
+  padding:4px 11px;border-radius:999px;
+  background:rgba(255,255,255,0.2);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.3);
+  font-size:11.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.04em;color:#FFFFFF;margin-bottom:10px;
+}
+.abroad-overlay h4{
+  font-family:var(--display);font-size:22px;font-weight:800;
+  color:#FFFFFF;margin-bottom:6px;letter-spacing:-0.02em;
+  text-shadow:0 2px 8px rgba(0,0,0,0.4);
+}
+.abroad-overlay p{
+  font-size:13.5px;color:rgba(255,255,255,0.88);line-height:1.45;
+  margin:0;text-shadow:0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* ═════════ BANGLADESH MAP & BRANCHES ═════════ */
+.branch-sec{background:var(--bg-2)}
+.br-grid{
+  display:grid;grid-template-columns:220px 390px 1fr;gap:24px;align-items:start;
+}
+@media (max-width: 1140px){
+  .br-grid{grid-template-columns:220px 1fr}
+  .bd-map-card{grid-column:1 / -1;order:2}
+  .br-cards-wrap{order:3}
+}
+@media (max-width: 768px){
+  .br-grid{grid-template-columns:1fr;gap:20px}
+}
+
+.city-list{display:grid;gap:5px;align-content:start}
+.city-list button{
+  text-align:left;padding:12px 16px;border-radius:12px;border:1px solid transparent;
+  background:var(--bg);font-weight:600;font-size:14px;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;color:var(--ink);
+  transition:all .15s ease;
+}
+.city-list button:hover{
+  background:var(--bg-3);border-color:var(--line);
+}
+.city-list button span{
+  color:var(--ink-3);font-size:12px;font-weight:600;padding:2px 8px;
+  background:var(--bg-2);border-radius:999px;
+}
+.city-list button[aria-selected="true"]{
+  background:#09090B;color:#FFFFFF;border-color:#09090B;
+}
+[data-theme="dark"] .city-list button[aria-selected="true"]{
+  background:#FAFAFA;color:#09090B;border-color:#FAFAFA;
+}
+.city-list button[aria-selected="true"] span{
+  background:rgba(255,255,255,0.2);color:#FFFFFF;
+}
+[data-theme="dark"] .city-list button[aria-selected="true"] span{
+  background:rgba(0,0,0,0.15);color:#09090B;
+}
+
+/* Bangladesh Map Card */
+.bd-map-card{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:18px;padding:20px;position:relative;
+  overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 10px 30px -10px rgba(0,0,0,0.04);
+}
+[data-theme="dark"] .bd-map-card{
+  box-shadow:0 10px 30px -10px rgba(0,0,0,0.4);
+}
+.map-card-head{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;margin-bottom:12px;padding-bottom:12px;
+  border-bottom:1px solid var(--line);
+}
+.map-card-head h4{
+  font-size:14px;font-weight:700;color:var(--ink);
+  display:flex;align-items:center;gap:6px;margin:0;
+}
+.map-legend{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;color:var(--ink-2);
+  text-transform:uppercase;letter-spacing:0.04em;
+}
+.map-legend-dot{
+  width:7px;height:7px;border-radius:50%;background:#10B981;
+  box-shadow:0 0 0 2px rgba(16,185,129,0.25);
+  animation:pinPulse 2s infinite ease-out;
+}
+
+.map-svg-stage{
+  position:relative;width:100%;height:380px;
+  display:flex;align-items:center;justify-content:center;
+}
+.bd-svg-map{
+  width:100%;height:100%;max-height:380px;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.04));
+}
+.bd-land{
+  fill:var(--bg-2);stroke:var(--line);
+  stroke-width:1.5;stroke-linejoin:round;
+  transition:fill .25s ease, stroke .25s ease;
+}
+[data-theme="dark"] .bd-land{
+  fill:#18181B;stroke:#27272A;
+}
+.bd-river{
+  fill:none;stroke:var(--line);stroke-width:1.2;
+  stroke-dasharray:3 3;opacity:0.6;
+}
+[data-theme="dark"] .bd-river{
+  stroke:#3F3F46;
+}
+
+/* Map Pins */
+.map-pin{
+  cursor:pointer;transition:transform .2s ease;
+}
+.pin-ring{
+  fill:rgba(16, 185, 129, 0.2);
+  transform-origin:center;
+  transition:all .2s ease;
+  animation:pinPulse 2.4s infinite ease-out;
+}
+.map-pin:hover .pin-ring, .map-pin.active .pin-ring, .map-pin.pin-hover .pin-ring{
+  fill:rgba(16, 185, 129, 0.45);
+  r:18;
+}
+.pin-dot{
+  fill:#09090B;stroke:#FFFFFF;stroke-width:2;
+  transition:all .2s ease;
+}
+[data-theme="dark"] .pin-dot{
+  fill:#FAFAFA;stroke:#09090B;
+}
+.map-pin:hover .pin-dot, .map-pin.active .pin-dot, .map-pin.pin-hover .pin-dot{
+  fill:#10B981;stroke:#FFFFFF;transform:scale(1.3);
+  transform-origin:center;
+}
+.pin-lbl{
+  font-family:var(--sans);font-size:10px;font-weight:700;
+  fill:var(--ink);text-anchor:middle;
+  pointer-events:none;letter-spacing:0.02em;
+  opacity:0.9;
+}
+@keyframes pinPulse{
+  0%{r:8;opacity:0.9}
+  50%{r:16;opacity:0.2}
+  100%{r:20;opacity:0}
+}
+
+/* Floating Hover Tooltip */
+.map-tooltip{
+  position:absolute;pointer-events:none;
+  background:rgba(9, 9, 11, 0.94);
+  color:#FFFFFF;
+  padding:8px 14px;border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.25);
+  font-size:12px;z-index:20;
+  display:none;flex-direction:column;gap:3px;
+  white-space:nowrap;backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,0.14);
+  transform:translate(-50%, -125%);
+  transition:opacity .15s ease;
+}
+[data-theme="dark"] .map-tooltip{
+  background:rgba(255, 255, 255, 0.96);
+  color:#09090B;
+  border-color:rgba(0,0,0,0.1);
+}
+.map-tooltip .mt-title{
+  font-weight:700;font-size:12.5px;display:flex;align-items:center;gap:4px;
+}
+.map-tooltip .mt-sub{
+  font-size:11px;opacity:0.85;font-weight:500;
+}
+.map-card-foot{
+  margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  text-align:center;color:var(--ink-3);font-size:11.5px;
+}
+
+/* Branch Cards Wrap */
+.br-cards-wrap{
+  display:flex;flex-direction:column;gap:14px;min-width:0;
+}
+.bc-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 18px;border-radius:14px;
+  background:var(--bg);border:1px solid var(--line);
+}
+.bc-label{
+  font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.04em;color:var(--ink-3);display:block;
+}
+.bc-header h3{
+  font-size:17px;font-weight:700;color:var(--ink);
+  letter-spacing:-0.01em;margin:0;
+}
+.bc-count-badge{
+  padding:4px 10px;border-radius:999px;background:var(--bg-3);
+  font-size:11.5px;font-weight:700;color:var(--ink);
+  border:1px solid var(--line);
+}
+.br-cards{
+  display:grid;grid-template-columns:1fr;gap:14px;align-content:start;
+}
+.br{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:16px;padding:20px;transition:all .2s ease;
+}
+.br:hover{
+  border-color:var(--ink-3);transform:translateY(-1px);
+}
+.br h3{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+.br p{font-size:13.5px;color:var(--ink-2);line-height:1.45}
+.tag{
+  display:inline-flex;align-items:center;gap:4px;margin-top:12px;
+  font-size:11.5px;font-weight:600;padding:4px 10px;
+  border-radius:99px;background:var(--bg-3);color:var(--ink);
+  border:1px solid var(--line);
+}
+
+/* ═════════ FAQ + NOTICES ═════════ */
+.faq-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:56px}
+details{border-bottom:1px solid var(--line)}
+summary{padding:20px 0;font-weight:600;font-size:17px;cursor:pointer;display:flex;justify-content:space-between;gap:16px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:24px;line-height:1;color:var(--ink-3);transition:transform .25s var(--ease)}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
+.notice{padding:16px 0;border-bottom:1px solid var(--line)}
+.notice b{font-size:13px;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.notice p{font-size:15px;color:var(--ink-2)}
+
+/* ═════════ CONTACT / APP ═════════ */
+.contact{background:var(--bg-2)}
+.contact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.ct{padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--bg)}
+.ct i{font-size:26px;color:var(--ink)}
+.ct h3{font-size:16px;margin:12px 0 4px}
+.ct p{font-size:14.5px;color:var(--ink-2)}
+.ct a{font-weight:700}
+
+/* ═════════ FOOTER ═════════ */
+.foot{background:#09090B;color:#A1A1AA;padding:64px 0 28px;font-size:14.5px;border-top:1px solid #1E1E22}
+.foot-grid{display:grid;grid-template-columns:1.5fr repeat(4,1fr);gap:36px;margin-bottom:44px}
+.foot .brand{color:#fff;margin-bottom:14px}
+.foot h4{color:#fff;font-size:14px;margin-bottom:14px;font-family:var(--display)}
+.foot ul{list-style:none;display:grid;gap:9px}
+.foot a:hover{color:#fff;text-decoration:underline}
+.foot-id{display:grid;gap:4px;margin-top:16px;font-size:13px}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.12);padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px}
+.disclaimer{font-size:12.5px;color:#71717A;margin-top:16px;max-width:90ch}
+.social{display:flex;gap:8px;margin-top:18px}
+.social a{width:34px;height:34px;border:1px solid rgba(255,255,255,.2);border-radius:8px;display:grid;place-items:center;font-size:17px;color:#A1A1AA}
+.social a:hover{color:#FFFFFF;border-color:rgba(255,255,255,.4)}
+
+/* ═════════ RESPONSIVE ═════════ */
+@media(max-width:1080px){
+  .nav{display:none;position:absolute;top:68px;left:0;right:0;background:var(--bg);flex-direction:column;padding:12px 24px 20px;border-bottom:1px solid var(--line)}
+  .nav.open{display:flex}
+  .burger{display:grid}
+  .hero .wrap,.dig,.remit,.sec-grid,.open,.faq-grid,.rates-grid{grid-template-columns:1fr}
+  .quick-grid{grid-template-columns:repeat(3,1fr)}
+  .quick-grid a:nth-child(3){border-right:0}
+  .quick-grid a:nth-child(-n+3){border-bottom:1px solid var(--line)}
+  .cards-grid,.contact-grid{grid-template-columns:1fr 1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .acc-panel.on,.tool-box{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  section{padding:64px 0}
+  .head-act .btn-line{display:none}
+  .br-grid{grid-template-columns:1fr}
+  .city-list{grid-template-columns:repeat(2,1fr)}
+  .cards-grid,.contact-grid,.cols2,.foot-grid,.field-row{grid-template-columns:1fr}
+  .quick-grid{grid-template-columns:repeat(2,1fr)}
+  .quick-grid a{border-bottom:1px solid var(--line);border-right:0!important}
+  .acc-rate,.acc-body,.tool-in,.tool-out{padding:26px}
+  .util-l{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
 
-<!-- Announcement Bar -->
-<div class="announcement" id="announcementBar">
-    <i class='bx bx-info-circle announcement-icon'></i>
-    <span>New: Instant transfers are now free for all accounts. <a href="register.php">Open an account →</a></span>
-    <button class="close-ann" id="closeAnnBtn" aria-label="Close announcement">
-        <i class='bx bx-x'></i>
-    </button>
-    <div class="announcement-progress"></div>
+<!-- ═════════ UTILITY BAR ═════════ -->
+<div class="util">
+  <div class="wrap">
+    <div class="util-l">
+      <span><i class='bx bx-phone-call'></i><span data-bn="হটলাইন">Hotline</span> <a href="tel:<?= $bank['hotline'] ?>"><b><?= $bank['hotline'] ?></b></a> (24/7)</span>
+      <a href="mailto:<?= $bank['email'] ?>"><i class='bx bx-envelope'></i><?= $bank['email'] ?></a>
+    </div>
+    <div class="util-r">
+      <a href="#branches"><i class='bx bx-map'></i><span data-bn="শাখা ও এটিএম">Branches &amp; ATMs</span></a>
+      <a href="#security"><i class='bx bx-shield-quarter'></i><span data-bn="নিরাপত্তা">Security</span></a>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="bn" aria-pressed="false">বাংলা</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Navigation -->
-<nav class="nav">
-    <div class="container nav-inner">
-        <a href="index.php" class="nav-brand">
-            <div class="nav-logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
-            </div>
-            <span class="nav-logo-text">Asha Bank</span>
-        </a>
-
-        <div class="nav-links">
-            <a href="#features" class="nav-link">Features</a>
-            <a href="#how-it-works" class="nav-link">How it works</a>
-            <a href="#about" class="nav-link">About</a>
-            <a href="setup.php" class="nav-link">Setup</a>
-        </div>
-
-        <div class="nav-actions">
-            <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
-                <i class='bx bx-moon' id="themeIcon"></i>
-            </button>
-            <button class="btn-nav btn-ghost-nav" onclick="openModal('login-modal')" id="signInBtn">Sign in</button>
-            <a href="register.php" class="btn-nav btn-solid-nav">
-                Get started <i class='bx bx-right-arrow-alt'></i>
-            </a>
-        </div>
-
-        <button class="nav-mobile-menu" onclick="openModal('login-modal')" aria-label="Menu">
-            <i class='bx bx-menu'></i>
-        </button>
+<!-- ═════════ HEADER ═════════ -->
+<header class="head">
+  <div class="wrap">
+    <a href="index.php" class="brand" aria-label="Asha Bank home">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg></span>
+      Asha Bank
+    </a>
+    <nav class="nav" id="nav" aria-label="Main">
+      <a href="#accounts" data-bn="হিসাব">Accounts</a>
+      <a href="#cards" data-bn="কার্ড">Cards</a>
+      <a href="#loans" data-bn="ঋণ">Loans</a>
+      <a href="#tools" data-bn="ক্যালকুলেটর">Calculators</a>
+      <a href="#digital" data-bn="ডিজিটাল ব্যাংকিং">Digital banking</a>
+      <a href="#rates" data-bn="রেট">Rates</a>
+      <a href="#branches" data-bn="শাখা">Branches</a>
+      <a href="#contact" data-bn="সহায়তা">Help</a>
+    </nav>
+    <div class="head-act">
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"><i class='bx bx-moon'></i></button>
+      <a href="login.php" class="btn btn-line" data-bn="সাইন ইন">Sign in</a>
+      <a href="register.php" class="btn btn-dark" data-bn="হিসাব খুলুন">Open account</a>
+      <button class="icon-btn burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><i class='bx bx-menu'></i></button>
     </div>
-</nav>
+  </div>
+</header>
 
-<!-- ═══════════════════════════════════ -->
-<!-- HERO SECTION -->
-<!-- ═══════════════════════════════════ -->
-<section class="hero">
-    <div class="hero-bg">
-        <div class="hero-grid-lines"></div>
-        <div class="hero-glow"></div>
+<main>
+<!-- ═════════ HERO ═════════ -->
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1 data-bn="আজই খুলুন আপনার ব্যাংক হিসাব, ফোনেই।">Open a bank account today, from your phone.</h1>
+      <p class="lede" data-bn="সঞ্চয়, কার্ড, ঋণ এবং বিল পরিশোধ, সবকিছু এক জায়গায়। বাংলাদেশ ব্যাংক কর্তৃক নিয়ন্ত্রিত।">Savings, cards, loans and bill payments in one place. Regulated by Bangladesh Bank, and open 24/7 online.</p>
+      <div class="hero-cta">
+        <a href="register.php" class="btn btn-sun" data-bn="বিনামূল্যে হিসাব খুলুন">Open a free account</a>
+        <a href="#accounts" class="btn btn-ghost-light" data-bn="হিসাবের ধরন দেখুন">Compare accounts</a>
+      </div>
+      <ul class="assure">
+        <li><i class='bx bx-time-five'></i>About 3 minutes to apply, verified within 24 hours</li>
+        <li><i class='bx bx-id-card'></i>No branch visit for basic accounts. Just your NID and a selfie</li>
+        <li><i class='bx bx-lock-alt'></i>256-bit encryption, two-factor sign-in and real-time fraud alerts</li>
+      </ul>
     </div>
-    <div class="container">
-        <div class="hero-content">
-            <a href="register.php" class="hero-badge reveal">
-                <span class="hero-badge-dot"></span>
-                Trusted by <?= number_format($totalCustomers) ?>+ customers
-                <i class='bx bx-right-arrow-alt'></i>
-            </a>
-            <h1 class="reveal reveal-delay-1">
-                Banking that<br>
-                <em>actually works</em>
-            </h1>
-            <p class="hero-desc reveal reveal-delay-2">
-                Modern digital banking for Bangladesh. Open an account in minutes, send money instantly, and manage everything from one clean dashboard.
-            </p>
-            <div class="hero-cta reveal reveal-delay-3">
-                <a href="register.php" class="btn-hero-primary">
-                    Open free account <i class='bx bx-right-arrow-alt'></i>
-                </a>
-                <button class="btn-hero-secondary" onclick="openModal('login-modal')">
-                    Sign in <i class='bx bx-log-in'></i>
-                </button>
-            </div>
 
-            <!-- Stats -->
-            <div class="hero-stats reveal">
-                <div class="hero-stat">
-                    <div class="hero-stat-value"><?= number_format($totalCustomers) ?>+</div>
-                    <div class="hero-stat-label">Customers</div>
-                </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value">৳<?= round($totalDeposits / 1000000, 0) ?>M+</div>
-                    <div class="hero-stat-label">In deposits</div>
-                </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value"><?= $totalBranches ?>+</div>
-                    <div class="hero-stat-label">Branches</div>
-                </div>
-            </div>
+    <!-- Hero FinTech Visual Showcase -->
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-card">
+        <div class="hc-head">
+          <div class="hc-brand">
+            <span class="mark" style="width:28px;height:28px;border-radius:8px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M12 3l9 7H3l9-7z"/></svg>
+            </span>
+            <span>Asha Bank</span>
+          </div>
+          <div class="hc-chip"></div>
         </div>
+        <div class="hc-num">•••• &nbsp; •••• &nbsp; •••• &nbsp; 8842</div>
+        <div class="hc-foot">
+          <div>
+            <div class="hc-label">Cardholder</div>
+            <div class="hc-val">PLATINUM MEMBER</div>
+          </div>
+          <div style="text-align:right">
+            <div class="hc-label">Expires</div>
+            <div class="hc-val">09/31</div>
+          </div>
+          <div class="hc-type">VISA</div>
+        </div>
+      </div>
+
+      <div class="hero-pill">
+        <div class="hero-pill-left">
+          <div class="hero-pill-icon"><i class='bx bx-check-shield'></i></div>
+          <div>
+            <div class="hero-pill-title">NPSB Instant Transfer</div>
+            <div class="hero-pill-sub">Received from City Bank</div>
+          </div>
+        </div>
+        <div>
+          <div class="hero-pill-amt">+৳25,000.00</div>
+          <div class="hero-pill-time">Just now • Verified</div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- ═════════ QUICK ACTIONS ═════════ -->
+<div class="quick">
+  <div class="wrap">
+    <div class="quick-grid">
+      <a href="register.php"><i class='bx bx-user-plus'></i>Open account</a>
+      <a href="#loans"><i class='bx bx-money'></i>Apply for a loan</a>
+      <a href="#digital"><i class='bx bx-receipt'></i>Pay bills</a>
+      <a href="#rates"><i class='bx bx-transfer-alt'></i>Exchange rates</a>
+      <a href="#branches"><i class='bx bx-map-pin'></i>Find a branch</a>
+      <a href="#security" class="urgent"><i class='bx bx-block'></i>Lost card</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ STATS ═════════ -->
+<div class="stats">
+  <div class="wrap">
+    <div class="stats-row">
+      <div class="stat"><b><?= number_format($totalCustomers) ?>+</b><span>Active customers</span></div>
+      <div class="stat"><b>৳<?= number_format(round($totalDeposits / 10000000)) ?> crore</b><span>Deposits in our care</span></div>
+      <div class="stat"><b><?= number_format($totalBranches) ?></b><span>Branches nationwide</span></div>
+      <div class="stat"><b><?= number_format($totalCards) ?>+</b><span>Active cards</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ ACCOUNTS ═════════ -->
+<section id="accounts">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 data-bn="আপনার জন্য সঠিক হিসাব">The right account for how you use money</h2>
+      <p class="lede">Pick a type to see the profit rate, minimum balance, features and the documents you need.</p>
+    </div>
+    <div class="acc-tabs" role="tablist" id="accTabs">
+      <?php $first = true; foreach ($accounts as $k => $a): ?>
+        <button type="button" role="tab" id="tab-<?= $k ?>" aria-controls="panel-<?= $k ?>" aria-selected="<?= $first ? 'true' : 'false' ?>" data-acc="<?= $k ?>"><?= $a['name'] ?></button>
+      <?php $first = false; endforeach; ?>
+    </div>
+    <?php $first = true; foreach ($accounts as $k => $a): ?>
+    <div class="acc-panel <?= $first ? 'on' : '' ?>" id="panel-<?= $k ?>" role="tabpanel" aria-labelledby="tab-<?= $k ?>">
+      <div class="acc-rate">
+        <div>
+          <div class="big"><?= $a['rate'] ?></div>
+          <small><?= $a['rate_note'] ?></small>
+        </div>
+        <div class="acc-min">Minimum to open<b><?= $a['min'] ?></b></div>
+      </div>
+      <div class="acc-body">
+        <h3 style="font-size:24px;margin-bottom:8px"><?= $a['name'] ?> account</h3>
+        <p><?= $a['blurb'] ?></p>
+        <div class="cols2">
+          <div><h4>What you get</h4>
+            <ul class="tick"><?php foreach ($a['features'] as $f): ?><li><i class='bx bx-check-circle'></i><?= $f ?></li><?php endforeach; ?></ul>
+          </div>
+          <div><h4>What you need</h4>
+            <ul class="tick doc"><?php foreach ($a['docs'] as $d): ?><li><i class='bx bx-file'></i><?= $d ?></li><?php endforeach; ?></ul>
+          </div>
+        </div>
+        <a href="register.php?type=<?= $k ?>" class="btn btn-dark">Open a <?= strtolower($a['name']) ?> account</a>
+      </div>
+    </div>
+    <?php $first = false; endforeach; ?>
+    <p class="note">Rates are indicative and may change. Profit is paid on the daily balance unless stated.</p>
+  </div>
 </section>
 
-<!-- Marquee strip -->
-<div class="marquee-wrapper">
-    <div class="marquee-track">
-        <!-- duplicated for seamless loop -->
-        <?php $items = [
-            ['bx bx-check-shield', 'Bank-grade security'],
-            ['bx bx-transfer', 'Instant transfers'],
-            ['bx bx-credit-card', 'Virtual cards'],
-            ['bx bx-bar-chart-alt-2', 'Spending analytics'],
-            ['bx bx-bell', 'Real-time alerts'],
-            ['bx bx-mobile', 'Mobile banking'],
-            ['bx bx-lock-open-alt', 'Zero hidden fees'],
-            ['bx bx-support', '24/7 support'],
-        ]; foreach(array_merge($items, $items) as $i): ?>
-        <span class="marquee-item">
-            <i class='<?= $i[0] ?>'></i>
-            <?= $i[1] ?>
-        </span>
+<!-- ═════════ CARDS ═════════ -->
+<section id="cards" class="cards-sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 data-bn="আপনার কার্ড, আপনার নিয়ন্ত্রণ">Cards you control from your phone</h2>
+      <p class="lede">Freeze, unfreeze and set limits in one tap. Pay online, in shops and abroad.</p>
+    </div>
+    <div class="cards-grid">
+      <article>
+        <div class="pcard pc-debit"><div class="t"><span>Asha Bank</span><span>Debit</span></div><div class="n">•••• •••• •••• 4291</div><div class="b"><span>AMINA KHATUN</span><span>09/29</span></div></div>
+        <h3>Debit card</h3>
+        <p>Tied to your account. Withdraw at any ATM, pay at shops and online.</p>
+        <ul class="tick"><li><i class='bx bx-check-circle'></i>Contactless and chip-and-PIN</li><li><i class='bx bx-check-circle'></i>Daily limits you can change</li><li><i class='bx bx-check-circle'></i>Delivered to your door in 5 working days</li></ul>
+        <p class="fee">Annual fee ৳0 in the first year, then ৳500.</p>
+      </article>
+      <article>
+        <div class="pcard pc-virtual"><div class="t"><span>Asha Bank</span><span>Virtual</span></div><div class="n">•••• •••• •••• 7710</div><div class="b"><span>FOR ONLINE USE</span><span>03/27</span></div></div>
+        <h3>Virtual card</h3>
+        <p>Created instantly for online shopping and subscriptions, so your main card stays private.</p>
+        <ul class="tick"><li><i class='bx bx-check-circle'></i>Ready in seconds, no waiting</li><li><i class='bx bx-check-circle'></i>Set a spending cap per card</li><li><i class='bx bx-check-circle'></i>Delete it any time</li></ul>
+        <p class="fee">Free to create. Up to 5 active virtual cards.</p>
+      </article>
+      <article>
+        <div class="pcard pc-credit"><div class="t"><span>Asha Bank</span><span>Credit</span></div><div class="n">•••• •••• •••• 0382</div><div class="b"><span>CREDIT LIMIT ৳2,00,000</span><span>11/30</span></div></div>
+        <h3>Credit card</h3>
+        <p>Up to 45 interest-free days on purchases, with a limit based on your income.</p>
+        <ul class="tick"><li><i class='bx bx-check-circle'></i>Instalments on large purchases</li><li><i class='bx bx-check-circle'></i>Reward points on every spend</li><li><i class='bx bx-check-circle'></i>Emergency card replacement abroad</li></ul>
+        <p class="fee">Annual fee ৳1,500. Subject to credit approval.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ LOANS ═════════ -->
+<section id="loans">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 data-bn="আপনার পরিকল্পনার জন্য ঋণ">Loans for the plans you already have</h2>
+      <p class="lede">Clear rates and timelines before you apply. Check your monthly payment in the calculator below.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Loan</th><th class="num">Up to</th><th>Tenure</th><th class="num">Rate from</th><th>Decision in</th><th></th></tr></thead>
+        <tbody>
+        <?php foreach ($loans as $l): ?>
+          <tr><td><b><?= $l[0] ?></b></td><td class="num"><?= $l[1] ?></td><td><?= $l[2] ?></td><td class="num"><?= $l[3] ?> p.a.</td><td><?= $l[4] ?></td><td><a class="link" href="register.php?loan=<?= urlencode($l[0]) ?>">Apply</a></td></tr>
         <?php endforeach; ?>
+        </tbody>
+      </table>
     </div>
-</div>
-
-<!-- ═══════════════════════════════════ -->
-<!-- PREVIEW SECTION -->
-<!-- ═══════════════════════════════════ -->
-<section class="preview-section">
-    <div class="container">
-        <p class="preview-label">Your banking dashboard</p>
-        <div class="preview-window reveal">
-            <div class="preview-titlebar">
-                <div class="preview-dot"></div>
-                <div class="preview-dot"></div>
-                <div class="preview-dot"></div>
-                <div class="preview-url">app.ashabank.com.bd/dashboard</div>
-            </div>
-            <div class="preview-body">
-                <!-- Fake sidebar -->
-                <div class="fake-sidebar">
-                    <div class="fake-sidebar-logo"></div>
-                    <div class="fake-nav-item active">
-                        <div class="fake-nav-dot"></div>
-                        <div class="fake-nav-line"></div>
-                    </div>
-                    <div class="fake-nav-item">
-                        <div class="fake-nav-dot"></div>
-                        <div class="fake-nav-line"></div>
-                    </div>
-                    <div class="fake-nav-item">
-                        <div class="fake-nav-dot"></div>
-                        <div class="fake-nav-line"></div>
-                    </div>
-                    <div class="fake-nav-item">
-                        <div class="fake-nav-dot"></div>
-                        <div class="fake-nav-line"></div>
-                    </div>
-                </div>
-                <!-- Fake main -->
-                <div class="fake-main">
-                    <div class="fake-stats">
-                        <div class="fake-stat-card">
-                            <div class="fake-stat-label"></div>
-                            <div class="fake-stat-value"></div>
-                        </div>
-                        <div class="fake-stat-card">
-                            <div class="fake-stat-label"></div>
-                            <div class="fake-stat-value"></div>
-                        </div>
-                        <div class="fake-stat-card">
-                            <div class="fake-stat-label"></div>
-                            <div class="fake-stat-value"></div>
-                        </div>
-                    </div>
-                    <div class="fake-card-row">
-                        <div class="fake-card">
-                            <div class="fake-line w-5" style="margin-bottom:12px;"></div>
-                            <div class="fake-line w-7"></div>
-                            <div class="fake-line w-3" style="margin-top:6px;"></div>
-                        </div>
-                        <div class="fake-card">
-                            <div class="fake-line w-5" style="margin-bottom:12px;"></div>
-                            <div class="fake-line w-full"></div>
-                            <div class="fake-line w-full" style="margin-top:6px;"></div>
-                            <div class="fake-line w-full" style="margin-top:6px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <p class="note">Final rate depends on your credit profile. Processing fee and early-settlement terms are in the schedule of charges.</p>
+  </div>
 </section>
 
-<!-- ═══════════════════════════════════ -->
-<!-- FEATURES BENTO GRID -->
-<!-- ═══════════════════════════════════ -->
-<section class="section" id="features">
-    <div class="container">
-        <div class="reveal">
-            <div class="section-tag"><i class='bx bx-sparkles'></i> Features</div>
-            <h2 class="section-title">Everything you need,<br>nothing you don't.</h2>
-            <p class="section-desc">A clean, powerful banking platform built for modern Bangladesh.</p>
-        </div>
-
-        <div class="bento-grid">
-            <!-- Card 1: Large - Virtual card -->
-            <div class="bento-card large reveal">
-                <div class="bento-icon"><i class='bx bx-credit-card'></i></div>
-                <h3 class="bento-title">Virtual & Physical Cards</h3>
-                <p class="bento-desc">Get your card instantly. Freeze, unfreeze, and set spending limits from your dashboard.</p>
-                <div class="mini-bank-card">
-                    <div>
-                        <div class="mini-card-label">Available Balance</div>
-                        <div class="mini-card-balance">৳ 42,850.00</div>
-                    </div>
-                    <div class="mini-card-num">•••• •••• •••• 4291</div>
-                </div>
-            </div>
-
-            <!-- Card 2: Instant transfer -->
-            <div class="bento-card reveal reveal-delay-1">
-                <div class="bento-icon"><i class='bx bx-transfer'></i></div>
-                <h3 class="bento-title">Instant Transfers</h3>
-                <p class="bento-desc">Send money to anyone, anywhere in Bangladesh in seconds.</p>
-                <div class="transfer-ui">
-                    <div class="transfer-row">
-                        <div class="t-avatar">R</div>
-                        <div class="t-name">Rahim Ahmed</div>
-                        <div class="t-amount out">−৳500</div>
-                    </div>
-                    <div class="transfer-row">
-                        <div class="t-avatar">S</div>
-                        <div class="t-name">Salary Credit</div>
-                        <div class="t-amount in">+৳45,000</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 3: Security -->
-            <div class="bento-card reveal reveal-delay-2">
-                <div class="bento-icon"><i class='bx bx-shield-quarter'></i></div>
-                <h3 class="bento-title">Bank-grade Security</h3>
-                <p class="bento-desc">256-bit encryption, 2FA, and real-time fraud detection protecting your account 24/7.</p>
-            </div>
-
-            <!-- Card 4: Analytics -->
-            <div class="bento-card reveal reveal-delay-1">
-                <div class="bento-icon"><i class='bx bx-bar-chart-alt-2'></i></div>
-                <h3 class="bento-title">Spending Insights</h3>
-                <p class="bento-desc">See where your money goes with automatic categorization and visual reports.</p>
-            </div>
-
-            <!-- Card 5: Notifications -->
-            <div class="bento-card reveal reveal-delay-2">
-                <div class="bento-icon"><i class='bx bx-bell'></i></div>
-                <h3 class="bento-title">Real-time Alerts</h3>
-                <p class="bento-desc">Get notified instantly for every transaction. Never miss a payment or suspicious activity.</p>
-            </div>
-
-            <!-- Card 6: Support -->
-            <div class="bento-card reveal reveal-delay-3">
-                <div class="bento-icon"><i class='bx bx-support'></i></div>
-                <h3 class="bento-title">24/7 Support</h3>
-                <p class="bento-desc">Our team is always available to help. Live chat, phone, and email support around the clock.</p>
-            </div>
-
-            <!-- Card 7: Virtual & Debit Cards -->
-            <div class="bento-card reveal reveal-delay-1">
-                <div class="bento-icon"><i class='bx bx-credit-card-front'></i></div>
-                <h3 class="bento-title">Smart Virtual Cards</h3>
-                <p class="bento-desc">Generate instant virtual debit cards with custom spending limits, 1-tap lock/unlock, and zero foreign markup.</p>
-            </div>
-
-            <!-- Card 8: Automated Bill Payments -->
-            <div class="bento-card reveal reveal-delay-2">
-                <div class="bento-icon"><i class='bx bx-receipt'></i></div>
-                <h3 class="bento-title">One-Click Bill Pay</h3>
-                <p class="bento-desc">Pay electricity, gas, water, internet, and mobile recharges with automatic schedules and zero fees.</p>
-            </div>
-        </div>
+<!-- ═════════ CALCULATORS ═════════ -->
+<section id="tools" class="tools">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 data-bn="ক্যালকুলেটর">See the numbers before you commit</h2>
+      <p class="lede">Estimate a loan payment or what your savings will grow to.</p>
     </div>
+    <div class="tool-tabs" role="tablist" id="toolTabs">
+      <button type="button" role="tab" aria-selected="true"  data-tool="emi">Loan payment</button>
+      <button type="button" role="tab" aria-selected="false" data-tool="fd">Fixed deposit</button>
+      <button type="button" role="tab" aria-selected="false" data-tool="dps">DPS</button>
+    </div>
+
+    <!-- EMI -->
+    <div class="tool-box" data-panel="emi">
+      <div class="tool-in">
+        <div class="field">
+          <label for="emiP"><span>Loan amount</span><span class="field-hint">Min ৳50,000</span></label>
+          <div class="input-box">
+            <input id="emiP" type="number" min="10000" step="10000" value="500000">
+            <span class="suffix">BDT</span>
+          </div>
+        </div>
+        <div class="slider-wrap">
+          <input class="range" type="range" id="emiPr" min="50000" max="5000000" step="10000" value="500000" aria-label="Loan amount slider">
+          <div class="range-limits"><span>৳50,000</span><span>৳50,00,000</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="emiR"><span>Profit / Fee rate</span><span class="field-hint">0% Shariah</span></label>
+            <div class="input-box">
+              <input id="emiR" type="number" min="0" max="30" step="0.1" value="0.0">
+              <span class="suffix">% / yr</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="emiN"><span>Tenure</span><span class="field-hint">3 to 300 mos</span></label>
+            <div class="input-box">
+              <input id="emiN" type="number" min="3" max="300" step="1" value="36">
+              <span class="suffix">Months</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-out">
+        <span class="lab">Monthly payment</span>
+        <div class="res" id="emiOut">–</div>
+        <dl><dt>Interest / profit charged</dt><dd id="emiInt">৳0 (0%)</dd><dt>Total repayment</dt><dd id="emiTot">–</dd></dl>
+      </div>
+    </div>
+
+    <!-- FD / Capital Custody -->
+    <div class="tool-box hide" data-panel="fd">
+      <div class="tool-in">
+        <div class="field">
+          <label for="fdP"><span>Deposit amount</span><span class="field-hint">Min ৳25,000</span></label>
+          <div class="input-box">
+            <input id="fdP" type="number" min="25000" step="5000" value="200000">
+            <span class="suffix">BDT</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fdR"><span>Safekeeping fee</span><span class="field-hint">Fixed rate</span></label>
+            <div class="input-box">
+              <input id="fdR" type="number" min="0" max="1" step="0.001" value="0.001" readonly style="background:var(--bg-3);cursor:not-allowed">
+              <span class="suffix">% / yr</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fdN"><span>Term duration</span><span class="field-hint">Locked period</span></label>
+            <div class="input-box">
+              <select id="fdN">
+                <option value="3">3 months</option>
+                <option value="6">6 months</option>
+                <option value="12" selected>12 months</option>
+                <option value="24">24 months</option>
+                <option value="36">36 months</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-out">
+        <span class="lab">Capital at maturity</span>
+        <div class="res" id="fdOut">–</div>
+        <dl><dt>Capital preserved</dt><dd id="fdIn">–</dd><dt>0.001% Safekeeping fee</dt><dd id="fdInt">–</dd></dl>
+      </div>
+    </div>
+
+    <!-- DPS / Systematic Custody -->
+    <div class="tool-box hide" data-panel="dps">
+      <div class="tool-in">
+        <div class="field">
+          <label for="dpM"><span>Monthly instalment</span><span class="field-hint">Min ৳500</span></label>
+          <div class="input-box">
+            <input id="dpM" type="number" min="500" step="500" value="5000">
+            <span class="suffix">BDT</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="dpR"><span>Safekeeping fee</span><span class="field-hint">Fixed rate</span></label>
+            <div class="input-box">
+              <input id="dpR" type="number" min="0" max="1" step="0.001" value="0.001" readonly style="background:var(--bg-3);cursor:not-allowed">
+              <span class="suffix">% / yr</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="dpN"><span>Term duration</span><span class="field-hint">Deposit tenure</span></label>
+            <div class="input-box">
+              <select id="dpN">
+                <option value="36">3 years</option>
+                <option value="60" selected>5 years</option>
+                <option value="120">10 years</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-out">
+        <span class="lab">Total saved at maturity</span>
+        <div class="res" id="dpOut">–</div>
+        <dl><dt>Total deposited</dt><dd id="dpIn">–</dd><dt>0.001% Safekeeping fee</dt><dd id="dpInt">–</dd></dl>
+      </div>
+    </div>
+    <p class="note">Asha Bank operates on a 0% interest banking model. A nominal 0.001% annual fee covers high-security vault storage, auditing, and account maintenance.</p>
+  </div>
 </section>
 
-<!-- ═══════════════════════════════════ -->
-<!-- HOW IT WORKS -->
-<!-- ═══════════════════════════════════ -->
-<section class="steps-section" id="how-it-works">
-    <div class="container">
-        <div class="reveal" style="text-align:center;">
-            <div class="section-tag" style="margin-bottom:16px;"><i class='bx bx-info-circle'></i> How it works</div>
-            <h2 class="section-title">Open your account<br>in three steps</h2>
+<!-- ═════════ DIGITAL BANKING ═════════ -->
+<section id="digital">
+  <div class="wrap">
+    <!-- Top Row: Features (Fluid Flex Cards - Not a Grid) -->
+    <div class="dig-intro">
+      <div class="sec-head" style="margin-bottom:28px;">
+        <h2 data-bn="ডিজিটাল ব্যাংকিং">Everything you do at a branch, without the queue</h2>
+        <p class="lede">Move money, pay bills and manage your cards at any hour, from any device.</p>
+      </div>
+      <div class="feat-flex">
+        <div class="feat-card">
+          <div class="feat-icon"><i class='bx bx-transfer'></i></div>
+          <div>
+            <h3>Send money in seconds</h3>
+            <p>To any bank via NPSB, BEFTN, RTGS, &amp; bKash, Nagad or Upay wallets.</p>
+          </div>
         </div>
-
-        <div class="steps-grid">
-            <div class="step-item reveal">
-                <div class="step-num">01</div>
-                <h3 class="step-title">Create an account</h3>
-                <p class="step-desc">Fill in your details online in under 3 minutes. No branch visit required for basic accounts.</p>
-            </div>
-            <div class="step-item reveal reveal-delay-1">
-                <div class="step-num">02</div>
-                <h3 class="step-title">Verify your identity</h3>
-                <p class="step-desc">Upload your NID and a selfie. Our team reviews it within 24 hours to keep you secure.</p>
-            </div>
-            <div class="step-item reveal reveal-delay-2">
-                <div class="step-num">03</div>
-                <h3 class="step-title">Start banking</h3>
-                <p class="step-desc">Deposit funds and start sending money, paying bills, and managing your finances instantly.</p>
-            </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class='bx bx-receipt'></i></div>
+          <div>
+            <h3>Pay bills &amp; recharge</h3>
+            <p>Electricity, gas, water, internet, tuition and mobile airtime with auto-pay.</p>
+          </div>
         </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class='bx bx-qr-scan'></i></div>
+          <div>
+            <h3>Scan to pay</h3>
+            <p>Pay any merchant Bangla QR code directly from your account in real-time.</p>
+          </div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class='bx bx-bell'></i></div>
+          <div>
+            <h3>Instant alerts</h3>
+            <p>Instant SMS and mobile push notifications for every debit and credit.</p>
+          </div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class='bx bx-file-blank'></i></div>
+          <div>
+            <h3>Statements &amp; certificates</h3>
+            <p>Download certified account statements and balance certificates on demand.</p>
+          </div>
+        </div>
+      </div>
     </div>
-</section>
 
-<!-- ═══════════════════════════════════ -->
-<!-- TESTIMONIALS -->
-<!-- ═══════════════════════════════════ -->
-<section class="testimonials-section" id="about">
-    <div class="container">
-        <div class="testimonials-header">
-            <div class="reveal">
-                <div class="section-tag"><i class='bx bx-user-voice'></i> Testimonials</div>
-                <h2 class="section-title">Loved by customers<br>across Bangladesh</h2>
-            </div>
+    <!-- Next Row: Transfer Speeds, Fees & Limits (Grid Table Style) -->
+    <div class="transfer-box">
+      <div class="tb-head">
+        <div>
+          <h3 class="tb-title" data-bn="স্থানান্তর গতি, ফি ও সীমা">Transfer speeds, fees &amp; limits</h3>
+          <p class="tb-sub">Bangladesh Bank approved NPSB, BEFTN &amp; RTGS settlement rails</p>
         </div>
-        <div class="testimonials-marquee">
-            <div class="testimonials-track">
-                <?php
-                $testimonials = [
-                    [
-                        'name' => 'Farhan Islam',
-                        'role' => 'Dhaka',
-                        'quote' => 'Switching to Asha Bank was the best financial decision I made. The dashboard is clean, intuitive, and transfers are truly instant.',
-                        'score' => '5.0',
-                        'avatar' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80'
-                    ],
-                    [
-                        'name' => 'Nasrin Akter',
-                        'role' => 'Chittagong',
-                        'quote' => 'I love how clean the interface is. No clutter, just what I need. Customer support is prompt and genuinely helpful.',
-                        'score' => '4.9',
-                        'avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
-                    ],
-                    [
-                        'name' => 'Rafiqul Hasan',
-                        'role' => 'Sylhet',
-                        'quote' => 'The spending analytics feature helped me save 20% more every month. Best modern personal banking platform in Bangladesh.',
-                        'score' => '5.0',
-                        'avatar' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80'
-                    ],
-                    [
-                        'name' => 'Mitu Begum',
-                        'role' => 'Rajshahi',
-                        'quote' => 'Finally a bank that feels modern. The mobile experience is seamless and zero hidden fees make budgeting completely stress-free.',
-                        'score' => '4.8',
-                        'avatar' => 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80'
-                    ],
-                    [
-                        'name' => 'Jahangir Alam',
-                        'role' => 'Sylhet',
-                        'quote' => 'Receiving international payments and managing business finances has never been this easy. Highly recommend to everyone.',
-                        'score' => '5.0',
-                        'avatar' => 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80'
-                    ],
-                    [
-                        'name' => 'Tania Rahman',
-                        'role' => 'Dhaka',
-                        'quote' => 'The minimal aesthetic and instant bKash/Nagad transfers make daily personal banking a delight to use every single day.',
-                        'score' => '5.0',
-                        'avatar' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80'
-                    ],
-                    [
-                        'name' => 'Kamal Hossain',
-                        'role' => 'Khulna',
-                        'quote' => 'Clear exchange rates, zero hidden charges, and quick loan applications. Asha Bank is setting a brand new standard.',
-                        'score' => '4.9',
-                        'avatar' => 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&auto=format&fit=crop&q=80'
-                    ],
-                ];
-                for ($loop = 0; $loop < 2; $loop++): ?>
-                <div class="testimonials-group" <?= $loop === 1 ? 'aria-hidden="true"' : '' ?>>
-                    <?php foreach($testimonials as $t): ?>
-                    <div class="testimonial-card">
-                        <div>
-                            <div class="t-stars">
-                                <i class='bx bxs-star'></i>
-                                <i class='bx bxs-star'></i>
-                                <i class='bx bxs-star'></i>
-                                <i class='bx bxs-star'></i>
-                                <i class='bx bxs-star'></i>
-                            </div>
-                            <p class="t-quote"><?= htmlspecialchars($t['quote']) ?></p>
-                        </div>
-                        <div class="t-footer">
-                            <div class="t-author">
-                                <img class="t-avatar-img" src="<?= htmlspecialchars($t['avatar']) ?>" alt="<?= htmlspecialchars($t['name']) ?>" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                                <div class="t-avatar-fallback" style="display:none;"><?= strtoupper(substr($t['name'], 0, 1)) ?></div>
-                                <div class="t-author-meta">
-                                    <div class="t-author-name"><?= htmlspecialchars($t['name']) ?></div>
-                                    <div class="t-author-role"><?= htmlspecialchars($t['role']) ?></div>
-                                </div>
-                            </div>
-                            <div class="t-rating-tag">
-                                <span class="t-tag-label">RATING</span>
-                                <span class="t-tag-score"><?= htmlspecialchars($t['score']) ?></span>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
+        <div class="tb-live-badge">
+          <span class="live-dot"></span>
+          <span>Rails Active</span>
+        </div>
+      </div>
+
+      <div class="tb-table-wrap">
+        <div class="tb-table-header">
+          <div class="col-channel">Transfer Channel &amp; Protocol</div>
+          <div class="col-speed">Settlement Speed</div>
+          <div class="col-fee">Transaction Fee</div>
+          <div class="col-limit">Daily Limit</div>
+        </div>
+
+        <div class="tb-table-body">
+          <?php foreach ($transfers as $t): ?>
+            <div class="tb-table-row">
+              <div class="col-channel">
+                <div class="t-rail-icon"><i class='bx <?= $t['icon'] ?>'></i></div>
+                <div>
+                  <div class="t-rail-name"><?= htmlspecialchars($t['title']) ?></div>
+                  <div class="t-rail-desc"><?= htmlspecialchars($t['sub']) ?></div>
                 </div>
-                <?php endfor; ?>
+              </div>
+              <div class="col-speed">
+                <span class="t-speed-pill <?= $t['is_instant'] ? 'speed-instant' : '' ?>">
+                  <?php if ($t['is_instant']): ?><span class="speed-dot"></span><?php endif; ?>
+                  <?= htmlspecialchars($t['speed']) ?>
+                </span>
+              </div>
+              <div class="col-fee">
+                <span class="t-fee-pill <?= $t['fee'] === 'Free' ? 'fee-free' : '' ?>">
+                  <?= htmlspecialchars($t['fee']) ?>
+                </span>
+              </div>
+              <div class="col-limit">
+                <div class="t-limit-val"><?= htmlspecialchars($t['limit']) ?></div>
+                <div class="t-limit-sub"><?= htmlspecialchars($t['limit_sub']) ?></div>
+              </div>
             </div>
+          <?php endforeach; ?>
         </div>
+      </div>
+
+      <div class="tb-foot">
+        <div class="tb-foot-info">
+          <i class='bx bx-shield-quarter'></i>
+          <span>Limits can be customized or raised in your dashboard after NID biometric verification.</span>
+        </div>
+        <a href="register.php" class="tb-foot-link">Open Account <i class='bx bx-right-arrow-alt'></i></a>
+      </div>
     </div>
+  </div>
 </section>
 
-<!-- ═══════════════════════════════════ -->
-<!-- CTA SECTION -->
-<!-- ═══════════════════════════════════ -->
-<section class="cta-section">
-    <div class="cta-bg"></div>
-    <div class="container">
-        <div class="cta-content reveal">
-            <h2 class="cta-title">Ready to bank<br>smarter?</h2>
-            <p class="cta-desc">Join <?= number_format($totalCustomers) ?>+ customers who trust Asha Bank for their daily banking needs.</p>
-            <a href="register.php" class="btn-cta-primary">
-                Open free account <i class='bx bx-right-arrow-alt'></i>
+<!-- ═════════ RATES ═════════ -->
+<section id="rates" class="rates-sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 data-bn="আজকের রেট">Today's exchange rates</h2>
+      <p class="lede">Rates against the Bangladeshi taka for cash and transfers. Use the converter to check an amount.</p>
+    </div>
+    <div class="rates-grid">
+      <div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Currency</th><th class="num">We buy (৳)</th><th class="num">We sell (৳)</th></tr></thead>
+            <tbody><?php foreach ($rates as $r): ?><tr><td><b><?= $r[0] ?></b> <span style="color:var(--ink-3)"><?= $r[1] ?></span></td><td class="num"><?= $r[2] ?></td><td class="num"><?= $r[3] ?></td></tr><?php endforeach; ?></tbody>
+          </table>
+        </div>
+        <p class="note">Indicative rates as of <?= date('j F Y') ?>. Branch and online rates can differ.</p>
+      </div>
+      <div class="conv">
+        <div class="conv-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="conv-icon"><i class='bx bx-transfer-alt'></i></div>
+            <div>
+              <h3 style="margin:0;font-size:17px;font-weight:700;color:var(--ink);">Currency converter</h3>
+              <span style="font-size:12px;color:var(--ink-3);">Live mid-market selling rates</span>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="cvAmt"><span>Send amount</span><span class="field-hint">Foreign value</span></label>
+          <div class="input-box">
+            <input id="cvAmt" type="number" min="0" value="100" placeholder="100">
+            <span class="suffix" id="cvCurBadge">USD</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="cvCur"><span>Select currency</span><span class="field-hint">Selling rate</span></label>
+          <div class="input-box">
+            <select id="cvCur" style="cursor:pointer;padding-right:32px;">
+              <?php foreach ($rates as $r): ?>
+                <option value="<?= $r[3] ?>" data-code="<?= $r[0] ?>"><?= $r[0] ?> – <?= $r[1] ?> (৳<?= $r[3] ?>)</option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </div>
+        <div class="conv-res">
+          <span class="conv-res-sub">You receive approximately</span>
+          <div class="conv-res-val" id="cvOut">–</div>
+          <div class="conv-res-meta">
+            <span class="conv-rate-tag" id="cvRateTag">1 USD = ৳122.50</span>
+            <span style="font-size:11.5px;color:var(--ink-3);">Zero commission fee</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ REMITTANCE ═════════ -->
+<section id="remittance">
+  <div class="wrap remit">
+    <div>
+      <div class="remit-badge">
+        <i class='bx bx-check-shield'></i> 2.5% Govt. Cash Incentive Guaranteed
+      </div>
+      <h2>Receiving money from family abroad</h2>
+      <p class="lede" style="margin-bottom:20px">Funds sent from overseas land directly in your Asha Bank account with real-time SMS alerts and instant BDT credit.</p>
+      
+      <div class="remit-steps-list">
+        <div class="remit-step-card">
+          <div class="rsc-num">01</div>
+          <div class="rsc-content">
+            <h3>Share your inward wire details</h3>
+            <p>Give your 13-digit Asha Bank account number and the official SWIFT/routing instructions on the right to the sender.</p>
+            <div class="rsc-tag"><i class='bx bx-credit-card-front'></i> Account No. from Dashboard</div>
+          </div>
+        </div>
+
+        <div class="remit-step-card">
+          <div class="rsc-num">02</div>
+          <div class="rsc-content">
+            <h3>Send via licensed global channels</h3>
+            <p>Senders can remit through Western Union, MoneyGram, Ria, TapTap Send, or direct wire from their local bank.</p>
+            <div class="rsc-tag"><i class='bx bx-globe'></i> Worldwide Exchange Partners</div>
+          </div>
+        </div>
+
+        <div class="remit-step-card">
+          <div class="rsc-num">03</div>
+          <div class="rsc-content">
+            <h3>Instant credit with zero deduction</h3>
+            <p>Your BDT credit arrives with Bangladesh Bank's official 2.5% cash incentive credited automatically. Zero hidden deductions.</p>
+            <div class="rsc-tag"><i class='bx bx-bell'></i> Instant SMS &amp; Mobile Alert</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="remit-card">
+        <div class="remit-card-head">
+          <div class="rc-title-wrap">
+            <h3>Inward Wire Instructions</h3>
+            <p>Official routing details for international senders</p>
+          </div>
+          <div class="rc-live-badge">
+            <span class="rc-dot"></span> SWIFT Active
+          </div>
+        </div>
+
+        <div class="remit-card-list">
+          <div class="remit-card-row">
+            <span class="rc-label">Bank name</span>
+            <div class="rc-val-group">
+              <span class="rc-val"><?= htmlspecialchars($bank['legal']) ?></span>
+              <button type="button" class="rc-btn-copy" data-copy="<?= htmlspecialchars($bank['legal']) ?>" aria-label="Copy Bank Name">
+                <i class='bx bx-copy'></i> Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="remit-card-row">
+            <span class="rc-label">SWIFT / BIC</span>
+            <div class="rc-val-group">
+              <span class="rc-val mono"><?= htmlspecialchars($bank['swift']) ?></span>
+              <button type="button" class="rc-btn-copy" data-copy="<?= htmlspecialchars($bank['swift']) ?>" aria-label="Copy SWIFT Code">
+                <i class='bx bx-copy'></i> Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="remit-card-row">
+            <span class="rc-label">Routing number</span>
+            <div class="rc-val-group">
+              <span class="rc-val mono"><?= htmlspecialchars($bank['routing']) ?></span>
+              <button type="button" class="rc-btn-copy" data-copy="<?= htmlspecialchars($bank['routing']) ?>" aria-label="Copy Routing Number">
+                <i class='bx bx-copy'></i> Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="remit-card-row">
+            <span class="rc-label">Central settlement</span>
+            <div class="rc-val-group">
+              <span class="rc-val"><?= htmlspecialchars($bank['address']) ?></span>
+            </div>
+          </div>
+
+          <div class="remit-card-row">
+            <span class="rc-label">Overseas desk</span>
+            <div class="rc-val-group">
+              <span class="rc-val"><?= htmlspecialchars($bank['intl']) ?></span>
+              <a href="tel:<?= preg_replace('/[^+0-9]/','',$bank['intl']) ?>" class="rc-btn-copy" style="text-decoration:none">
+                <i class='bx bx-phone'></i> Call
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="remit-card-footer">
+          <div class="rc-security-tip">
+            <i class='bx bx-lock-alt'></i>
+            <span>Always provide your exact 13-digit account number as the Beneficiary Account. Asha Bank will never ask for your PIN or internet banking password.</span>
+          </div>
+          <div class="rc-action-row">
+            <a href="auth/login.php">
+              View your account number <i class='bx bx-right-arrow-alt'></i>
             </a>
+            <span style="font-size:12px;color:var(--ink-3)">Available 24/7/365</span>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </section>
 
-<!-- ═══════════════════════════════════ -->
-<!-- FOOTER -->
-<!-- ═══════════════════════════════════ -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div>
-                <div class="footer-brand-logo">
-                    <div class="footer-logo-mark">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
-                    </div>
-                    <span class="footer-logo-text">Asha Bank</span>
-                </div>
-                <p class="footer-brand-desc">
-                    A premier scheduled commercial bank in Bangladesh. Regulated by Bangladesh Bank.
-                </p>
-                <div class="footer-social">
-                    <a href="#" aria-label="Facebook"><i class='bx bxl-facebook'></i></a>
-                    <a href="#" aria-label="Twitter"><i class='bx bxl-twitter'></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class='bx bxl-linkedin'></i></a>
-                    <a href="#" aria-label="Instagram"><i class='bx bxl-instagram'></i></a>
-                </div>
-            </div>
-            <div>
-                <div class="footer-col-title">Products</div>
-                <ul class="footer-links">
-                    <li><a href="register.php">Savings Account</a></li>
-                    <li><a href="register.php">Current Account</a></li>
-                    <li><a href="register.php">Fixed Deposits</a></li>
-                    <li><a href="register.php">Cards</a></li>
-                    <li><a href="register.php">Loans</a></li>
-                </ul>
-            </div>
-            <div>
-                <div class="footer-col-title">Company</div>
-                <ul class="footer-links">
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#how-it-works">How it works</a></li>
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Press</a></li>
-                </ul>
-            </div>
-            <div>
-                <div class="footer-col-title">Support</div>
-                <ul class="footer-links">
-                    <li><a href="#">Help Center</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="setup.php">DB Setup</a></li>
-                </ul>
-            </div>
+<!-- ═════════ SECURITY ═════════ -->
+<section id="security" class="sec-band">
+  <div class="wrap sec-grid">
+    <div>
+      <h2>How we protect you, and how you can too</h2>
+      <p class="lede">Most fraud starts with a phone call or message that sounds urgent. Know these four rules.</p>
+      <div class="alert-box" style="margin-top:28px">
+        <h3>Lost card or suspect fraud?</h3>
+        <p>Freeze your card in the dashboard, then call <a href="tel:<?= $bank['hotline'] ?>"><?= $bank['hotline'] ?></a> any time, day or night. Abroad: <a href="tel:<?= preg_replace('/[^+0-9]/','',$bank['intl']) ?>"><?= $bank['intl'] ?></a>.</p>
+      </div>
+    </div>
+    <ul class="rule-list">
+      <li><i class='bx bx-key'></i><span><b>Never share your OTP or PIN</b>Asha Bank staff will never ask for it, whatever the reason.</span></li>
+      <li><i class='bx bx-link-external'></i><span><b>Type the address yourself</b>Don't sign in from links in SMS or email. Use ashabank.com.bd or our app.</span></li>
+      <li><i class='bx bx-mobile-alt'></i><span><b>Turn on two-factor sign-in</b>A one-time code protects you even if your password leaks.</span></li>
+      <li><i class='bx bx-bell'></i><span><b>Read your alerts</b>If you see a transaction you didn't make, call us straight away.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════ OPEN ACCOUNT ═════════ -->
+<section id="open">
+  <div class="wrap open-wrap">
+    <!-- Row 1: Header + 3 Steps in a Row Grid Box -->
+    <div class="open-top">
+      <div class="open-head">
+        <span class="open-pill"><i class='bx bx-user-plus'></i> 100% Digital Onboarding</span>
+        <h2 data-bn="তিন ধাপে হিসাব খুলুন">Open your account in three steps</h2>
+        <p class="lede">No paperwork and no queue for a basic account. Ready in under 5 minutes.</p>
+      </div>
+
+      <div class="open-steps-grid">
+        <div class="open-step-box">
+          <div class="osb-header">
+            <span class="osb-num">1</span>
+            <span class="osb-time"><i class='bx bx-time-five'></i> ~3 mins</span>
+          </div>
+          <h3 data-bn="অনলাইন ফরম পূরণ করুন">Fill in the online form</h3>
+          <p>Name, mobile number, email, address and nominee. It takes about 3 minutes.</p>
         </div>
 
-        <div class="footer-bottom">
-            <span class="footer-copy">© <?= date('Y') ?> Asha Bank PLC. All rights reserved. SWIFT: ASHABDDH</span>
-            <div class="footer-bottom-links">
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-                <a href="#">Cookies</a>
-            </div>
+        <div class="open-step-box">
+          <div class="osb-header">
+            <span class="osb-num">2</span>
+            <span class="osb-time"><i class='bx bx-shield-quarter'></i> e-KYC</span>
+          </div>
+          <h3 data-bn="পরিচয় যাচাই করুন">Verify your identity</h3>
+          <p>Upload your NID and take a selfie. We review it within 24 hours and message you the result.</p>
         </div>
+
+        <div class="open-step-box">
+          <div class="osb-header">
+            <span class="osb-num">3</span>
+            <span class="osb-time"><i class='bx bx-check-circle'></i> Instant</span>
+          </div>
+          <h3 data-bn="জমা দিয়ে শুরু করুন">Deposit and start</h3>
+          <p>Add money by bank transfer, bKash or at any branch, then send, save and pay straight away.</p>
+        </div>
+      </div>
     </div>
+
+    <!-- Row 2: Checklist Card + Photo of Student Going Study Abroad Waiting at Airport -->
+    <div class="open-bottom-grid">
+      <!-- Left side of Row 2: Checklist Card -->
+      <aside class="checklist-box">
+        <div class="cl-head">
+          <h3 data-bn="এগুলো প্রস্তুত রাখুন">Keep these ready</h3>
+          <p>Have these handy before you tap start to breeze through your application.</p>
+        </div>
+        <ul class="cl-list">
+          <li><i class='bx bx-id-card'></i><span><b>National ID or smart card</b>Front and back photo or clear scan</span></li>
+          <li><i class='bx bx-camera'></i><span><b>A clear selfie</b>Taken in good lighting</span></li>
+          <li><i class='bx bx-phone'></i><span><b>Mobile number</b>Registered under your own NID</span></li>
+          <li><i class='bx bx-envelope'></i><span><b>Email address</b>An active inbox you can access</span></li>
+          <li><i class='bx bx-group'></i><span><b>Nominee details</b>Nominee name, relationship and NID</span></li>
+          <li><i class='bx bx-briefcase'></i><span><b>Businesses / Sole Traders</b>Trade licence and e-TIN certificate</span></li>
+        </ul>
+        <div class="cl-actions">
+          <a href="register.php" class="btn btn-dark" data-bn="আবেদন শুরু করুন">Start your application <i class='bx bx-right-arrow-alt'></i></a>
+          <span class="cl-note"><i class='bx bx-lock-alt'></i> 256-bit SSL encrypted · Bangladesh Bank regulated</span>
+        </div>
+      </aside>
+
+      <!-- Right side of Row 2: Study Abroad Airport Photo Card -->
+      <div class="abroad-card">
+        <img src="assets/images/study-abroad-airport.jpg" alt="Student waiting at airport terminal departure gate going to study abroad" class="abroad-img" loading="lazy">
+        <div class="abroad-overlay">
+          <span class="abroad-tag"><i class='bx bx-plane-take-off'></i> Higher Studies Abroad</span>
+          <h4>Student File &amp; Remittance Ready</h4>
+          <p>Opening an Asha Bank account gives you instant access to Student File services, university tuition fee wire transfers, and worldwide dual-currency cards.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ BRANCHES ═════════ -->
+<section id="branches" class="branch-sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 data-bn="শাখা ও এটিএম">Find a branch or ATM</h2>
+      <p class="lede">Branches open <?= $bank['hours'] ?>. ATMs and digital banking are available 24/7 across all 8 divisions.</p>
+    </div>
+    <div class="br-grid">
+      <!-- 1. Division / City List Tablist -->
+      <div class="city-list" role="tablist" id="cityList">
+        <?php $i = 0; foreach ($branchList as $c => $bs): ?>
+          <button type="button" role="tab" aria-selected="<?= $i === 0 ? 'true' : 'false' ?>" data-city="<?= htmlspecialchars($c) ?>">
+            <?= htmlspecialchars($c) ?> <span><?= count($bs) ?></span>
+          </button>
+        <?php $i++; endforeach; ?>
+      </div>
+
+      <!-- 2. Interactive Bangladesh Map -->
+      <div class="bd-map-card">
+        <div class="map-card-head">
+          <h4><i class='bx bx-map-pin'></i> Bangladesh Locations</h4>
+          <span class="map-legend"><span class="map-legend-dot"></span> 8 Divisions</span>
+        </div>
+        <div class="map-svg-stage" id="mapStage">
+          <!-- Floating Hover Tooltip -->
+          <div class="map-tooltip" id="mapTooltip">
+            <span class="mt-title" id="mtTitle">Dhaka Division</span>
+            <span class="mt-sub" id="mtSub">2 Branches · ATM 24/7</span>
+          </div>
+
+          <svg viewBox="0 0 380 460" class="bd-svg-map" xmlns="http://www.w3.org/2000/svg">
+            <!-- Bangladesh Landmass -->
+            <path class="bd-land" d="M 108 26 C 114 32, 122 42, 128 54 C 136 68, 140 80, 152 88 C 166 94, 188 92, 204 100 C 218 108, 230 112, 244 110 C 260 106, 272 98, 288 104 C 302 108, 316 118, 326 128 C 340 142, 350 162, 346 178 C 340 196, 324 212, 322 228 C 320 242, 334 254, 332 268 C 328 284, 312 292, 306 306 C 300 320, 310 334, 316 350 C 326 372, 342 394, 354 420 C 362 436, 366 452, 360 458 C 354 460, 346 450, 340 436 C 332 416, 322 394, 312 376 C 302 360, 288 352, 276 350 C 264 348, 252 356, 240 364 C 228 372, 220 386, 210 398 C 200 408, 186 412, 174 410 C 160 406, 150 394, 138 396 C 126 398, 114 406, 102 402 C 90 398, 86 384, 84 368 C 82 346, 86 322, 82 300 C 78 278, 66 262, 62 240 C 58 218, 62 196, 60 174 C 58 152, 54 132, 60 112 C 66 92, 78 74, 88 56 C 96 42, 102 32, 108 26 Z" />
+            
+            <!-- Major Rivers -->
+            <path class="bd-river" d="M 152 88 Q 175 160 200 235" />
+            <path class="bd-river" d="M 72 205 Q 140 220 200 235" />
+            <path class="bd-river" d="M 288 104 Q 240 180 200 235" />
+            <path class="bd-river" d="M 200 235 Q 215 310 215 390" />
+
+            <!-- Pinned Locations with interactive data-city -->
+            <g class="map-pin" data-city="Rangpur" transform="translate(110, 85)">
+              <circle class="pin-ring" r="14" />
+              <circle class="pin-dot" r="5" />
+              <text class="pin-lbl" y="-9">Rangpur</text>
+            </g>
+            <g class="map-pin" data-city="Mymensingh" transform="translate(200, 148)">
+              <circle class="pin-ring" r="14" />
+              <circle class="pin-dot" r="5" />
+              <text class="pin-lbl" y="-9">Mymensingh</text>
+            </g>
+            <g class="map-pin" data-city="Sylhet" transform="translate(295, 145)">
+              <circle class="pin-ring" r="14" />
+              <circle class="pin-dot" r="5" />
+              <text class="pin-lbl" y="-9">Sylhet</text>
+            </g>
+            <g class="map-pin" data-city="Rajshahi" transform="translate(100, 205)">
+              <circle class="pin-ring" r="14" />
+              <circle class="pin-dot" r="5" />
+              <text class="pin-lbl" y="-9">Rajshahi</text>
+            </g>
+            <g class="map-pin" data-city="Dhaka" transform="translate(200, 235)">
+              <circle class="pin-ring" r="16" />
+              <circle class="pin-dot" r="6" />
+              <text class="pin-lbl" y="-10" font-weight="800">Dhaka</text>
+            </g>
+            <g class="map-pin" data-city="Khulna" transform="translate(130, 330)">
+              <circle class="pin-ring" r="14" />
+              <circle class="pin-dot" r="5" />
+              <text class="pin-lbl" y="-9">Khulna</text>
+            </g>
+            <g class="map-pin" data-city="Barishal" transform="translate(205, 355)">
+              <circle class="pin-ring" r="14" />
+              <circle class="pin-dot" r="5" />
+              <text class="pin-lbl" y="18">Barishal</text>
+            </g>
+            <g class="map-pin" data-city="Chattogram" transform="translate(295, 350)">
+              <circle class="pin-ring" r="14" />
+              <circle class="pin-dot" r="5" />
+              <text class="pin-lbl" y="-9">Chattogram</text>
+            </g>
+          </svg>
+        </div>
+        <div class="map-card-foot">
+          <small><i class='bx bx-pointer'></i> Hover over pins to inspect location names</small>
+        </div>
+      </div>
+
+      <!-- 3. Branch Cards Display -->
+      <div class="br-cards-wrap">
+        <div class="bc-header">
+          <div class="bc-title-info">
+            <span class="bc-label">Active Region</span>
+            <h3 id="activeCityTitle">Dhaka</h3>
+          </div>
+          <span class="bc-count-badge" id="activeCityCount">2 Branches</span>
+        </div>
+        <div class="br-cards" id="brCards"></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:20px">Showing a selection. The full list is available in your dashboard after sign-in.</p>
+  </div>
+</section>
+
+<!-- ═════════ FAQ + NOTICES ═════════ -->
+<section id="faq">
+  <div class="wrap faq-grid">
+    <div>
+      <h2>Questions people ask us</h2>
+      <div style="margin-top:20px">
+        <?php foreach ($faqs as $f): ?>
+          <details><summary><?= $f[0] ?></summary><p><?= $f[1] ?></p></details>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <div>
+      <h2 style="font-size:26px">Notices</h2>
+      <div style="margin-top:12px">
+        <?php foreach ($notices as $n): ?>
+          <div class="notice"><b><?= $n[0] ?></b><p><?= $n[1] ?></p></div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ CONTACT ═════════ -->
+<section id="contact" class="contact">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 data-bn="আমরা আছি আপনার পাশে">We're here when you need us</h2>
+      <p class="lede">Choose whichever is quickest for you.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="ct"><i class='bx bx-phone-call'></i><h3>Call us</h3><p>24/7 hotline<br><a href="tel:<?= $bank['hotline'] ?>"><?= $bank['hotline'] ?></a></p></div>
+      <div class="ct"><i class='bx bx-envelope'></i><h3>Email</h3><p>Reply within one working day<br><a href="mailto:<?= $bank['email'] ?>"><?= $bank['email'] ?></a></p></div>
+      <div class="ct"><i class='bx bx-chat'></i><h3>Live chat</h3><p>Sign in and open Help in your dashboard for chat support.</p></div>
+      <div class="ct"><i class='bx bx-buildings'></i><h3>Visit us</h3><p><?= $bank['address'] ?><br><?= $bank['hours'] ?></p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ═════════ FOOTER ═════════ -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="index.php" class="brand"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg></span>Asha Bank</a>
+        <p>A scheduled commercial bank in Bangladesh, regulated by Bangladesh Bank.</p>
+        <div class="foot-id"><span>SWIFT: <?= $bank['swift'] ?></span><span>Routing no.: <?= $bank['routing'] ?></span></div>
+        <div class="social">
+          <a href="#" aria-label="Facebook"><i class='bx bxl-facebook'></i></a>
+          <a href="#" aria-label="X"><i class='bx bxl-twitter'></i></a>
+          <a href="#" aria-label="LinkedIn"><i class='bx bxl-linkedin'></i></a>
+          <a href="#" aria-label="YouTube"><i class='bx bxl-youtube'></i></a>
+        </div>
+      </div>
+      <div><h4>Personal</h4><ul><li><a href="#accounts">Savings account</a></li><li><a href="#accounts">Student account</a></li><li><a href="#accounts">Fixed deposit</a></li><li><a href="#accounts">DPS</a></li><li><a href="#cards">Cards</a></li></ul></div>
+      <div><h4>Borrow</h4><ul><li><a href="#loans">Personal loan</a></li><li><a href="#loans">Home loan</a></li><li><a href="#loans">Car loan</a></li><li><a href="#loans">SME loan</a></li><li><a href="#tools">Loan calculator</a></li></ul></div>
+      <div><h4>Services</h4><ul><li><a href="#digital">Digital banking</a></li><li><a href="#rates">Exchange rates</a></li><li><a href="#remittance">Remittance</a></li><li><a href="#branches">Branches &amp; ATMs</a></li><li><a href="#security">Security centre</a></li></ul></div>
+      <div><h4>About</h4><ul><li><a href="#faq">FAQ</a></li><li><a href="#contact">Contact us</a></li><li><a href="#">Careers</a></li><li><a href="#">Schedule of charges</a></li><li><a href="#">Privacy policy</a></li><li><a href="#">Terms of service</a></li><li><a href="setup.php">DB setup</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <?= date('Y') ?> <?= $bank['legal'] ?>. All rights reserved.</span>
+      <span>Hotline <?= $bank['hotline'] ?> · <?= $bank['email'] ?></span>
+    </div>
+    <p class="disclaimer">Rates, fees and limits shown are indicative, subject to change and to the bank's terms and eligibility criteria. Loans and credit cards are subject to approval. Deposits are protected under applicable Bangladesh law.</p>
+  </div>
 </footer>
 
-<!-- ═══════════════════════════════════ -->
-<!-- LOGIN MODAL -->
-<!-- ═══════════════════════════════════ -->
-<div class="modal-backdrop" id="login-modal" onclick="closeModal(event)">
-    <div class="login-modal">
-        <button class="modal-close" onclick="closeModalDirect()" aria-label="Close">
-            <i class='bx bx-x'></i>
-        </button>
-
-        <div class="modal-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
-        </div>
-        <h2 class="modal-title">Welcome back</h2>
-        <p class="modal-sub">Sign in to your Asha Bank account</p>
-
-        <!-- Role tabs -->
-        <div class="role-tabs" id="roleTabs">
-            <button class="role-tab active" onclick="setRole(this, 'client')">Customer</button>
-            <button class="role-tab" onclick="setRole(this, 'staff')">Staff</button>
-            <button class="role-tab" onclick="setRole(this, 'admin')">Admin</button>
-        </div>
-
-        <form method="POST" action="login.php" data-loading>
-            <input type="hidden" name="<?= csrf_field() ?>" value="<?= csrf_token() ?>">
-            <input type="hidden" name="role" id="modalRole" value="client">
-
-            <div class="form-field">
-                <label>Username or Email</label>
-                <input type="text" name="login" placeholder="your@email.com" required autocomplete="username">
-            </div>
-            <div class="form-field">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
-            </div>
-
-            <button type="submit" class="btn-login">
-                Sign in <i class='bx bx-right-arrow-alt'></i>
-            </button>
-        </form>
-
-        <div class="modal-footer-link">
-            Don't have an account? <a href="register.php">Create one →</a>
-        </div>
-    </div>
-</div>
-
 <script>
-// ── Theme ──────────────────────────────────────────────────────
-const THEME_KEY = 'asha-theme';
-const html = document.documentElement;
-const icon = document.getElementById('themeIcon');
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const bdt = n => '৳' + Math.round(n).toLocaleString('en-BD');
 
-function applyTheme(t) {
-    html.setAttribute('data-theme', t);
-    localStorage.setItem(THEME_KEY, t);
-    if (icon) icon.className = t === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
-}
+  /* Theme */
+  const root = document.documentElement, tb = $('#themeBtn');
+  const setTheme = t => {
+    root.dataset.theme = t;
+    try { localStorage.setItem('asha-theme', t); } catch (e) {}
+    tb.innerHTML = t === 'dark' ? "<i class='bx bx-sun'></i>" : "<i class='bx bx-moon'></i>";
+  };
+  let saved = null; try { saved = localStorage.getItem('asha-theme'); } catch (e) {}
+  setTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  tb.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
 
-// Load saved
-applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+  /* Mobile menu */
+  const burger = $('#burger'), nav = $('#nav');
+  burger.addEventListener('click', () => { const o = nav.classList.toggle('open'); burger.setAttribute('aria-expanded', o); });
+  $$('#nav a').forEach(a => a.addEventListener('click', () => { nav.classList.remove('open'); burger.setAttribute('aria-expanded', false); }));
 
-document.getElementById('themeToggle')?.addEventListener('click', () => {
-    applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-});
+  /* Language toggle (EN / বাংলা) */
+  $$('[data-bn]').forEach(el => el.dataset.en = el.textContent);
+  $$('[data-lang]').forEach(b => b.addEventListener('click', () => {
+    const bn = b.dataset.lang === 'bn';
+    $$('[data-lang]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $$('[data-bn]').forEach(el => el.textContent = bn ? el.dataset.bn : el.dataset.en);
+    document.documentElement.lang = bn ? 'bn' : 'en';
+  }));
 
-// ── Modal ──────────────────────────────────────────────────────
-function openModal(id) {
-    document.getElementById(id).classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-function closeModal(e) {
-    if (e.target === e.currentTarget) closeModalDirect();
-}
-function closeModalDirect() {
-    document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
-    document.body.style.overflow = '';
-}
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModalDirect(); });
 
-// ── Role tabs ──────────────────────────────────────────────────
-function setRole(btn, role) {
-    document.querySelectorAll('#roleTabs .role-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('modalRole').value = role;
-}
+  /* Account tabs */
+  $$('#accTabs button').forEach(b => b.addEventListener('click', () => {
+    $$('#accTabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    $$('.acc-panel').forEach(p => p.classList.toggle('on', p.id === 'panel-' + b.dataset.acc));
+  }));
 
-// ── Scroll reveal ──────────────────────────────────────────────
-const reveals = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  /* Calculators (0% Interest & 0.001% Storage/Custody Fee) */
+  const num = id => parseFloat($(id).value) || 0;
+  function emi() {
+    const P = num('#emiP'), r = num('#emiR') / 1200, n = Math.max(1, num('#emiN'));
+    const m = r ? P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) : P / n;
+    $('#emiOut').textContent = bdt(m);
+    $('#emiTot').textContent = bdt(m * n);
+    $('#emiInt').textContent = r ? bdt(m * n - P) : '৳0 (0% Interest)';
+  }
+  function fd() {
+    const P = num('#fdP'), feeRate = 0.00001, t = num('#fdN') / 12;
+    const feeAmt = Math.max(0.5, P * feeRate * t);
+    const A = P - feeAmt;
+    $('#fdOut').textContent = bdt(A);
+    $('#fdIn').textContent = bdt(P);
+    $('#fdInt').textContent = '৳' + Math.max(1, Math.round(feeAmt)).toLocaleString('en-BD') + ' (0.001%)';
+  }
+  function dps() {
+    const M = num('#dpM'), n = num('#dpN'), feeRate = 0.00001;
+    const totalDeposited = M * n;
+    const feeAmt = Math.max(0.5, totalDeposited * feeRate * (n / 24));
+    const A = totalDeposited - feeAmt;
+    $('#dpOut').textContent = bdt(A);
+    $('#dpIn').textContent = bdt(totalDeposited);
+    $('#dpInt').textContent = '৳' + Math.max(1, Math.round(feeAmt)).toLocaleString('en-BD') + ' (0.001%)';
+  }
+  $('#emiPr').addEventListener('input', e => { $('#emiP').value = e.target.value; emi(); });
+  $('#emiP').addEventListener('input', e => { $('#emiPr').value = e.target.value; emi(); });
+  ['#emiR', '#emiN'].forEach(s => $(s).addEventListener('input', emi));
+  ['#fdP', '#fdR', '#fdN'].forEach(s => $(s).addEventListener('input', fd));
+  ['#dpM', '#dpR', '#dpN'].forEach(s => $(s).addEventListener('input', dps));
+  emi(); fd(); dps();
+  $$('#toolTabs button').forEach(b => b.addEventListener('click', () => {
+    $$('#toolTabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    $$('[data-panel]').forEach(p => p.classList.toggle('hide', p.dataset.panel !== b.dataset.tool));
+  }));
+
+  /* Currency converter */
+  function conv() {
+    const sel = $('#cvCur');
+    const opt = sel ? sel.options[sel.selectedIndex] : null;
+    const code = opt ? opt.dataset.code || 'USD' : 'USD';
+    const rate = parseFloat(sel.value) || 0;
+    const amt = num('#cvAmt');
+    if ($('#cvCurBadge')) $('#cvCurBadge').textContent = code;
+    if ($('#cvRateTag')) $('#cvRateTag').textContent = `1 ${code} = ৳${rate.toFixed(2)}`;
+    $('#cvOut').textContent = '৳' + (amt * rate).toLocaleString('en-BD', { maximumFractionDigits: 2 });
+  }
+  $('#cvAmt').addEventListener('input', conv);
+  $('#cvCur').addEventListener('change', conv);
+  conv();
+
+  /* Branch finder with interactive Bangladesh map */
+  const branches = <?= json_encode($branchList, JSON_UNESCAPED_UNICODE) ?>;
+  const hours = <?= json_encode($bank['hours']) ?>;
+  const box = $('#brCards');
+  const activeCityTitle = $('#activeCityTitle');
+  const activeCityCount = $('#activeCityCount');
+  const mapTooltip = $('#mapTooltip');
+  const mapStage = $('#mapStage');
+  const mtTitle = $('#mtTitle');
+  const mtSub = $('#mtSub');
+
+  function showCity(c) {
+    const list = branches[c] || [];
+    if (activeCityTitle) activeCityTitle.textContent = c;
+    if (activeCityCount) activeCityCount.textContent = `${list.length} Branch${list.length > 1 ? 'es' : ''} & 24/7 ATM`;
+
+    // Update city list buttons
+    $$('#cityList button').forEach(x => {
+      x.setAttribute('aria-selected', x.dataset.city === c ? 'true' : 'false');
     });
-}, { threshold: 0.1 });
-reveals.forEach(el => observer.observe(el));
 
+    // Update map pin active states
+    $$('.map-pin').forEach(p => {
+      p.classList.toggle('active', p.dataset.city === c);
+    });
 
+    // Render branch cards
+    box.innerHTML = list.map((b, i) => {
+      const name = typeof b === 'object' ? b.name : b;
+      const addr = typeof b === 'object' ? b.address : c;
+      const phone = typeof b === 'object' && b.phone ? `<br><small style="color:var(--ink-3)">Tel: ${b.phone}</small>` : '';
+      return `<div class="br"><h3>${name}</h3><p>${addr}<br>${hours}${phone}</p><span class="tag">${i === 0 ? 'Branch + ATM (24/7)' : 'Branch + ATM'}</span></div>`;
+    }).join('');
+  }
 
-// ── Announcement Bar 30s Auto-Close ────────────────────────────
-const annBar = document.getElementById('announcementBar');
-const closeAnnBtn = document.getElementById('closeAnnBtn');
+  // City list clicks & hovers
+  $$('#cityList button').forEach(b => {
+    b.addEventListener('click', () => showCity(b.dataset.city));
+    b.addEventListener('mouseenter', () => {
+      const targetPin = $(`.map-pin[data-city="${b.dataset.city}"]`);
+      if (targetPin) targetPin.classList.add('pin-hover');
+    });
+    b.addEventListener('mouseleave', () => {
+      $$('.map-pin').forEach(p => p.classList.remove('pin-hover'));
+    });
+  });
 
-if (annBar) {
-    function closeAnnouncement() {
-        annBar.classList.add('hide');
+  // Map pins hover & click events
+  $$('.map-pin').forEach(pin => {
+    const city = pin.dataset.city;
+    pin.addEventListener('click', () => showCity(city));
+
+    pin.addEventListener('mouseenter', () => {
+      const list = branches[city] || [];
+      if (mtTitle) mtTitle.textContent = `${city} Division`;
+      if (mtSub) mtSub.textContent = `${list.length} Branch${list.length > 1 ? 'es' : ''} · ATM 24/7`;
+
+      if (mapTooltip && mapStage) {
+        const stageRect = mapStage.getBoundingClientRect();
+        const pinRect = pin.getBoundingClientRect();
+        const left = pinRect.left - stageRect.left + (pinRect.width / 2);
+        const top = pinRect.top - stageRect.top;
+        mapTooltip.style.left = `${left}px`;
+        mapTooltip.style.top = `${top}px`;
+        mapTooltip.style.display = 'flex';
+      }
+    });
+
+    pin.addEventListener('mouseleave', () => {
+      if (mapTooltip) mapTooltip.style.display = 'none';
+    });
+  });
+
+  const firstCity = Object.keys(branches)[0] || 'Dhaka';
+  if (firstCity) showCity(firstCity);
+
+  /* Clipboard copy handler for remittance instructions */
+  $$('.rc-btn-copy[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.copy;
+      if (!text) return;
+      const setSuccess = () => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = "<i class='bx bx-check'></i> Copied!";
+        btn.classList.add('copied');
         setTimeout(() => {
-            annBar.style.display = 'none';
-        }, 400);
-    }
-
-    let autoCloseTimer = null;
-
-    // Check if dismissed in this session
-    if (sessionStorage.getItem('asha_ann_dismissed') === 'true') {
-        annBar.style.display = 'none';
-    } else {
-        // Auto-close after 30 seconds
-        autoCloseTimer = setTimeout(() => {
-            closeAnnouncement();
-        }, 30000);
-    }
-
-    // Manual close button
-    closeAnnBtn?.addEventListener('click', () => {
-        if (autoCloseTimer) clearTimeout(autoCloseTimer);
-        sessionStorage.setItem('asha_ann_dismissed', 'true');
-        closeAnnouncement();
+          btn.innerHTML = orig;
+          btn.classList.remove('copied');
+        }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(setSuccess).catch(() => {
+          fallbackCopy(text, setSuccess);
+        });
+      } else {
+        fallbackCopy(text, setSuccess);
+      }
     });
-}
+  });
+  function fallbackCopy(text, cb) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); cb(); } catch(e){}
+    document.body.removeChild(ta);
+  }
+})();
 </script>
-
-<?php
-// Helper functions for CSRF token in this page
-function csrf_field() { return 'csrf_token'; }
-function csrf_token() { return $_SESSION['csrf_token'] ?? ''; }
-?>
-
 </body>
 </html>

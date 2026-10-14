@@ -390,7 +390,7 @@ include 'includes/header.php';
                             </div>
                             <div>
                                 <span style="color:var(--text-muted);font-size:12px;">Current Plan</span>
-                                <div style="font-weight:600;color:var(--text-primary);"><?= e($currentAccount['ProductName']) ?> (<?= e($currentAccount['InterestRate']) ?>% APY)</div>
+                                <div style="font-weight:600;color:var(--text-primary);"><?= e($currentAccount['ProductName']) ?> (0% Interest · 0.001% fee)</div>
                             </div>
                             <div style="grid-column:span 2;">
                                 <span style="color:var(--text-muted);font-size:12px;">Assigned Branch</span>
@@ -416,12 +416,12 @@ include 'includes/header.php';
                                         data-min="<?= formatBDT($p['MinBalance']) ?>"
                                         data-desc="<?= e($p['Description'] ?? '') ?>"
                                         <?= $p['ProductID'] == $currentAccount['ProductID'] ? 'selected' : '' ?>>
-                                    <?= e($p['ProductName']) ?> — <?= e($p['AccountType']) ?> (<?= e($p['InterestRate']) ?>% Interest)
+                                    <?= e($p['ProductName']) ?> — <?= e($p['AccountType']) ?> (0% Interest · 0.001% fee)
                                 </option>
                                 <?php endforeach; ?>
                             </select>
                             <div id="planHelp" class="form-helper" style="font-size:12px;margin-top:6px;color:var(--text-muted);">
-                                Upgrading your plan adjusts your interest rate and minimum balance tier immediately.
+                                Asha Bank provides 0% interest accounts with a nominal 0.001% annual storage and custody fee.
                             </div>
                         </div>
 
@@ -743,7 +743,7 @@ include 'includes/header.php';
                     <select id="new_product_id" name="new_product_id" class="form-control" required>
                         <?php foreach ($products as $p): ?>
                         <option value="<?= $p['ProductID'] ?>">
-                            <?= e($p['ProductName']) ?> (<?= e($p['AccountType']) ?> — <?= e($p['InterestRate']) ?>% APY)
+                            <?= e($p['ProductName']) ?> (<?= e($p['AccountType']) ?> — 0% Interest)
                         </option>
                         <?php endforeach; ?>
                     </select>
@@ -777,9 +777,8 @@ include 'includes/header.php';
 function updatePlanPreview() {
     const sel = document.getElementById('product_id');
     const opt = sel.options[sel.selectedIndex];
-    const interest = opt.getAttribute('data-interest');
-    const minBal   = opt.getAttribute('data-min');
-    document.getElementById('planHelp').textContent = 'Annual Yield: ' + interest + '% APY | Required Minimum Reserve: ' + minBal;
+    const minBal = opt.getAttribute('data-min');
+    document.getElementById('planHelp').textContent = '0% Interest Banking | 0.001% Safekeeping & Storage Fee | Minimum Reserve: ' + minBal;
 }
 
 document.addEventListener('keydown', function(e) {

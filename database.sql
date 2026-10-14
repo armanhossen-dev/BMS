@@ -312,6 +312,7 @@ CREATE TABLE NOTIFICATIONS (
     title VARCHAR(200) NOT NULL,
     message TEXT NOT NULL,
     type ENUM('info','success','warning','danger') DEFAULT 'info',
+    link VARCHAR(255) NULL,
     is_read TINYINT(1) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE
@@ -1130,13 +1131,13 @@ INSERT INTO DIGITALBANKINGUSER (CustomerID, Username, PasswordHash, TransactionP
 (4, 'tanvir.ahmed', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$2y$12$jUkCNy.8TDE1AhfGa1d57eF0lMkseOSQocJ/rGTh9dLJTH4isJc9C', 1, NOW()),
 (5, 'nadia.islam', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$2y$12$jUkCNy.8TDE1AhfGa1d57eF0lMkseOSQocJ/rGTh9dLJTH4isJc9C', 1, NOW());
 
--- Account Products
+-- Account Products (0% Interest Banking Model with 0.001% Safekeeping & Storage Fee)
 INSERT INTO ACCOUNTPRODUCT (ProductName, AccountType, InterestRate, MinBalance, MaxWithdrawalLimit, DailyTransferLimit, Description) VALUES
-('Asha Classic Savings', 'Savings', 4.50, 1000.00, 200000.00, 500000.00, 'Everyday digital savings account with free debit card and 24/7 internet banking.'),
-('Asha Platinum High-Yield', 'Savings', 6.00, 10000.00, 500000.00, 1000000.00, 'Premium account for high balances with tiered interest and airport lounge perks.'),
-('Asha Business Current Pro', 'Current', 0.00, 5000.00, 2000000.00, 5000000.00, 'Seamless corporate transactions with zero charges on digital bulk salary payouts.'),
-('Asha Student Smart Account', 'Student', 5.00, 100.00, 50000.00, 100000.00, 'Zero balance maintenance and subsidized fee for students aged 18 to 25.'),
-('Asha Term Deposit (FDR)', 'Fixed Deposit', 8.50, 50000.00, 0.00, 0.00, 'Guaranteed return investment scheme with monthly or maturity profit payout.');
+('Asha Classic Savings', 'Savings', 0.00, 1000.00, 200000.00, 500000.00, 'Everyday digital savings account with 0% interest and 0.001% annual storage/safekeeping fee.'),
+('Asha Platinum High-Yield', 'Savings', 0.00, 10000.00, 500000.00, 1000000.00, 'Premium reserve account with 0% interest, 0.001% custody fee, and VIP airport lounge perks.'),
+('Asha Business Current Pro', 'Current', 0.00, 5000.00, 2000000.00, 5000000.00, 'Seamless corporate transactions with 0% interest and 0.001% storage and custody fee.'),
+('Asha Student Smart Account', 'Student', 0.00, 100.00, 50000.00, 100000.00, 'Student account with 0% interest, zero hidden markup, and 0.001% maintenance fee.'),
+('Asha Term Deposit (FDR)', 'Fixed Deposit', 0.00, 50000.00, 0.00, 0.00, '100% capital preservation vault deposit with 0% interest and 0.001% custody fee.');
 
 -- Accounts
 INSERT INTO ACCOUNT (AccountNumber, ProductID, CustomerID, BranchID, OpeningDate, AvailableBalance, AccountStatus) VALUES
@@ -1179,7 +1180,7 @@ INSERT INTO TRANSACTION (TransactionTypeID, TransactionAmount, TransactionDate, 
 (1, 150000.00, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, 10000000003, NULL, 3, 'Business Dividend Deposit', 'Completed', 'DEP-10002'),
 (3, 15000.00, DATE_SUB(NOW(), INTERVAL 3 DAY), 10000000003, 10000000004, 3, 4, 'Consulting Payment to Tanvir', 'Completed', 'TXN-20002'),
 (6, 3250.00, DATE_SUB(NOW(), INTERVAL 2 DAY), 10000000001, NULL, 1, NULL, 'Electricity Bill Payment - DESCO', 'Completed', 'BIL-40001'),
-(8, 450.50, DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, 10000000001, NULL, 1, 'Monthly Interest Credited @ 4.5%', 'Completed', 'INT-50001');
+(2, 0.50, DATE_SUB(NOW(), INTERVAL 1 DAY), 10000000001, NULL, 1, NULL, 'Annual Storage & Maintenance Fee (0.001%)', 'Completed', 'FEE-50001');
 
 -- Bill Categories & Providers
 INSERT INTO BILL_CATEGORIES (category_name, category_icon) VALUES
@@ -1208,23 +1209,23 @@ INSERT INTO BILL_PROVIDERS (category_id, provider_name, provider_code) VALUES
 INSERT INTO BILL_PAYMENTS (customer_id, from_account, provider_id, account_number, amount, fee, total_amount, payment_date, status, reference_number) VALUES
 (1, 10000000001, 1, 'DESCO-99882211', 3250.00, 0.00, 3250.00, DATE_SUB(NOW(), INTERVAL 2 DAY), 'Completed', 'BP-887701');
 
--- Loan Products
+-- Loan Products (0% Interest Financing Model)
 INSERT INTO LOAN_PRODUCTS (product_name, loan_type, min_amount, max_amount, min_tenure_months, max_tenure_months, interest_rate, processing_fee, is_active) VALUES
-('Asha Dream Home Loan', 'Home', 500000.00, 20000000.00, 60, 300, 8.50, 5000.00, 1),
-('Asha Express Personal Loan', 'Personal', 50000.00, 1500000.00, 12, 60, 10.50, 1000.00, 1),
-('Asha Auto & EV Loan', 'Car', 300000.00, 5000000.00, 24, 72, 9.25, 3000.00, 1),
-('Asha Higher Education Loan', 'Education', 100000.00, 3000000.00, 12, 84, 7.50, 1500.00, 1),
-('Asha SME Shujog Loan', 'SME', 200000.00, 10000000.00, 12, 84, 8.75, 2500.00, 1);
+('Asha Dream Home Loan', 'Home', 500000.00, 20000000.00, 60, 300, 0.00, 5000.00, 1),
+('Asha Express Personal Loan', 'Personal', 50000.00, 1500000.00, 12, 60, 0.00, 1000.00, 1),
+('Asha Auto & EV Loan', 'Car', 300000.00, 5000000.00, 24, 72, 0.00, 3000.00, 1),
+('Asha Higher Education Loan', 'Education', 100000.00, 3000000.00, 12, 84, 0.00, 1500.00, 1),
+('Asha SME Shujog Loan', 'SME', 200000.00, 10000000.00, 12, 84, 0.00, 2500.00, 1);
 
 -- Sample Loan
 INSERT INTO LOANS (customer_id, loan_product_id, loan_amount, tenure_months, interest_rate, emi_amount, status, application_date, approval_date) VALUES
-(1, 2, 200000.00, 24, 10.50, 9270.00, 'Active', DATE_SUB(NOW(), INTERVAL 3 MONTH), DATE_SUB(NOW(), INTERVAL 80 DAY));
+(1, 2, 200000.00, 24, 0.00, 8333.33, 'Active', DATE_SUB(NOW(), INTERVAL 3 MONTH), DATE_SUB(NOW(), INTERVAL 80 DAY));
 
 -- Generate sample EMI records
 INSERT INTO LOAN_EMI_SCHEDULE (loan_id, due_date, emi_amount, principal_amount, interest_amount, outstanding_balance, status, paid_date) VALUES
-(1, DATE_SUB(CURDATE(), INTERVAL 2 MONTH), 9270.00, 7520.00, 1750.00, 192480.00, 'Paid', DATE_SUB(CURDATE(), INTERVAL 2 MONTH)),
-(1, DATE_SUB(CURDATE(), INTERVAL 1 MONTH), 9270.00, 7585.00, 1685.00, 184895.00, 'Paid', DATE_SUB(CURDATE(), INTERVAL 1 MONTH)),
-(1, CURDATE(), 9270.00, 7652.00, 1618.00, 177243.00, 'Pending', NULL);
+(1, DATE_SUB(CURDATE(), INTERVAL 2 MONTH), 8333.33, 8333.33, 0.00, 183333.34, 'Paid', DATE_SUB(CURDATE(), INTERVAL 2 MONTH)),
+(1, DATE_SUB(CURDATE(), INTERVAL 1 MONTH), 8333.33, 8333.33, 0.00, 175000.01, 'Paid', DATE_SUB(CURDATE(), INTERVAL 1 MONTH)),
+(1, CURDATE(), 8333.33, 8333.33, 0.00, 166666.68, 'Pending', NULL);
 
 -- KYC
 INSERT INTO KYC_VERIFICATIONS (customer_id, nid_number, id_type, status, submitted_at, verified_at, verified_by) VALUES

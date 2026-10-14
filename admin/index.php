@@ -794,59 +794,69 @@ include __DIR__ . '/../includes/header.php';
 
 <!-- ── Add Staff Modal ──────────────────────────────────────── -->
 <div id="addStaffModal" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:500px;width:100%;margin:auto;background:var(--surface);border-radius:12px;padding:24px;border:1px solid var(--cream-3);box-shadow:var(--shadow-xl);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <h3 style="margin:0;font-size:18px;">Add New Staff Member</h3>
-            <button type="button" class="btn btn-ghost btn-sm" data-modal-close="addStaffModal" style="padding:4px 8px;font-size:16px;">&times;</button>
+    <div class="modal" style="max-width:520px;background:#FFFFFF;border-radius:16px;box-shadow:var(--shadow-xl);border:1px solid var(--border);overflow:hidden;" role="dialog" aria-modal="true" aria-labelledby="addStaffModalTitle">
+        <div class="modal-header" style="background:#FFFFFF;border-bottom:1px solid var(--border);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:#F4F4F5;display:flex;align-items:center;justify-content:center;color:#09090B;font-size:20px;flex-shrink:0;">
+                    <i class='bx bx-user-plus'></i>
+                </div>
+                <div>
+                    <h3 id="addStaffModalTitle" style="margin:0;font-size:16px;font-weight:700;color:#09090B;">Add New Staff Member</h3>
+                    <div style="font-size:12px;color:var(--text-muted);">Create credentials and assign departmental role</div>
+                </div>
+            </div>
+            <button class="modal-close" type="button" data-modal-close="addStaffModal" aria-label="Close" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">&times;</button>
         </div>
-        <form method="POST" action="?tab=staff">
+        <form method="POST" action="?tab=staff" style="margin:0;">
             <?= csrfField() ?>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div class="form-group">
-                    <label class="form-label">First Name <span class="required">*</span></label>
-                    <input type="text" name="first_name" class="form-control" required placeholder="John">
+            <div class="modal-body" style="padding:22px 24px;background:#FFFFFF;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">First Name <span class="required" style="color:#DC2626;">*</span></label>
+                        <input type="text" name="first_name" class="form-control" required placeholder="John">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Last Name <span class="required" style="color:#DC2626;">*</span></label>
+                        <input type="text" name="last_name" class="form-control" required placeholder="Doe">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Last Name <span class="required">*</span></label>
-                    <input type="text" name="last_name" class="form-control" required placeholder="Doe">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Email Address <span class="required" style="color:#DC2626;">*</span></label>
+                    <input type="email" name="email" class="form-control" required placeholder="john.doe@ashabank.com">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Username <span class="required" style="color:#DC2626;">*</span></label>
+                        <input type="text" name="username" class="form-control" required placeholder="johndoe">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Phone</label>
+                        <input type="text" name="phone" class="form-control" placeholder="+8801700000000">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Password <span class="required" style="color:#DC2626;">*</span></label>
+                    <input type="password" name="password" class="form-control" required placeholder="Minimum 6 characters">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Role</label>
+                        <select name="role" class="form-control">
+                            <option value="officer">Officer</option>
+                            <option value="teller">Teller</option>
+                            <option value="manager">Manager</option>
+                            <option value="support">Support</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Department</label>
+                        <input type="text" name="department" class="form-control" placeholder="Operations" value="Operations">
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Email Address <span class="required">*</span></label>
-                <input type="email" name="email" class="form-control" required placeholder="john.doe@ashabank.com">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div class="form-group">
-                    <label class="form-label">Username <span class="required">*</span></label>
-                    <input type="text" name="username" class="form-control" required placeholder="johndoe">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Phone</label>
-                    <input type="text" name="phone" class="form-control" placeholder="+8801700000000">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Password <span class="required">*</span></label>
-                <input type="password" name="password" class="form-control" required placeholder="Minimum 6 characters">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div class="form-group">
-                    <label class="form-label">Role</label>
-                    <select name="role" class="form-control">
-                        <option value="officer">Officer</option>
-                        <option value="teller">Teller</option>
-                        <option value="manager">Manager</option>
-                        <option value="support">Support</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Department</label>
-                    <input type="text" name="department" class="form-control" placeholder="Operations" value="Operations">
-                </div>
-            </div>
-            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+            <div class="modal-footer" style="padding:16px 24px;display:flex;justify-content:flex-end;gap:10px;background:#FAFAFA;border-top:1px solid var(--border);">
                 <button type="button" class="btn btn-outline" data-modal-close="addStaffModal">Cancel</button>
-                <button type="submit" name="add_staff" value="1" class="btn btn-primary">Create Staff</button>
+                <button type="submit" name="add_staff" value="1" class="btn btn-primary" style="background:#09090B;color:#FFFFFF;border-color:#09090B;">Create Staff</button>
             </div>
         </form>
     </div>

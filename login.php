@@ -156,28 +156,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="alternate icon" href="favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg:       #EEF3F0;
+            --bg:       #FAFAFA;
             --surface:  #FFFFFF;
-            --ink:      #0C2A20;
-            --muted:    #4F645A;
-            --faint:    #8A9B92;
-            --line:     #D5E0DA;
-            --green:    #0B3D2E;
-            --green-2:  #12573F;
-            --mint:     #CFE6DA;
-            --marigold: #F2B33D;
-            --danger:   #A82A22;
-            --danger-bg:#FBECEA;
-            --display:  'Bricolage Grotesque', 'Hind Siliguri', sans-serif;
-            --body:     'Hind Siliguri', system-ui, sans-serif;
+            --ink:      #09090B;
+            --muted:    #52525B;
+            --faint:    #71717A;
+            --line:     #E4E4E7;
+            --line-focus:#09090B;
+            --brand:    #09090B;
+            --brand-2:  #27272A;
+            --gold:     #F6BA42;
+            --gold-dark:#EAA023;
+            --danger:   #DC2626;
+            --danger-bg:#FEF2F2;
+            --danger-border: #FECACA;
+            --display:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            --body:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
         }
         html { height: 100%; }
         body {
-            font-family: var(--body); font-size: 16px; line-height: 1.5;
+            font-family: var(--body); font-size: 15px; line-height: 1.5;
             background: var(--bg); color: var(--ink);
             min-height: 100vh; min-height: 100dvh;
             display: grid; grid-template-columns: minmax(380px, 5fr) 6fr;
@@ -186,110 +188,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* ---------- Brand panel ---------- */
         .brand {
-            background: var(--green);
+            background: #09090B;
             color: #fff;
-            padding: 40px 56px;
+            padding: 44px 56px;
             display: flex; flex-direction: column; justify-content: space-between;
             position: relative; overflow: hidden;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .brand::before {            /* quiet contour rings behind the card */
+        .brand::before {
             content: ''; position: absolute; right: -220px; top: 18%;
             width: 560px; height: 560px; border-radius: 50%;
-            box-shadow: 0 0 0 60px rgba(255,255,255,.035), 0 0 0 120px rgba(255,255,255,.025), 0 0 0 180px rgba(255,255,255,.015);
+            background: radial-gradient(circle, rgba(246, 186, 66, 0.06) 0%, transparent 70%);
+            box-shadow: 0 0 0 60px rgba(255,255,255,.02), 0 0 0 120px rgba(255,255,255,.015);
         }
         .logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; position: relative; z-index: 1; }
-        .logo-mark { width: 38px; height: 38px; border-radius: 12px; background: var(--marigold); display: grid; place-items: center; }
+        .logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); display: grid; place-items: center; box-shadow: 0 2px 6px rgba(234, 160, 35, 0.25); }
         .logo-mark svg { width: 22px; height: 22px; }
-        .logo-name { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: -.01em; }
+        .logo-name { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -.02em; }
 
         .brand-main { position: relative; z-index: 1; }
-        .brand h2 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 3.4vw, 50px); line-height: 1.05; letter-spacing: -.025em; max-width: 12ch; margin-bottom: 18px; }
-        .brand p  { color: rgba(255,255,255,.7); max-width: 34ch; font-size: 17px; }
+        .brand h2 { font-family: var(--display); font-weight: 700; font-size: clamp(32px, 3.2vw, 46px); line-height: 1.1; letter-spacing: -.03em; max-width: 13ch; margin-bottom: 16px; }
+        .brand p  { color: rgba(255,255,255,.65); max-width: 34ch; font-size: 16px; line-height: 1.6; }
 
         .card-visual {
-            margin-top: 44px; width: min(100%, 340px); aspect-ratio: 1.586;
-            border-radius: 20px; padding: 22px 24px;
-            background: linear-gradient(135deg, var(--marigold) 0%, #E39A1F 100%);
-            color: #2A1B00; transform: rotate(-4deg);
-            box-shadow: 0 30px 50px -20px rgba(0,0,0,.5);
+            margin-top: 40px; width: min(100%, 340px); aspect-ratio: 1.586;
+            border-radius: 16px; padding: 22px 24px;
+            background: linear-gradient(135deg, #18181B 0%, #27272A 50%, #09090B 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #FFFFFF; transform: rotate(-3deg);
+            box-shadow: 0 24px 48px -12px rgba(0,0,0,.6);
             display: flex; flex-direction: column; justify-content: space-between;
         }
-        .card-top { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-weight: 700; font-size: 15px; }
-        .chip { width: 38px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #fff6, #fff2); border: 1.5px solid #2A1B0033; }
-        .card-num { font-family: var(--display); font-size: 19px; letter-spacing: .12em; font-weight: 500; }
-        .card-bottom { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+        .chip { width: 36px; height: 26px; border-radius: 6px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .card-num { font-family: var(--display); font-size: 18px; letter-spacing: .12em; font-weight: 500; font-variant-numeric: tabular-nums; }
+        .card-bottom { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.7); }
 
-        .brand-foot { position: relative; z-index: 1; font-size: 13px; color: rgba(255,255,255,.5); }
+        .brand-foot { position: relative; z-index: 1; font-size: 13px; color: rgba(255,255,255,.45); }
 
         /* ---------- Form panel ---------- */
-        .panel { display: flex; align-items: center; justify-content: center; padding: 40px 32px; }
+        .panel { display: flex; align-items: center; justify-content: center; padding: 40px 32px; background: var(--bg); }
         .box { width: 100%; max-width: 410px; }
         .mobile-logo { display: none; }
-        .box h1 { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: -.025em; line-height: 1.1; margin-bottom: 8px; }
-        .box .sub { color: var(--muted); margin-bottom: 28px; }
+        .box h1 { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: -.03em; line-height: 1.15; margin-bottom: 6px; }
+        .box .sub { color: var(--muted); margin-bottom: 24px; font-size: 14.5px; }
 
-        .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: #E0EAE4; border-radius: 12px; margin-bottom: 24px; position: relative; }
+        .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: #F4F4F5; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 24px; position: relative; }
         .role {
-            position: relative; z-index: 1; padding: 9px 6px; border: 0; background: none;
-            font: 500 14px var(--body); color: var(--muted); border-radius: 9px; cursor: pointer; transition: color .2s;
+            position: relative; z-index: 1; padding: 8px 6px; border: 0; background: none;
+            font: 500 13.5px var(--body); color: var(--muted); border-radius: 7px; cursor: pointer; transition: color .15s;
         }
-        .role[aria-selected="true"] { color: var(--green); }
-        .roles .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 16px) / 3); background: #fff; border-radius: 9px; box-shadow: 0 1px 3px rgba(12,42,32,.15); transition: transform .25s cubic-bezier(.3,.9,.3,1); }
+        .role[aria-selected="true"] { color: var(--ink); font-weight: 600; }
+        .roles .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 16px) / 3); background: #fff; border-radius: 7px; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(0,0,0,.06); transition: transform .22s cubic-bezier(.16,1,.3,1); }
         .roles[data-active="1"] .thumb { transform: translateX(calc(100% + 4px)); }
         .roles[data-active="2"] .thumb { transform: translateX(calc(200% + 8px)); }
-        .role:focus-visible { outline: 2px solid var(--green-2); outline-offset: 1px; }
+        .role:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
-        .alert { display: flex; gap: 10px; align-items: flex-start; background: var(--danger-bg); color: var(--danger); border: 1px solid #F0C9C5; border-radius: 12px; padding: 12px 14px; font-size: 14.5px; margin-bottom: 20px; }
+        .alert { display: flex; gap: 10px; align-items: flex-start; background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); border-radius: 8px; padding: 12px 14px; font-size: 14px; margin-bottom: 20px; }
         .alert svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
 
         .field { margin-bottom: 18px; }
-        label { display: block; font-size: 14.5px; font-weight: 500; margin-bottom: 6px; }
+        label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: var(--ink); }
         .control { position: relative; }
         .control > svg.lead { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--faint); pointer-events: none; }
         input[type="text"], input[type="password"] {
-            width: 100%; height: 48px; padding: 0 44px 0 44px;
-            font: 400 16px var(--body); color: var(--ink);
-            background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px;
+            width: 100%; height: 46px; padding: 0 44px 0 42px;
+            font: 400 15px var(--body); color: var(--ink);
+            background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
             transition: border-color .15s, box-shadow .15s;
         }
-        input:hover { border-color: #B9CBC1; }
-        input:focus { outline: none; border-color: var(--green-2); box-shadow: 0 0 0 4px rgba(18,87,63,.14); }
+        input:hover { border-color: #A1A1AA; }
+        input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08); }
         input.has-error { border-color: var(--danger); }
-        .toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 0; background: none; border-radius: 8px; color: var(--faint); cursor: pointer; display: grid; place-items: center; }
-        .toggle:hover { color: var(--ink); background: #EEF3F0; }
-        .toggle:focus-visible { outline: 2px solid var(--green-2); }
+        .toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border: 0; background: none; border-radius: 6px; color: var(--faint); cursor: pointer; display: grid; place-items: center; }
+        .toggle:hover { color: var(--ink); background: #F4F4F5; }
+        .toggle:focus-visible { outline: 2px solid var(--brand); }
         .toggle svg { width: 18px; height: 18px; }
 
         .submit {
-            width: 100%; height: 50px; margin-top: 8px;
-            border: 0; border-radius: 12px; background: var(--green); color: #fff;
-            font: 600 16px var(--body); cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; height: 46px; margin-top: 6px;
+            border: 0; border-radius: 8px; background: var(--brand); color: #fff;
+            font: 600 15px var(--body); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
             transition: background .15s, transform .1s;
         }
-        .submit:hover { background: var(--green-2); }
-        .submit:active { transform: scale(.985); }
-        .submit:focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; }
+        .submit:hover { background: var(--brand-2); }
+        .submit:active { transform: scale(.99); }
+        .submit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
         .submit:disabled { opacity: .75; cursor: progress; }
 
-        .switch { margin-top: 22px; text-align: center; color: var(--muted); font-size: 15px; }
-        .switch a { color: var(--green-2); font-weight: 600; text-underline-offset: 3px; }
+        .switch { margin-top: 22px; text-align: center; color: var(--muted); font-size: 14px; }
+        .switch a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
-        .demo { margin-top: 28px; padding-top: 22px; border-top: 1px dashed var(--line); text-align: center; }
-        .demo p { font-size: 13.5px; color: var(--faint); margin-bottom: 10px; }
+        .demo { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); text-align: center; }
+        .demo p { font-size: 13px; color: var(--faint); margin-bottom: 10px; }
         .demo-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-        .demo button { font: 500 13.5px var(--body); color: var(--muted); background: transparent; border: 1.5px solid var(--line); border-radius: 100px; padding: 6px 14px; cursor: pointer; transition: all .15s; }
-        .demo button:hover { border-color: var(--green-2); color: var(--green); background: #fff; }
-        .demo button:focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
+        .demo button { font: 500 13px var(--body); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 100px; padding: 6px 14px; cursor: pointer; transition: all .15s; }
+        .demo button:hover { border-color: var(--ink); color: var(--ink); background: #F4F4F5; }
+        .demo button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
         @media (max-width: 900px) {
             body { grid-template-columns: 1fr; }
             .brand { display: none; }
             .panel { align-items: flex-start; padding: 28px 20px 48px; }
-            .mobile-logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 36px; text-decoration: none; color: var(--ink); }
-            .mobile-logo .logo-mark { width: 34px; height: 34px; background: var(--marigold); border-radius: 11px; }
+            .mobile-logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 32px; text-decoration: none; color: var(--ink); }
+            .mobile-logo .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); border-radius: 10px; }
             .mobile-logo .logo-mark svg { width: 20px; height: 20px; }
-            .mobile-logo .logo-mark svg * { stroke: #0B3D2E; }
+            .mobile-logo .logo-mark svg * { stroke: #09090B; }
             .mobile-logo .logo-name { font-family: var(--display); font-weight: 700; font-size: 19px; }
         }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -303,7 +308,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <aside class="brand" aria-hidden="true">
     <a href="index.php" class="logo" tabindex="-1">
         <span class="logo-mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
         </span>
         <span class="logo-name">Asha Bank</span>
     </a>
@@ -326,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <main class="panel">
     <div class="box">
         <a href="index.php" class="mobile-logo">
-            <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg></span>
+            <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg></span>
             <span class="logo-name">Asha Bank</span>
         </a>
 
@@ -343,7 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php $toast = getToast(); ?>
         <?php if ($toast): ?>
-        <div class="alert" style="background:#EBF7EE;color:#186A3B;border:1px solid #C3E6CB;" role="status">
+        <div class="alert" style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;" role="status">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <span><?= e($toast['message']) ?></span>
         </div>

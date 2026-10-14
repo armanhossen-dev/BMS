@@ -15,9 +15,24 @@ if (session_status() === PHP_SESSION_NONE) {
 // ── Environment ──────────────────────────────────────────────
 define('APP_ENV',   'development'); // switch to 'production' in prod
 define('APP_NAME',  'Asha Bank');
-define('APP_URL',   '/BMS');        // set base URL if needed
 if (!defined('BASE_URL')) {
-    define('BASE_URL', '/BMS');
+    $docRoot     = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
+    $projectRoot = realpath(__DIR__ . '/..');
+    $baseUrl     = '';
+    if ($docRoot && $projectRoot && str_starts_with($projectRoot, $docRoot)) {
+        $baseUrl = str_replace(DIRECTORY_SEPARATOR, '/', substr($projectRoot, strlen($docRoot)));
+    }
+    define('BASE_URL', rtrim($baseUrl, '/'));
+}
+if (!defined('APP_URL')) {
+    define('APP_URL', BASE_URL);
+}
+
+// Prevent infinite loop if browser visits /BMS/* when root is already BMS
+if (BASE_URL === '' && isset($_SERVER['REQUEST_URI']) && str_starts_with($_SERVER['REQUEST_URI'], '/BMS/')) {
+    $cleanUri = substr($_SERVER['REQUEST_URI'], 4);
+    header("Location: " . ($cleanUri ?: '/'), true, 301);
+    exit;
 }
 
 // ── Database credentials (never expose in frontend) ──────────
@@ -164,23 +179,45 @@ function csrfToken(): string {
 }
 
 function verifyCsrf(): void {
-    $token = $_POST['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+    $token = $_POST['_csrf'] ?? $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (empty($token) || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
         http_response_code(403);
         die('CSRF token mismatch.');
     }
 }
 
 function csrfField(): string {
-    return '<input type="hidden" name="_csrf" value="' . htmlspecialchars(csrfToken()) . '">';
+    $token = htmlspecialchars(csrfToken());
+    return '<input type="hidden" name="_csrf" value="' . $token . '"><input type="hidden" name="csrf_token" value="' . $token . '">';
+}
+
+if (!function_exists('csrf_token')) {
+    function csrf_token(): string {
+        return csrfToken();
+    }
+}
+if (!function_exists('csrf_field')) {
+    function csrf_field(): string {
+        return csrfField();
+    }
+}
+if (!function_exists('verify_csrf')) {
+    function verify_csrf(): void {
+        verifyCsrf();
+    }
 }
 
 // ─────────────────────────────────────────────────────────────
 // FLASH / TOAST MESSAGES
 // ─────────────────────────────────────────────────────────────
 
-function setToast(string $message, string $type = 'success'): void {
-    $_SESSION['toast'] = ['message' => $message, 'type' => $type];
+function setToast(string $message, string $type = 'success', int $duration = 3500, string $title = ''): void {
+    $_SESSION['toast'] = [
+        'message'  => $message,
+        'type'     => $type,
+        'duration' => $duration,
+        'title'    => $title
+    ];
 }
 
 function getToast(): ?array {
@@ -205,6 +242,9 @@ function sanitize(string $s): string {
 }
 
 function redirect(string $url): never {
+    if (!str_starts_with($url, 'http://') && !str_starts_with($url, 'https://') && !str_starts_with($url, '/')) {
+        $url = (BASE_URL ? BASE_URL . '/' : '/') . ltrim($url, '/');
+    }
     header("Location: $url");
     exit;
 }

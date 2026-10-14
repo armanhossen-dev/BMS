@@ -108,7 +108,7 @@ if ($role === 'client') {
         ],
         'Account' => [
             ['messages',     'Messages',     'bx bx-envelope',         $rootUrl . 'staff/dashboard.php?tab=messages'],
-            ['profile',      'Profile',      'bx bx-user',             $rootUrl . 'staff/profile.php'],
+            ['profile',      'Profile',      'bx bx-user',             $rootUrl . 'staff/dashboard.php?tab=profile'],
         ],
     ];
 } elseif ($role === 'admin') {
@@ -228,7 +228,7 @@ window.__FLASH_TOAST__ = <?= json_encode($toast) ?>;
             <i class='bx bx-menu'></i>
         </button>
         <div class="topbar-breadcrumb">
-            <a href="<?= $rootUrl ?>dashboard.php">Home</a>
+            <a href="<?= $rootUrl ?><?= $role === 'staff' ? 'staff/dashboard.php' : ($role === 'admin' ? 'admin/index.php' : 'dashboard.php') ?>">Home</a>
             <?php if (($pageTitle ?? '') !== 'Dashboard'): ?>
             <span class="sep">/</span>
             <span><?= e($pageTitle ?? '') ?></span>
@@ -248,7 +248,7 @@ window.__FLASH_TOAST__ = <?= json_encode($toast) ?>;
             <?php endif; ?>
         </a>
         <?php endif; ?>
-        <a href="<?= $rootUrl ?><?= $role === 'admin' ? 'admin/' : ($role === 'staff' ? 'staff/' : '') ?>profile.php"
+        <a href="<?= $rootUrl ?><?= $role === 'admin' ? 'admin/index.php?tab=profile' : ($role === 'staff' ? 'staff/dashboard.php?tab=profile' : 'profile.php') ?>"
            class="btn btn-ghost btn-sm" aria-label="Profile" style="gap:8px;">
             <div class="avatar avatar-sm" style="background:var(--bg-muted);color:var(--text-primary);font-size:11px;"><?= $initials ?></div>
             <span style="font-size:13px;font-weight:500;color:var(--text-secondary);"><?= e($username) ?></span>
