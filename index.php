@@ -272,7 +272,7 @@ csrfToken();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asha Bank | Open an account, cards, loans and savings in Bangladesh</title>
+<title>Asha Bank</title>
 <meta name="description" content="Asha Bank is a digital bank for Bangladesh. Open a savings account online, send money instantly, apply for loans and cards, and bank 24/7.">
 <meta name="author" content="Asha Bank PLC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1266,11 +1266,42 @@ details[open] summary::after{transform:rotate(45deg);color:var(--ink)}
 /* ═════════ CONTACT / APP ═════════ */
 .contact{background:var(--bg-2)}
 .contact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-.ct{padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--bg)}
-.ct i{font-size:26px;color:var(--ink)}
-.ct h3{font-size:16px;margin:12px 0 4px}
-.ct p{font-size:14.5px;color:var(--ink-2)}
-.ct a{font-weight:700}
+.ct{
+  padding:26px 24px;border:1px solid var(--line);border-radius:18px;background:var(--bg);
+  position:relative;overflow:hidden;
+  transition:transform .28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .28s cubic-bezier(0.16, 1, 0.3, 1), border-color .25s ease;
+}
+.ct::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:#09090B;opacity:0;
+  transition:opacity .25s ease;
+}
+[data-theme="dark"] .ct::before{
+  background:#FAFAFA;
+}
+.ct:hover{
+  transform:translateY(-6px);
+  border-color:rgba(9, 9, 11, 0.22);
+  box-shadow:0 18px 36px -8px rgba(0,0,0,0.08), 0 4px 12px -2px rgba(0,0,0,0.04);
+}
+.ct:hover::before{
+  opacity:1;
+}
+[data-theme="dark"] .ct:hover{
+  border-color:rgba(255, 255, 255, 0.25);
+  box-shadow:0 18px 36px -8px rgba(0,0,0,0.5), 0 4px 12px -2px rgba(0,0,0,0.3);
+}
+.ct i{
+  font-size:28px;color:var(--ink);display:inline-block;
+  transition:transform .28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ct:hover i{
+  transform:scale(1.15) translateY(-2px);
+}
+.ct h3{font-size:16px;font-weight:700;margin:14px 0 6px;color:var(--ink)}
+.ct p{font-size:14.5px;color:var(--ink-2);line-height:1.55;margin:0}
+.ct a{font-weight:700;color:var(--ink);text-decoration:none;transition:color .18s ease}
+.ct a:hover{text-decoration:underline}
 
 /* ═════════ FOOTER ═════════ */
 .foot{background:#09090B;color:#A1A1AA;padding:64px 0 28px;font-size:14.5px;border-top:1px solid #1E1E22}
@@ -1279,12 +1310,13 @@ details[open] summary::after{transform:rotate(45deg);color:var(--ink)}
 .foot h4{color:#fff;font-size:14px;margin-bottom:14px;font-family:var(--display)}
 .foot ul{list-style:none;display:grid;gap:9px}
 .foot a:hover{color:#fff;text-decoration:underline}
+.foot .brand:hover{text-decoration:none}
 .foot-id{display:grid;gap:4px;margin-top:16px;font-size:13px}
 .foot-bottom{border-top:1px solid rgba(255,255,255,.12);padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px}
 .disclaimer{font-size:12.5px;color:#71717A;margin-top:16px;max-width:90ch}
 .social{display:flex;gap:8px;margin-top:18px}
-.social a{width:34px;height:34px;border:1px solid rgba(255,255,255,.2);border-radius:8px;display:grid;place-items:center;font-size:17px;color:#A1A1AA}
-.social a:hover{color:#FFFFFF;border-color:rgba(255,255,255,.4)}
+.social a{width:34px;height:34px;border:1px solid rgba(255,255,255,.2);border-radius:8px;display:grid;place-items:center;font-size:17px;color:#A1A1AA;text-decoration:none!important;transition:all .2s ease}
+.social a:hover{color:#FFFFFF;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,0.08);text-decoration:none!important;transform:translateY(-2px)}
 
 /* ═════════ RESPONSIVE ═════════ */
 @media(min-width:992px){

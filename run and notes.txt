@@ -29,6 +29,12 @@ METHOD B: Via Built-in PHP Server (Fastest CLI Method)
 Symptom:
   In XAMPP Manage Servers, clicking "Start" on MySQL Database attempts to run,
   turns orange, and immediately stops back to red.
+  OR visiting the website shows:
+  "Database Connection Failed - SQLSTATE[HY000] [2002] No such file or directory"
+
+Quick Fix:
+  Start the MySQL service via Homebrew:
+    brew services start mysql
 
 Cause:
   Homebrew MySQL (`/opt/homebrew/opt/mysql/bin/mysqld`) is already running in
