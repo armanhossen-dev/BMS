@@ -1129,9 +1129,11 @@ tbody tr:hover td { background: var(--bg-subtle); color: var(--text-primary); }
 .sidebar-overlay {
     display: none;
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(9, 9, 11, 0.48);
     z-index: 199;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: opacity var(--dur) ease;
 }
 
 /* ── Search bar ───────────────────────────────────────────── */

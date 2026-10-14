@@ -233,6 +233,12 @@ foreach ($cities as $cityName => $bNames) {
     }
 }
 
+$bdDivisions = [];
+$bdDivFile = __DIR__ . '/assets/bangladesh_divisions.json';
+if (file_exists($bdDivFile)) {
+    $bdDivisions = json_decode(file_get_contents($bdDivFile), true) ?: [];
+}
+
 $faqs = [
     ['How long does it take to open an account?', 'Filling in the online form takes about three minutes. After you upload your NID and a selfie, our team verifies your identity within 24 hours and you can deposit right away.'],
     ['Do I need to visit a branch?', 'Not for a basic savings or student account. Current accounts for businesses, and some loans, need a one-time branch visit to sign documents.'],
@@ -314,12 +320,12 @@ html{scroll-behavior:smooth;scroll-padding-top:84px}
   --sun:#FAFAFA;
   --sun-2:#E4E4E7;
 }
-body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-feature-settings:'cv02','cv03','cv04','cv11';overflow-x:hidden}
+html,body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-feature-settings:'cv02','cv03','cv04','cv11';overflow-x:hidden!important;width:100%!important;max-width:100%!important;position:relative}
 a{color:inherit;text-decoration:none}
 img,svg{display:block;max-width:100%}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
-.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.wrap{max-width:1180px;width:100%;margin:0 auto;padding:0 24px;box-sizing:border-box}
 h1,h2,h3{font-family:var(--display);line-height:1.15;letter-spacing:-.03em;font-feature-settings:'cv02','cv03','cv04','cv11'}
 h2{font-size:clamp(28px,3.8vw,40px);font-weight:700;margin-bottom:12px}
 h3{font-size:18px;font-weight:600}
@@ -350,20 +356,34 @@ section{padding:88px 0}
 .lang button[aria-pressed="true"]{background:#FFFFFF;color:#09090B;font-weight:700}
 
 /* ═════════ HEADER ═════════ */
-.head{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
-.head .wrap{display:flex;align-items:center;gap:20px;height:68px}
+.head{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.head .wrap{display:flex;align-items:center;gap:16px;height:68px}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.03em;flex-shrink:0}
 .mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#F6BA42,#EAA023);display:grid;place-items:center;box-shadow:0 2px 6px rgba(234,160,35,0.2)}
 .mark svg{width:21px;height:21px}
-.nav{display:flex;gap:2px;margin:0 8px;flex:1;align-items:center;justify-content:center}
-.nav a{padding:8px 9px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--ink-2);white-space:nowrap;line-height:1.2;transition:background .2s,color .2s}
+.nav{display:flex;gap:4px;margin:0 4px;flex:1;align-items:center;justify-content:center}
+.nav a{padding:8px 10px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--ink-2);white-space:nowrap;line-height:1.2;transition:background .2s,color .2s;display:inline-flex;align-items:center;gap:6px}
 .nav a:hover{background:var(--bg-3);color:var(--ink)}
+.nav a i{display:none}
+.nav-mobile-foot{display:none}
 .head-act{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .head-act .btn{height:40px;padding:0 18px;font-size:14px;font-weight:600;border-radius:10px;border-width:1px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;white-space:nowrap;line-height:1}
 .head-act .btn:hover{transform:none}
 .head-act .icon-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;font-size:18px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;flex-shrink:0;transition:background .2s,border-color .2s}
 .head-act .icon-btn:hover{background:var(--bg-3);border-color:var(--line-2)}
-.burger{display:none}
+
+/* Burger Button: STRICTLY hidden on desktop */
+.burger{display:none!important;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;align-items:center;justify-content:center;font-size:20px;position:relative;flex-shrink:0;transition:all .2s cubic-bezier(.16,1,.3,1);-webkit-tap-highlight-color:transparent}
+.burger:hover{background:var(--bg-3);border-color:var(--line-2)}
+.burger:active{transform:scale(0.94)}
+.burger.active{background:var(--bg-3);border-color:var(--ink);color:var(--ink)}
+.burger i{transition:transform .2s ease,opacity .15s ease}
+
+/* Full Page Blur Backdrop: strictly lower than navbar (z-index: 45 vs navbar z-index: 50) */
+.nav-backdrop{position:fixed;inset:0;width:100%;height:100%;background:rgba(9,9,11,0.48);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:45;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .28s cubic-bezier(.16,1,.3,1),visibility .28s ease}
+.nav-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
+[data-theme="dark"] .nav-backdrop{background:rgba(0,0,0,0.68)}
+body.nav-locked{overflow:hidden!important;touch-action:none}
 
 /* ═════════ HERO ═════════ */
 .hero{background:#09090B;color:#FFFFFF;padding:72px 0 0;position:relative;overflow:hidden;isolation:isolate;border-bottom:1px solid #1E1E22}
@@ -453,8 +473,11 @@ section{padding:88px 0}
 .acc-panel{display:none;grid-template-columns:.9fr 1.1fr;gap:0;border:1px solid var(--line);border-radius:20px;overflow:hidden}
 .acc-panel.on{display:grid}
 .acc-rate{background:var(--bg-2);padding:40px;display:flex;flex-direction:column;justify-content:space-between;gap:28px;border-right:1px solid var(--line)}
+.rate-stack{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
+.rate-num{font-family:var(--display);font-size:clamp(54px,7vw,84px);font-weight:900;letter-spacing:-.04em;line-height:.92;color:var(--ink)}
+.rate-text{font-family:var(--display);font-size:clamp(20px,2.4vw,28px);font-weight:800;letter-spacing:-.02em;line-height:1.15;color:var(--ink);margin-top:6px}
 .acc-rate .big{font-family:var(--display);font-size:clamp(38px,5vw,54px);font-weight:800;letter-spacing:-.03em;line-height:1}
-.acc-rate small{display:block;color:var(--ink-3);margin-top:6px;font-size:14px}
+.acc-rate small{display:block;color:var(--ink-3);margin-top:10px;font-size:14px;font-weight:500}
 .acc-min{font-size:14px;color:var(--ink-2)}
 .acc-min b{font-size:20px;font-family:var(--display);display:block;color:var(--ink)}
 .acc-body{padding:40px}
@@ -1036,70 +1059,122 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   text-transform:uppercase;letter-spacing:0.04em;
 }
 .map-legend-dot{
-  width:7px;height:7px;border-radius:50%;background:#10B981;
-  box-shadow:0 0 0 2px rgba(16,185,129,0.25);
+  width:7px;height:7px;border-radius:50%;background:#EF4444;
+  box-shadow:0 0 0 2px rgba(239,68,68,0.25);
   animation:pinPulse 2s infinite ease-out;
 }
 
 .map-svg-stage{
-  position:relative;width:100%;height:380px;
+  position:relative;width:100%;height:490px;
   display:flex;align-items:center;justify-content:center;
 }
+@media (max-width: 640px){
+  .map-svg-stage{height:420px;}
+}
 .bd-svg-map{
-  width:100%;height:100%;max-height:380px;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.04));
-}
-.bd-land{
-  fill:var(--bg-2);stroke:var(--line);
-  stroke-width:1.5;stroke-linejoin:round;
-  transition:fill .25s ease, stroke .25s ease;
-}
-[data-theme="dark"] .bd-land{
-  fill:#18181B;stroke:#27272A;
-}
-.bd-river{
-  fill:none;stroke:var(--line);stroke-width:1.2;
-  stroke-dasharray:3 3;opacity:0.6;
-}
-[data-theme="dark"] .bd-river{
-  stroke:#3F3F46;
+  width:100%;height:100%;
+  filter:drop-shadow(0 6px 16px rgba(0,0,0,0.06));
+  overflow:visible;
 }
 
-/* Map Pins */
+/* Division Vector Paths (LandTech Reference) */
+.bd-div-path{
+  fill:#F1F3F5;stroke:#D1D5DB;
+  stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round;
+  cursor:pointer;
+  transition:fill .2s cubic-bezier(0.16, 1, 0.3, 1), stroke .2s ease, stroke-width .2s ease;
+}
+[data-theme="dark"] .bd-div-path{
+  fill:#18181B;stroke:#2E3440;
+}
+.bd-div-group:hover .bd-div-path,
+.bd-div-path:hover,
+.bd-div-path.active{
+  fill:#FEF3C7;stroke:#D97706;stroke-width:5;
+}
+[data-theme="dark"] .bd-div-group:hover .bd-div-path,
+[data-theme="dark"] .bd-div-path:hover,
+[data-theme="dark"] .bd-div-path.active{
+  fill:rgba(234, 160, 35, 0.22);stroke:#F59E0B;stroke-width:5;
+}
+
+.bd-div-lines{
+  fill:none;stroke:#9CA3AF;stroke-width:1.5;
+  stroke-dasharray:4 5;opacity:0.45;pointer-events:none;
+}
+[data-theme="dark"] .bd-div-lines{
+  stroke:#52525B;opacity:0.5;
+}
+
+/* Red Location Emoji Pin Markers */
 .map-pin{
-  cursor:pointer;transition:transform .2s ease;
+  cursor:pointer;
+  transition:transform .25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.pin-ring{
-  fill:rgba(16, 185, 129, 0.2);
-  transform-origin:center;
+.pin-shadow{
+  fill:rgba(0,0,0,0.18);
+  filter:blur(2px);
+  pointer-events:none;
+}
+[data-theme="dark"] .pin-shadow{
+  fill:rgba(0,0,0,0.5);
+}
+.pin-pulse{
+  fill:rgba(239, 68, 68, 0.2);
+  pointer-events:none;
+  transform-origin:0 -28px;
+  animation:pinPulse 2.2s infinite ease-out;
+}
+.map-pin:hover .pin-pulse,
+.map-pin.active .pin-pulse,
+.map-pin.pin-hover .pin-pulse{
+  fill:rgba(239, 68, 68, 0.4);
+}
+.pin-emoji{
+  font-size:64px;
+  user-select:none;
+  transition:transform .25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin:0 -12px;
+}
+.map-pin:hover .pin-emoji,
+.map-pin.active .pin-emoji,
+.map-pin.pin-hover .pin-emoji{
+  transform:scale(1.22) translateY(-6px);
+}
+.pin-badge{
+  pointer-events:none;
+}
+.pin-badge-bg{
+  fill:#09090B;stroke:rgba(255,255,255,0.25);stroke-width:2;
   transition:all .2s ease;
-  animation:pinPulse 2.4s infinite ease-out;
 }
-.map-pin:hover .pin-ring, .map-pin.active .pin-ring, .map-pin.pin-hover .pin-ring{
-  fill:rgba(16, 185, 129, 0.45);
-  r:18;
+[data-theme="dark"] .pin-badge-bg{
+  fill:#FAFAFA;stroke:rgba(0,0,0,0.25);
 }
-.pin-dot{
-  fill:#09090B;stroke:#FFFFFF;stroke-width:2;
-  transition:all .2s ease;
-}
-[data-theme="dark"] .pin-dot{
-  fill:#FAFAFA;stroke:#09090B;
-}
-.map-pin:hover .pin-dot, .map-pin.active .pin-dot, .map-pin.pin-hover .pin-dot{
-  fill:#10B981;stroke:#FFFFFF;transform:scale(1.3);
-  transform-origin:center;
+.map-pin:hover .pin-badge-bg,
+.map-pin.active .pin-badge-bg,
+.map-pin.pin-hover .pin-badge-bg{
+  fill:#DC2626;stroke:#FFFFFF;
 }
 .pin-lbl{
-  font-family:var(--sans);font-size:10px;font-weight:700;
-  fill:var(--ink);text-anchor:middle;
-  pointer-events:none;letter-spacing:0.02em;
-  opacity:0.9;
+  font-family:var(--sans);font-size:26px;font-weight:800;
+  fill:#FFFFFF;text-anchor:middle;
+  letter-spacing:0.02em;pointer-events:none;
+  transition:fill .2s ease;
 }
+[data-theme="dark"] .pin-lbl{
+  fill:#09090B;
+}
+.map-pin:hover .pin-lbl,
+.map-pin.active .pin-lbl,
+.map-pin.pin-hover .pin-lbl{
+  fill:#FFFFFF;
+}
+
 @keyframes pinPulse{
-  0%{r:8;opacity:0.9}
-  50%{r:16;opacity:0.2}
-  100%{r:20;opacity:0}
+  0%{r:20;opacity:0.9}
+  50%{r:52;opacity:0.3}
+  100%{r:72;opacity:0}
 }
 
 /* Floating Hover Tooltip */
@@ -1176,12 +1251,14 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 
 /* ═════════ FAQ + NOTICES ═════════ */
 .faq-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:56px}
-details{border-bottom:1px solid var(--line)}
-summary{padding:20px 0;font-weight:600;font-size:17px;cursor:pointer;display:flex;justify-content:space-between;gap:16px;list-style:none}
+details{border-bottom:1px solid var(--line);overflow:hidden}
+summary{padding:20px 0;font-weight:600;font-size:17px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;list-style:none;user-select:none;transition:color .2s ease}
+summary:hover{color:var(--ink-2)}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";font-size:24px;line-height:1;color:var(--ink-3);transition:transform .25s var(--ease)}
-details[open] summary::after{transform:rotate(45deg)}
-details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
+summary::after{content:"+";font-size:24px;line-height:1;color:var(--ink-3);transition:transform .3s cubic-bezier(0.16, 1, 0.3, 1), color .2s ease;flex-shrink:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+details[open] summary::after{transform:rotate(45deg);color:var(--ink)}
+.faq-content{overflow:hidden}
+.faq-content p, details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch;line-height:1.6;margin:0;font-size:15px}
 .notice{padding:16px 0;border-bottom:1px solid var(--line)}
 .notice b{font-size:13px;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
 .notice p{font-size:15px;color:var(--ink-2)}
@@ -1210,11 +1287,59 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
 .social a:hover{color:#FFFFFF;border-color:rgba(255,255,255,.4)}
 
 /* ═════════ RESPONSIVE ═════════ */
-@media(max-width:1080px){
-  .nav{display:none;position:absolute;top:68px;left:0;right:0;background:var(--bg);flex-direction:column;padding:12px 24px 20px;border-bottom:1px solid var(--line)}
-  .nav.open{display:flex}
-  .burger{display:grid}
-  .hero .wrap,.dig,.remit,.sec-grid,.open,.faq-grid,.rates-grid{grid-template-columns:1fr}
+@media(min-width:992px){
+  .burger{display:none!important}
+  .nav-backdrop{display:none!important}
+  .nav{display:flex!important;position:static!important;background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;opacity:1!important;visibility:visible!important;transform:none!important;max-height:none!important;overflow:visible!important}
+  .nav-grid-links{display:contents}
+  .nav-mobile-foot{display:none!important}
+}
+@media(min-width:992px) and (max-width:1160px){
+  .head .wrap{gap:10px}
+  .nav{margin:0 2px;gap:2px}
+  .nav a{padding:6px 7px;font-size:12.8px}
+  .head-act{gap:6px}
+  .head-act .btn{padding:0 12px;font-size:13px}
+}
+@media(max-width:991px){
+  .head .wrap{justify-content:space-between;padding:0 16px;gap:8px;width:100%;max-width:100%;box-sizing:border-box}
+  .head-act{gap:6px;flex-shrink:0}
+  .head-act .btn{display:none!important}
+  .burger{display:inline-flex!important}
+  .nav{
+    display:flex!important;position:fixed!important;top:68px;left:0;right:0;width:100%!important;max-width:100%!important;
+    background:color-mix(in srgb,var(--bg) 98%,transparent);
+    backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+    border-bottom:1px solid var(--line);
+    box-shadow:0 24px 48px -12px rgba(0,0,0,0.28);
+    flex-direction:column;align-items:stretch;justify-content:flex-start;
+    padding:16px!important;margin:0!important;z-index:50;
+    max-height:calc(100vh - 68px);overflow-y:auto;overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch;box-sizing:border-box!important;
+    transform:translateY(-8px);opacity:0;visibility:hidden;pointer-events:none;
+    transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s cubic-bezier(.16,1,.3,1),visibility .25s ease;
+  }
+  .nav.open{
+    transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto;
+  }
+  .nav-grid-links{
+    display:flex!important;flex-direction:column!important;gap:8px!important;margin-bottom:14px;width:100%!important;box-sizing:border-box!important;
+  }
+  .nav a{
+    display:flex!important;align-items:center!important;gap:12px!important;padding:12px 14px!important;border-radius:12px!important;
+    font-size:14.5px!important;font-weight:600;color:var(--ink);background:var(--bg-2);
+    border:1px solid var(--line);transition:background .2s,border-color .2s,transform .15s;
+    white-space:normal;width:100%!important;box-sizing:border-box!important;
+  }
+  .nav a:hover,.nav a:active{background:var(--bg-3);border-color:var(--line-2);transform:translateY(-1px)}
+  .nav a i{display:flex!important;font-size:19px;color:#EAA023;flex-shrink:0}
+  .nav-mobile-foot{
+    display:grid!important;grid-template-columns:1fr 1fr;gap:10px;padding-top:14px;border-top:1px dashed var(--line);width:100%!important;box-sizing:border-box!important;
+  }
+  .nav-mobile-foot .btn{width:100%!important;height:44px;font-size:14px;justify-content:center;display:inline-flex!important;align-items:center;gap:6px;box-sizing:border-box!important}
+  .hero .wrap,.dig,.remit,.sec-grid,.open,.faq-grid,.rates-grid{grid-template-columns:1fr!important;width:100%!important}
+  .hero-visual{max-width:100%!important;width:100%!important;margin:0 auto!important}
+  .hero-card{max-width:100%!important;width:100%!important}
   .quick-grid{grid-template-columns:repeat(3,1fr)}
   .quick-grid a:nth-child(3){border-right:0}
   .quick-grid a:nth-child(-n+3){border-bottom:1px solid var(--line)}
@@ -1223,15 +1348,34 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
   .acc-panel.on,.tool-box{grid-template-columns:1fr}
 }
 @media(max-width:680px){
-  section{padding:64px 0}
-  .head-act .btn-line{display:none}
+  section{padding:54px 0}
+  .wrap{padding:0 16px!important;width:100%!important}
+  .head .wrap{padding:0 16px!important}
+  .head-act .btn{display:none!important}
+  .nav-mobile-foot{grid-template-columns:1fr!important;gap:8px}
   .br-grid{grid-template-columns:1fr}
   .city-list{grid-template-columns:repeat(2,1fr)}
   .cards-grid,.contact-grid,.cols2,.foot-grid,.field-row{grid-template-columns:1fr}
   .quick-grid{grid-template-columns:repeat(2,1fr)}
-  .quick-grid a{border-bottom:1px solid var(--line);border-right:0!important}
-  .acc-rate,.acc-body,.tool-in,.tool-out{padding:26px}
+  .quick-grid a{border-bottom:1px solid var(--line);border-right:0!important;padding:16px 10px;font-size:13px}
+  .acc-rate,.acc-body,.tool-in,.tool-out{padding:22px}
   .util-l{display:none}
+  .util .wrap{justify-content:center;padding:6px 14px}
+  .stats-row{gap:16px;justify-content:center}
+  .stat{flex:1 1 130px;text-align:center}
+}
+@media(max-width:420px){
+  .wrap{padding:0 12px!important}
+  .head .wrap{padding:0 12px!important}
+  .brand{font-size:17.5px;gap:8px}
+  .mark{width:32px;height:32px}
+  .mark svg{width:18px;height:18px}
+  .hero h1{font-size:32px}
+  .hero-card{padding:18px}
+  .hero-pill{padding:12px 14px}
+  .quick-grid{grid-template-columns:1fr}
+  .quick-grid a{border-right:0!important}
+  .city-list{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
@@ -1264,23 +1408,30 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
       Asha Bank
     </a>
     <nav class="nav" id="nav" aria-label="Main">
-      <a href="#accounts" data-bn="হিসাব">Accounts</a>
-      <a href="#cards" data-bn="কার্ড">Cards</a>
-      <a href="#loans" data-bn="ঋণ">Loans</a>
-      <a href="#tools" data-bn="ক্যালকুলেটর">Calculators</a>
-      <a href="#digital" data-bn="ডিজিটাল ব্যাংকিং">Digital banking</a>
-      <a href="#rates" data-bn="রেট">Rates</a>
-      <a href="#branches" data-bn="শাখা">Branches</a>
-      <a href="#contact" data-bn="সহায়তা">Help</a>
+      <div class="nav-grid-links">
+        <a href="#accounts"><i class='bx bx-wallet'></i><span data-bn="হিসাব">Accounts</span></a>
+        <a href="#cards"><i class='bx bx-credit-card'></i><span data-bn="কার্ড">Cards</span></a>
+        <a href="#loans"><i class='bx bx-money'></i><span data-bn="ঋণ">Loans</span></a>
+        <a href="#tools"><i class='bx bx-calculator'></i><span data-bn="ক্যালকুলেটর">Calculators</span></a>
+        <a href="#digital"><i class='bx bx-mobile-alt'></i><span data-bn="ডিজিটাল ব্যাংকিং">Digital banking</span></a>
+        <a href="#rates"><i class='bx bx-transfer-alt'></i><span data-bn="রেট">Rates</span></a>
+        <a href="#branches"><i class='bx bx-map-pin'></i><span data-bn="শাখা">Branches</span></a>
+        <a href="#contact"><i class='bx bx-help-circle'></i><span data-bn="সহায়তা">Help</span></a>
+      </div>
+      <div class="nav-mobile-foot">
+        <a href="login.php" class="btn btn-line" data-bn="সাইন ইন"><i class='bx bx-log-in'></i>Sign in</a>
+        <a href="register.php" class="btn btn-dark" data-bn="হিসাব খুলুন"><i class='bx bx-user-plus'></i>Open account</a>
+      </div>
     </nav>
     <div class="head-act">
       <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"><i class='bx bx-moon'></i></button>
       <a href="login.php" class="btn btn-line" data-bn="সাইন ইন">Sign in</a>
       <a href="register.php" class="btn btn-dark" data-bn="হিসাব খুলুন">Open account</a>
-      <button class="icon-btn burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><i class='bx bx-menu'></i></button>
+      <button class="icon-btn burger" id="burger" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav"><i class='bx bx-menu'></i></button>
     </div>
   </div>
 </header>
+<div class="nav-backdrop" id="navBackdrop" aria-hidden="true"></div>
 
 <main>
 <!-- ═════════ HERO ═════════ -->
@@ -1381,11 +1532,18 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
         <button type="button" role="tab" id="tab-<?= $k ?>" aria-controls="panel-<?= $k ?>" aria-selected="<?= $first ? 'true' : 'false' ?>" data-acc="<?= $k ?>"><?= $a['name'] ?></button>
       <?php $first = false; endforeach; ?>
     </div>
-    <?php $first = true; foreach ($accounts as $k => $a): ?>
+    <?php $first = true; foreach ($accounts as $k => $a): 
+      $rateParts = explode(' ', $a['rate'], 2);
+      $rateVal = $rateParts[0] ?? '0%';
+      $rateWord = $rateParts[1] ?? 'Interest';
+    ?>
     <div class="acc-panel <?= $first ? 'on' : '' ?>" id="panel-<?= $k ?>" role="tabpanel" aria-labelledby="tab-<?= $k ?>">
       <div class="acc-rate">
         <div>
-          <div class="big"><?= $a['rate'] ?></div>
+          <div class="rate-stack">
+            <span class="rate-num"><?= htmlspecialchars($rateVal) ?></span>
+            <span class="rate-text"><?= htmlspecialchars($rateWord) ?></span>
+          </div>
           <small><?= $a['rate_note'] ?></small>
         </div>
         <div class="acc-min">Minimum to open<b><?= $a['min'] ?></b></div>
@@ -2004,61 +2162,39 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
             <span class="mt-sub" id="mtSub">2 Branches · ATM 24/7</span>
           </div>
 
-          <svg viewBox="0 0 380 460" class="bd-svg-map" xmlns="http://www.w3.org/2000/svg">
-            <!-- Bangladesh Landmass -->
-            <path class="bd-land" d="M 108 26 C 114 32, 122 42, 128 54 C 136 68, 140 80, 152 88 C 166 94, 188 92, 204 100 C 218 108, 230 112, 244 110 C 260 106, 272 98, 288 104 C 302 108, 316 118, 326 128 C 340 142, 350 162, 346 178 C 340 196, 324 212, 322 228 C 320 242, 334 254, 332 268 C 328 284, 312 292, 306 306 C 300 320, 310 334, 316 350 C 326 372, 342 394, 354 420 C 362 436, 366 452, 360 458 C 354 460, 346 450, 340 436 C 332 416, 322 394, 312 376 C 302 360, 288 352, 276 350 C 264 348, 252 356, 240 364 C 228 372, 220 386, 210 398 C 200 408, 186 412, 174 410 C 160 406, 150 394, 138 396 C 126 398, 114 406, 102 402 C 90 398, 86 384, 84 368 C 82 346, 86 322, 82 300 C 78 278, 66 262, 62 240 C 58 218, 62 196, 60 174 C 58 152, 54 132, 60 112 C 66 92, 78 74, 88 56 C 96 42, 102 32, 108 26 Z" />
-            
-            <!-- Major Rivers -->
-            <path class="bd-river" d="M 152 88 Q 175 160 200 235" />
-            <path class="bd-river" d="M 72 205 Q 140 220 200 235" />
-            <path class="bd-river" d="M 288 104 Q 240 180 200 235" />
-            <path class="bd-river" d="M 200 235 Q 215 310 215 390" />
+          <svg viewBox="0 0 1200 1664" class="bd-svg-map" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+            <!-- Bangladesh Division Vector Layers (From LandTech Reference) -->
+            <g class="bd-divisions-layer">
+              <?php foreach ($bdDivisions as $div): ?>
+                <g class="bd-div-group" data-city="<?= htmlspecialchars($div['city']) ?>">
+                  <path class="bd-div-path" data-city="<?= htmlspecialchars($div['city']) ?>" d="<?= htmlspecialchars($div['path']) ?>">
+                    <title><?= htmlspecialchars($div['name']) ?></title>
+                  </path>
+                  <?php if (!empty($div['linesPath'])): ?>
+                    <path class="bd-div-lines" d="<?= htmlspecialchars($div['linesPath']) ?>" />
+                  <?php endif; ?>
+                </g>
+              <?php endforeach; ?>
+            </g>
 
-            <!-- Pinned Locations with interactive data-city -->
-            <g class="map-pin" data-city="Rangpur" transform="translate(110, 85)">
-              <circle class="pin-ring" r="14" />
-              <circle class="pin-dot" r="5" />
-              <text class="pin-lbl" y="-9">Rangpur</text>
-            </g>
-            <g class="map-pin" data-city="Mymensingh" transform="translate(200, 148)">
-              <circle class="pin-ring" r="14" />
-              <circle class="pin-dot" r="5" />
-              <text class="pin-lbl" y="-9">Mymensingh</text>
-            </g>
-            <g class="map-pin" data-city="Sylhet" transform="translate(295, 145)">
-              <circle class="pin-ring" r="14" />
-              <circle class="pin-dot" r="5" />
-              <text class="pin-lbl" y="-9">Sylhet</text>
-            </g>
-            <g class="map-pin" data-city="Rajshahi" transform="translate(100, 205)">
-              <circle class="pin-ring" r="14" />
-              <circle class="pin-dot" r="5" />
-              <text class="pin-lbl" y="-9">Rajshahi</text>
-            </g>
-            <g class="map-pin" data-city="Dhaka" transform="translate(200, 235)">
-              <circle class="pin-ring" r="16" />
-              <circle class="pin-dot" r="6" />
-              <text class="pin-lbl" y="-10" font-weight="800">Dhaka</text>
-            </g>
-            <g class="map-pin" data-city="Khulna" transform="translate(130, 330)">
-              <circle class="pin-ring" r="14" />
-              <circle class="pin-dot" r="5" />
-              <text class="pin-lbl" y="-9">Khulna</text>
-            </g>
-            <g class="map-pin" data-city="Barishal" transform="translate(205, 355)">
-              <circle class="pin-ring" r="14" />
-              <circle class="pin-dot" r="5" />
-              <text class="pin-lbl" y="18">Barishal</text>
-            </g>
-            <g class="map-pin" data-city="Chattogram" transform="translate(295, 350)">
-              <circle class="pin-ring" r="14" />
-              <circle class="pin-dot" r="5" />
-              <text class="pin-lbl" y="-9">Chattogram</text>
+            <!-- Location Pins with Red Location Emoji 📍 -->
+            <g class="bd-pins-layer">
+              <?php foreach ($bdDivisions as $div): ?>
+                <g class="map-pin" data-city="<?= htmlspecialchars($div['city']) ?>" transform="translate(<?= (int)$div['center']['x'] ?>, <?= (int)$div['center']['y'] ?>)">
+                  <ellipse cx="0" cy="4" rx="24" ry="10" class="pin-shadow" />
+                  <circle class="pin-pulse" cx="0" cy="-28" r="46" />
+                  <text class="pin-emoji" text-anchor="middle" dominant-baseline="central" y="-28">📍</text>
+                  <g class="pin-badge" transform="translate(0, 26)">
+                    <rect class="pin-badge-bg" rx="16" ry="16" x="-74" y="-18" width="148" height="36" />
+                    <text class="pin-lbl" text-anchor="middle" y="5"><?= htmlspecialchars($div['city']) ?></text>
+                  </g>
+                </g>
+              <?php endforeach; ?>
             </g>
           </svg>
         </div>
         <div class="map-card-foot">
-          <small><i class='bx bx-pointer'></i> Hover over pins to inspect location names</small>
+          <small><i class='bx bx-pointer'></i> Click or hover on any location to view branches</small>
         </div>
       </div>
 
@@ -2085,7 +2221,7 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
       <h2>Questions people ask us</h2>
       <div style="margin-top:20px">
         <?php foreach ($faqs as $f): ?>
-          <details><summary><?= $f[0] ?></summary><p><?= $f[1] ?></p></details>
+          <details><summary><?= $f[0] ?></summary><div class="faq-content"><p><?= $f[1] ?></p></div></details>
         <?php endforeach; ?>
       </div>
     </div>
@@ -2162,10 +2298,64 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
   setTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
   tb.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
 
-  /* Mobile menu */
-  const burger = $('#burger'), nav = $('#nav');
-  burger.addEventListener('click', () => { const o = nav.classList.toggle('open'); burger.setAttribute('aria-expanded', o); });
-  $$('#nav a').forEach(a => a.addEventListener('click', () => { nav.classList.remove('open'); burger.setAttribute('aria-expanded', false); }));
+  /* Mobile menu with full-page blur backdrop */
+  const burger = $('#burger'), nav = $('#nav'), navBackdrop = $('#navBackdrop');
+
+  function closeMobileNav() {
+    if (!nav) return;
+    nav.classList.remove('open');
+    if (navBackdrop) navBackdrop.classList.remove('open');
+    if (burger) {
+      burger.setAttribute('aria-expanded', 'false');
+      burger.classList.remove('active');
+      const icon = burger.querySelector('i');
+      if (icon) icon.className = 'bx bx-menu';
+    }
+    document.body.classList.remove('nav-locked');
+  }
+
+  function openMobileNav() {
+    if (!nav) return;
+    nav.classList.add('open');
+    if (navBackdrop) navBackdrop.classList.add('open');
+    if (burger) {
+      burger.setAttribute('aria-expanded', 'true');
+      burger.classList.add('active');
+      const icon = burger.querySelector('i');
+      if (icon) icon.className = 'bx bx-x';
+    }
+    document.body.classList.add('nav-locked');
+  }
+
+  if (burger && nav) {
+    burger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      nav.classList.contains('open') ? closeMobileNav() : openMobileNav();
+    });
+  }
+
+  // Auto-close when clicking or tapping on the blurred full-page backdrop
+  if (navBackdrop) {
+    navBackdrop.addEventListener('click', closeMobileNav);
+    navBackdrop.addEventListener('touchstart', closeMobileNav, { passive: true });
+  }
+
+  // Auto-close when clicking any nav menu link
+  $$('#nav a').forEach(a => a.addEventListener('click', closeMobileNav));
+
+  // Auto-close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && nav && nav.classList.contains('open')) {
+      closeMobileNav();
+    }
+  });
+
+  // Auto-close if resized back to desktop mode
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 992 && nav && nav.classList.contains('open')) {
+      closeMobileNav();
+    }
+  });
 
   /* Language toggle (EN / বাংলা) */
   $$('[data-bn]').forEach(el => el.dataset.en = el.textContent);
@@ -2261,6 +2451,11 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
       p.classList.toggle('active', p.dataset.city === c);
     });
 
+    // Update division vector active states
+    $$('.bd-div-path').forEach(p => {
+      p.classList.toggle('active', p.dataset.city === c);
+    });
+
     // Render branch cards
     box.innerHTML = list.map((b, i) => {
       const name = typeof b === 'object' ? b.name : b;
@@ -2276,8 +2471,26 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
     b.addEventListener('mouseenter', () => {
       const targetPin = $(`.map-pin[data-city="${b.dataset.city}"]`);
       if (targetPin) targetPin.classList.add('pin-hover');
+      const targetPath = $(`.bd-div-path[data-city="${b.dataset.city}"]`);
+      if (targetPath) targetPath.classList.add('active');
     });
     b.addEventListener('mouseleave', () => {
+      $$('.map-pin').forEach(p => p.classList.remove('pin-hover'));
+      $$('.bd-div-path').forEach(p => {
+        p.classList.toggle('active', p.dataset.city === (activeCityTitle ? activeCityTitle.textContent : ''));
+      });
+    });
+  });
+
+  // Division vector paths hover & click
+  $$('.bd-div-path').forEach(path => {
+    const city = path.dataset.city;
+    path.addEventListener('click', () => showCity(city));
+    path.addEventListener('mouseenter', () => {
+      const targetPin = $(`.map-pin[data-city="${city}"]`);
+      if (targetPin) targetPin.classList.add('pin-hover');
+    });
+    path.addEventListener('mouseleave', () => {
       $$('.map-pin').forEach(p => p.classList.remove('pin-hover'));
     });
   });
@@ -2310,6 +2523,98 @@ details p{padding:0 0 20px;color:var(--ink-2);max-width:62ch}
 
   const firstCity = Object.keys(branches)[0] || 'Dhaka';
   if (firstCity) showCity(firstCity);
+
+  /* Smooth FAQ accordion animation */
+  $$('#faq details').forEach(el => {
+    const summary = el.querySelector('summary');
+    const content = el.querySelector('.faq-content') || el.querySelector('p');
+    if (!summary || !content) return;
+
+    let animation = null;
+    let isClosing = false;
+    let isExpanding = false;
+
+    summary.addEventListener('click', (e) => {
+      e.preventDefault();
+      el.style.overflow = 'hidden';
+
+      if (isClosing || !el.open) {
+        // OPENING ANIMATION
+        el.style.height = `${el.offsetHeight}px`;
+        el.open = true;
+        isExpanding = true;
+        isClosing = false;
+
+        window.requestAnimationFrame(() => {
+          const startHeight = el.offsetHeight;
+          const endHeight = summary.offsetHeight + content.offsetHeight;
+
+          if (animation) animation.cancel();
+
+          animation = el.animate({
+            height: [`${startHeight}px`, `${endHeight}px`]
+          }, {
+            duration: 280,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+          });
+
+          // Soft fade and glide for the content
+          content.animate({
+            opacity: [0, 1],
+            transform: ['translateY(-6px)', 'translateY(0)']
+          }, {
+            duration: 260,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+          });
+
+          animation.onfinish = () => {
+            el.open = true;
+            animation = null;
+            isExpanding = false;
+            el.style.height = '';
+            el.style.overflow = '';
+          };
+          animation.oncancel = () => {
+            isExpanding = false;
+          };
+        });
+      } else if (isExpanding || el.open) {
+        // CLOSING ANIMATION
+        isClosing = true;
+        isExpanding = false;
+        const startHeight = el.offsetHeight;
+        const endHeight = summary.offsetHeight;
+
+        if (animation) animation.cancel();
+
+        animation = el.animate({
+          height: [`${startHeight}px`, `${endHeight}px`]
+        }, {
+          duration: 240,
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+
+        content.animate({
+          opacity: [1, 0],
+          transform: ['translateY(0)', 'translateY(-4px)']
+        }, {
+          duration: 200,
+          easing: 'ease-out'
+        });
+
+        animation.onfinish = () => {
+          el.open = false;
+          animation = null;
+          isClosing = false;
+          el.style.height = '';
+          el.style.overflow = '';
+        };
+        animation.oncancel = () => {
+          isClosing = false;
+        };
+      }
+    });
+  });
 
   /* Clipboard copy handler for remittance instructions */
   $$('.rc-btn-copy[data-copy]').forEach(btn => {

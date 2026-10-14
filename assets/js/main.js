@@ -19,7 +19,7 @@ const Toast = {
         }
     },
 
-    show(message, type = 'success', duration = 1000, title = '') {
+    show(message, type = 'success', duration = 1500, title = '') {
         this.init();
         const icons = {
             success: `<i class='bx bx-check-circle'></i>`,
@@ -68,11 +68,11 @@ const Toast = {
 
     /**
      * Plays a sequence of notifications:
-     * - Initial 1s (1000ms) delay after login
-     * - Each notification is visible for 1s (1000ms)
+     * - Initial 800ms delay after login
+     * - Each notification popup holds for 1.5s (1500ms)
      * - Then smoothly fades away before the next one appears
      */
-    playSequence(items, initialDelay = 1000, itemDuration = 1000) {
+    playSequence(items, initialDelay = 800, itemDuration = 1500) {
         if (!Array.isArray(items) || items.length === 0) return;
         this.init();
 
@@ -87,7 +87,7 @@ const Toast = {
 
                 this.show(msg, type, itemDuration, title);
 
-                // Wait for display duration (1000ms) + fadeaway animation (360ms) + small gap (100ms)
+                // Wait for display duration (1500ms) + fadeaway animation (360ms) + small gap (100ms)
                 setTimeout(() => {
                     showNext();
                 }, itemDuration + 460);
@@ -492,11 +492,11 @@ document.addEventListener('DOMContentLoaded', () => {
     Forms.init();
     Dropdown.init();
 
-    // Trigger after-login notification sequence or flash toast
+    // Trigger after-login notification sequence or flash toast (held for 1.5s)
     if (window.__LOGIN_NOTIFICATIONS__ && Array.isArray(window.__LOGIN_NOTIFICATIONS__) && window.__LOGIN_NOTIFICATIONS__.length > 0) {
-        Toast.playSequence(window.__LOGIN_NOTIFICATIONS__, 1000, 1000);
+        Toast.playSequence(window.__LOGIN_NOTIFICATIONS__, 800, 1500);
     } else if (window.__FLASH_TOAST__) {
-        Toast.show(window.__FLASH_TOAST__.message, window.__FLASH_TOAST__.type || 'success', 1000, window.__FLASH_TOAST__.title || '');
+        Toast.show(window.__FLASH_TOAST__.message, window.__FLASH_TOAST__.type || 'success', 1500, window.__FLASH_TOAST__.title || '');
     }
 
     // Animate counters
@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Expose globals
 window.Toast         = Toast;
-window.showToast     = (msg, type = 'success', duration = 1000, title = '') => Toast.show(msg, type, duration, title);
+window.showToast     = (msg, type = 'success', duration = 1500, title = '') => Toast.show(msg, type, duration, title);
 window.Modal         = Modal;
 window.ConfirmDialog = ConfirmDialog;
 window.Sidebar       = Sidebar;
