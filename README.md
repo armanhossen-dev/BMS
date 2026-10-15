@@ -1,229 +1,208 @@
-# 🏦 Asha Bank — Banking Management System
+<div align="center">
 
-A full-stack PHP/MySQL banking web application with a dark, gold-accented
-dashboard UI across three portals — **Customer**, **Staff**, and **Admin** —
-built responsive from desktop down to mobile.
+# 🏦 Asha Bank
 
-> Asha means *"hope"* — the product's visual identity (warm gold on near-black)
-> and tagline ("Banking that grows with your hope") are built around that.
+### Banking that grows with your hope
+
+A full-stack **PHP / MySQL** digital banking platform with three role-based portals —
+**Customer**, **Staff**, and **Admin** — wrapped in a dark, gold-accented, fully responsive UI.
+
+<br>
+
+[![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![MySQL](https://img.shields.io/badge/MySQL-5.7+-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![CSS3](https://img.shields.io/badge/CSS3-Custom_Design_System-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![Status](https://img.shields.io/badge/Status-Demo_Project-d4a657?style=for-the-badge)](https://github.com/armanhossen-dev/BMS)
+
+[**Features**](#-features) ·
+[**Screenshots**](#-screenshots) ·
+[**Quick Start**](#-quick-start) ·
+[**Demo Login**](#-demo-credentials) ·
+[**Database**](#-database) ·
+[**Roadmap**](#️-roadmap)
+
+</div>
 
 ---
 
-## Table of Contents
+## 📖 About
 
-1. [Screenshots](#-screenshots)
-2. [Features](#-features)
-3. [File Structure](#-file-structure)
-4. [Requirements](#-requirements)
-5. [Setup](#-setup)
-6. [Demo Credentials](#-demo-credentials)
-7. [Database Overview](#-database-overview)
-8. [Design System](#-design-system)
-9. [Security](#-security-notes)
-10. [Known Limitations](#-known-limitations--next-steps)
+**Asha** means *"hope"*. The product's identity — warm gold on near-black, and the tagline *"Banking that grows with your hope"* — is built around that idea.
+
+Asha Bank is a complete banking management system covering the whole customer lifecycle: instant paperless onboarding, money movement, cards, loans, bills and cheques for customers; KYC review and support desk for staff; and liquidity analytics, account governance and broadcasts for administrators.
+
+| | |
+|---|---|
+| **3** role-based portals | **37** database tables |
+| **5** stored procedures · **6** functions | **5** triggers · **5** views |
+| **EN / বাংলা** language toggle | **0** external chart libraries |
 
 ---
 
 ## 📸 Screenshots
 
-### 📊 Core Banking Dashboards
+### Customer Portal
 
-#### 1. Customer Banking Portal
+> A wealth-management cockpit built for speed and transparency: aggregated balances, 7-day transaction velocity, and every banking service one click away.
 
-> **The Client Journey:** From the moment an account is opened, customers are welcomed into an intuitive wealth-management cockpit engineered for speed, transparency, and elegance. The interface prioritizes real-time financial situational awareness—combining total balance aggregation, 7-day transaction velocity analytics, and frictionless access to every banking service without paperwork or wait times.
+<div align="center">
 
 [![Customer Dashboard](ss/client-dash.png)](ss/client-dash.png)
 
-##### 💎 Key Client Capabilities:
-- **Financial Command Center:** Real-time balance aggregation across accounts, monthly inflow/outflow delta metrics, and an in-house Canvas-drawn 7-day transaction volume chart.
-- **Dynamic Tiered Debit Card:** Virtual debit card with automatic tier-based gradient styling (Classic → Silver → Gold → Platinum → Black Edition) calibrated to customer liquidity, complete with star ratings and instant freeze/unfreeze controls.
-- **Frictionless Money Movement:** Quick-action hubs for instant peer-to-peer bank transfers, multi-channel MFS deposits (bKash, Nagad, Rocket, Upay, Branch cash), and cash withdrawals.
-- **Integrated Digital Services:** Seamless access to personal and commercial loans with a live EMI calculator, utility bill payments (Electricity, Water, Gas, Mobile) with auto-pay support, and cheque book management.
+</div>
 
-<br>
+### Staff & Admin Portals
 
-#### 2. Staff & Admin Portals
+<table>
+  <tr>
+    <th align="center">🛡️ Staff Operations</th>
+    <th align="center">👑 Administrator Command Center</th>
+  </tr>
+  <tr>
+    <td align="center"><sub>KYC queue · feedback inbox · admin escalations</sub></td>
+    <td align="center"><sub>Liquidity reserves · 6-month flow · user controls</sub></td>
+  </tr>
+  <tr>
+    <td><a href="ss/staff-dash.png"><img src="ss/staff-dash.png" alt="Staff Dashboard"></a></td>
+    <td><a href="ss/admin-dash.png"><img src="ss/admin-dash.png" alt="Admin Dashboard"></a></td>
+  </tr>
+</table>
 
-> **The Operational Story:** Behind every effortless customer transaction lies a synchronized two-tier governance backbone. Frontline **Staff Officers** act as the operational shield—evaluating citizen compliance, verifying identity submissions, and resolving client inquiries. Simultaneously, the **Executive Administrator** commands institutional governance—monitoring bank-wide liquidity reserves, tracking capital velocity, enforcing compliance holds, and broadcasting urgent bank-wide directives.
+### Authentication & Onboarding
 
-| 🛡️ Staff Operations Portal | 👑 Administrator Command Center |
-| :---: | :---: |
-| **Pending KYC Queue, Feedback Inbox & Admin Escalations** | **Liquidity Reserves, 6-Month Flow, User Controls & Audits** |
-| [![Staff Dashboard](ss/staff-dash.png)](ss/staff-dash.png) | [![Admin Dashboard](ss/admin-dash.png)](ss/admin-dash.png) |
+#### Unified Login (Client / Staff / Admin)
 
-##### 🛡️ Staff Operational Capabilities:
-- **KYC Compliance Pipeline:** Real-time queue to inspect National ID (NID) and citizen documents. Staff can approve or reject verification applications with audit-trailed reasons and automated customer alerts.
-- **Customer Feedback & Support Inbox:** Centralized desk to triage, review, and reply to client grievances, automatically advancing ticket lifecycles (`Pending` → `Replied` → `Resolved`).
-- **Internal Administrative Escalation:** Secure escalation channel allowing frontline staff to transmit field reports, flagged anomalies, and branch memos directly to Executive Administration.
-- **Daily Operations Snapshot:** Live status counters tracking pending KYC dossiers, unread client messages, and daily branch transaction volumes.
+<div align="center">
 
-##### 👑 Administrator Command & Control:
-- **Institutional Liquidity & Trend Analytics:** Real-time visibility into bank-wide reserve balances, customer counts, 7-day transaction velocity bars, and 6-month deposits-vs-withdrawals cashflow curves.
-- **Account Governance & Risk Controls:** Full executive authority to activate, freeze, or terminate customer accounts with automated push notifications.
-- **Reactivation Adjudication:** Compliance tribunal interface to review reactivation petitions submitted by frozen account holders, complete with resolution ETAs and administrative notes.
-- **Workforce Management:** Complete administration over bank staff credentials, department assignments, and operational permissions.
-- **System-Wide Broadcast Hub:** Emergency broadcast engine capable of delivering high-priority notices and policy advisories to all active customer dashboards simultaneously.
+[![Login Portal](ss/login.png)](ss/login.png)
 
----
+</div>
 
-### 🔐 Authentication & Onboarding
+#### Registration & Instant Card Issuance
 
-> **The First 3 Minutes:** Opening a bank account shouldn't feel like navigating a bureaucracy. Asha Bank's onboarding flow eliminates physical paperwork, instantly provisioning an account number, initial deposit credit, and a virtual debit card ready for use.
+<div align="center">
 
-| Unified Portal Login (Client / Staff / Admin) | Customer Registration & Instant Card Issuance |
-| :---: | :---: |
-| [![Login Portal](ss/login.png)](ss/login.png) | [![Registration Page](ss/Register.png)](ss/Register.png) |
+[![Registration Page](ss/Register.png)](ss/Register.png)
 
-- **Intelligent 3-in-1 Authentication:** Single secure gateway routing Customers, Staff, and Administrators to their dedicated portals based on verified database roles, fortified with BCRYPT hashing and 5-attempt brute-force lockout safeguards.
-- **Instant Self-Service Onboarding:** 3-step registration gathering identity and contact information, automatically generating a unique account number and tiered virtual debit card immediately upon submission.
+</div>
 
----
+### Landing Page (Dark Theme Showcase)
 
-### 🌐 Landing Page & Brand Showcase
+<div align="center">
 
-> **The Public Face:** An elegant, responsive introduction to Asha Bank crafted with high-contrast typography, banking service highlights, currency calculators, branch locator, and seamless English / বাংলা dual-language switching.
+[![Landing Page - Dark Mode Showcase](ss/dark.png)](ss/dark.png)
 
-[![Landing Page - Light Mode](ss/white-ban.png)](ss/white-ban.png)
+<sub>✨ High-contrast Dark Gold landing page showcase featuring instant digital onboarding, tiered card visualizers, real-time currency calculator, branch locator, and dual English / বাংলা language switching.</sub>
+
+</div>
 
 ---
 
 ## ✨ Features
 
-### Authentication
-- Role-based login — one form, three roles (Client / Staff / Admin)
-- BCRYPT password hashing
-- Session regeneration on login (session fixation protection)
-- 5-attempt login lockout (15-minute cooldown) for both staff and customers
-- CSRF token verification on every state-changing form
+<details open>
+<summary><b>👤 Customer Portal</b></summary>
 
-### Customer Portal
-- **Dashboard** — total balance, monthly received/sent, tier badge with star
-  rating, 7-day transaction volume chart, tiered debit card preview, account
-  list, recent transactions
-- **Send Money** — instant transfer between Asha Bank accounts with balance
-  and status checks
-- **Deposit** — bKash / Nagad / Rocket / Upay / Branch, with method-specific
-  reference fields
-- **Withdraw** — ATM / Branch / Mobile Banking
-- **Cards** — auto-issued debit card on signup, tier-styled gradient design,
-  block/unblock, full card detail modal
-- **Profile** — edit contact info, change password, submit KYC (NID + phone),
-  view nominees, referral code, request account reactivation
-- **Feedback** — AJAX submission with live character counter and status
-  history (pending → read → replied → resolved)
-- **Loans** — apply for Home / Personal / Car / Education loans with a live
-  EMI calculator, view application status, pay EMIs against a generated
-  amortization schedule
-- **Bill Pay** — Electricity / Water / Gas / Mobile / DTH / Insurance,
-  optional recurring auto-pay flag, payment history
-- **Cheques** — request a cheque book, track issued cheques, place stop
-  payments
+<br>
 
-### Staff Portal
-- Overview stats (pending KYC, today's transactions, pending feedback)
-- KYC review queue — verify or reject with a reason (customer is notified
-  either way)
-- Feedback inbox — reply to customer feedback, status updates automatically
-- Send messages/reports/requests up to Admin, see admin replies
+| Module | What it does |
+|---|---|
+| **Dashboard** | Total balance, monthly received/sent, tier badge with star rating, canvas-drawn 7-day volume chart, account list, recent transactions |
+| **Send Money** | Instant transfer between Asha Bank accounts with balance and status checks |
+| **Deposit** | bKash · Nagad · Rocket · Upay · Branch, with method-specific reference fields |
+| **Withdraw** | ATM · Branch · Mobile Banking |
+| **Cards** | Auto-issued debit card, tier-styled gradient design, block/unblock, detail modal |
+| **Profile** | Edit contact info, change password, submit KYC (NID + phone), nominees, referral code, request reactivation |
+| **Feedback** | AJAX submission with live character counter and status history (`pending → read → replied → resolved`) |
+| **Loans** | Home / Personal / Car / Education loans, live EMI calculator, application tracking, EMI payment against an amortization schedule |
+| **Bill Pay** | Electricity · Water · Gas · Mobile · DTH · Insurance, optional recurring auto-pay flag, payment history |
+| **Cheques** | Request a cheque book, track issued cheques, place stop-payments |
 
-### Admin Portal
-- Overview — total customers, total reserve, total transactions, active
-  staff, daily transaction bar chart (7 days), deposits-vs-withdrawals bar
-  chart (6 months), top 5 customers by volume, recent transactions
-- Customer management — activate/deactivate with automatic notification
-- Staff management — add, toggle active/inactive, delete
-- Staff messages — approve/reject with a reply
-- Reactivation requests — approve (auto-reactivates the account) or reject
-  with a reply and optional ETA
-- Broadcast — send a notification to every active customer at once
+**Signature element — tiered debit cards.** Balance drives a customer's tier (*Classic → Silver → Gold → Platinum → Black Edition*). Each tier renders its own card gradient, star rating, and a progress bar toward the next tier.
 
-### Platform-wide
-- Notifications — dropdown with unread badge, mark one or all as read (AJAX),
-  auto-generated on transfers, deposits, withdrawals, large transactions,
-  KYC decisions, card status changes, and broadcasts
-- Multi-language — English / বাংলা toggle, session-persisted
-- Fully responsive — sidebar collapses behind a hamburger menu on mobile,
-  all grids stack to a single column below 860px
+</details>
 
----
+<details>
+<summary><b>🛡️ Staff Portal</b></summary>
 
-## 📁 File Structure
+<br>
 
-```
-BMS/
-├── index.php                    Landing page
-├── login.php                    Role-based authentication
-├── register.php                 Customer registration (auto account + card)
-├── dashboard.php                Customer dashboard
-├── transfer.php                 Fund transfer
-├── deposit.php                  Deposit (bKash/Nagad/Rocket/Upay/Branch)
-├── withdraw.php                 Withdrawal
-├── cards.php                    Card management (block/unblock)
-├── profile.php                  Profile, KYC, password, nominees, reactivation
-├── feedback.php                 Customer feedback (AJAX submit)
-├── logout.php
-├── setup.php                    DB import helper
-├── database.sql                 Full schema + seed data
-├── README.md                    This file
-│
-├── ss/                          Application UI screenshots & preview assets
-│   ├── client-dash.png          Customer portal & financial overview
-│   ├── staff-dash.png           Staff operational workflow & KYC queue
-│   ├── admin-dash.png           System analytics & administrative controls
-│   ├── login.png                Unified 3-in-1 secure login interface
-│   ├── Register.png             Self-service customer onboarding
-│   └── white-ban.png            Landing page showcase (Light theme)
-│
-├── config/
-│   ├── db.php                   PDO connection + BASE_URL constant
-│   └── language.php             EN / বাংলা string tables
-│
-├── includes/
-│   ├── header.php               Customer sidebar + topbar + notifications
-│   ├── footer.php                JS include + flash → toast bridge
-│   └── functions.php             Helpers: currency, tiers, CSRF, auth guards…
-│
-├── admin/
-│   └── index.php                 Tabs: overview, customers, staff,
-│                                   staff_messages, reactivations, broadcast
-│
-├── staff/
-│   └── dashboard.php             Tabs: overview, kyc, feedback, messages
-│
-├── api/                          AJAX endpoints (JSON responses)
-│   ├── send_feedback.php
-│   ├── mark_notification_read.php
-│   └── send_verification.php
-│
-├── modules/
-│   ├── loans/
-│   │   ├── apply.php             Application + live EMI calculator
-│   │   └── manage.php            EMI schedule + pay EMI
-│   ├── bills/
-│   │   ├── pay.php                Category → provider cascading select
-│   │   └── history.php
-│   └── cheques/
-│       ├── request.php            Cheque book request + issued cheques
-│       └── status.php             Stop payment
-│
-└── assets/
-    ├── css/style.css             Design tokens + full component library
-    ├── js/main.js                 Sidebar, dropdowns, modals, toasts, charts
-    └── images/                    Add your own logos/assets here
-```
+- **Overview stats** — pending KYC, today's transactions, pending feedback
+- **KYC review queue** — inspect NID documents, verify or reject with an audit-trailed reason; the customer is notified either way
+- **Feedback inbox** — reply to customers; ticket status advances automatically
+- **Admin escalation** — send messages, reports and requests up to Admin and read replies
+
+</details>
+
+<details>
+<summary><b>👑 Admin Portal</b></summary>
+
+<br>
+
+- **Overview** — total customers, total reserve, total transactions, active staff, 7-day daily bar chart, 6-month deposits-vs-withdrawals chart, top 5 customers by volume, recent transactions
+- **Customer management** — activate / deactivate with automatic notification
+- **Staff management** — add, toggle active/inactive, delete
+- **Staff messages** — approve / reject with a reply
+- **Reactivation requests** — approve (auto-reactivates the account) or reject with reply and optional ETA
+- **Broadcast** — push a notification to every active customer at once
+
+</details>
+
+<details>
+<summary><b>🌐 Platform-wide</b></summary>
+
+<br>
+
+- **Notifications** — dropdown with unread badge, mark one/all as read (AJAX); auto-generated on transfers, deposits, withdrawals, large transactions, KYC decisions, card status changes and broadcasts
+- **Multi-language** — English / বাংলা toggle, persisted in the session
+- **Responsive** — sidebar collapses behind a hamburger menu on mobile; all grids stack to one column below 860px
+
+</details>
 
 ---
 
-## 🧰 Requirements
+## 🔐 Security
+
+| Protection | Implementation |
+|---|---|
+| SQL injection | PDO prepared statements everywhere — no string-concatenated SQL |
+| XSS | All dynamic output escaped through `clean()` (`htmlspecialchars`) |
+| CSRF | Token on every state-changing form, verified with `hash_equals()` |
+| Password storage | `password_hash()` (BCRYPT) |
+| Brute force | 5 failed attempts → 15-minute lockout (customers and staff) |
+| Session fixation | Session ID regenerated on every successful login |
+| Data integrity | PDO transactions for money movement; DB triggers prevent negative balances |
+
+> [!WARNING]
+> This is a **learning / demo project**. Before any real deployment, add HTTPS everywhere, network-level rate limiting, a secrets manager (don't hardcode `DB_PASS`), CSP headers, and an independent security review of the stored procedures, triggers and KYC / reactivation approval flows. Remove `setup.php` and the demo accounts once the database is imported.
+
+---
+
+## 🧰 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | PHP 8.0+, PDO |
+| Database | MySQL 5.7+ / MariaDB 10.3+ (JSON columns, triggers, stored procedures) |
+| Frontend | HTML5, CSS3 (custom design tokens), vanilla JavaScript |
+| Charts | Hand-rolled Canvas API (`drawLineChart` / `drawBarChart`) — no libraries |
+| Typography | Outfit (display) · Inter (body) · JetBrains Mono (numerals) |
+| Server | Apache, Nginx, or PHP's built-in server |
+
+---
+
+## 🚀 Quick Start
+
+> [!TIP]
+> **Instant Browser Demo (Zero Backend Required):**
+> You can experience the complete interactive website and all 3 role portals without PHP or MySQL by opening [`index.html`](index.html) directly in your browser, or viewing the simulated modules in [`demo-web/`](demo-web/).
+
+### Prerequisites (For Full PHP & MySQL Setup)
 
 - PHP **8.0+** with the `pdo_mysql` extension
-- MySQL **5.7+** or MariaDB **10.3+** (needs `JSON` column support for audit
-  logs, and `SIGNAL`/trigger support)
-- Any web server (Apache, Nginx, or PHP's built-in server for local testing)
-
----
-
-## 🚀 Setup
+- MySQL **5.7+** or MariaDB **10.3+**
+- Any web server (or PHP's built-in server for local testing)
 
 ### 1. Import the database
 
@@ -285,6 +264,7 @@ Two more seeded clients: `sanya.malhotra` and `kiran.bose`, both with password
 
 ---
 
+<a id="-database"></a>
 ## 🗄 Database Overview
 
 **37 tables**, organized into logical groups:
@@ -369,7 +349,8 @@ procedures/triggers and the KYC/reactivation approval flows.
 
 ---
 
-## ⚠️ Known Limitations / Next Steps
+<a id="roadmap"></a><a id="️-roadmap"></a>
+## 🗺️ Roadmap & Known Limitations
 
 The core system (auth, accounts, transfers, cards, KYC, feedback, loans,
 bills, cheques, and all three portals) is fully built and wired to the
