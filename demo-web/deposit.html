@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Deposit — Asha Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="alternate icon" href="../favicon.svg">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body>
+
+<!-- Toast container (Bottom-Right) -->
+<div id="toastContainer" class="toast-container"></div>
+
+
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Desktop Only Portal</h2>
+        <p class="desktop-gate-desc">
+            Asha Bank's banking portals, interactive dashboards, and account management are currently designed exclusively for desktop displays for enterprise security and multi-column workspace clarity.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Enterprise Multi-Column View</strong>
+                    <span>Full financial ledgers, statement exports & real-time analytics</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Workstation Security Session</strong>
+                    <span>Hardware-backed 256-bit encryption & two-factor authentication</span>
+                </div>
+            </div>
+        </div>
+        <a href="../index.html" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- App layout -->
+<div class="app-layout">
+
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <!-- Logo -->
+    <a href="../index.html" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+        </div>
+        <div>
+            <div class="sidebar-logo-text">Asha Bank</div>
+            <span class="sidebar-logo-sub">Client Portal</span>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" aria-label="Navigation">
+                <div class="sidebar-section-label">Main</div>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bxs-dashboard"></i>
+            Dashboard                    </a>
+                <a href="deposit.html"
+           class="active"
+           aria-current="page">
+            <i class="bx bx-log-in-circle"></i>
+            Deposit                    </a>
+                <a href="withdraw.html"
+           class=""
+           >
+            <i class="bx bx-log-out-circle"></i>
+            Withdraw                    </a>
+                <a href="transfer.html"
+           class=""
+           >
+            <i class="bx bx-transfer"></i>
+            Transfer                    </a>
+                        <div class="sidebar-section-label">Account</div>
+                <a href="cards.html"
+           class=""
+           >
+            <i class="bx bx-credit-card"></i>
+            My Cards                    </a>
+                <a href="profile.html"
+           class=""
+           >
+            <i class="bx bx-user"></i>
+            Profile                    </a>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bx-bell"></i>
+            Notifications                    </a>
+                <a href="feedback.html"
+           class=""
+           >
+            <i class="bx bx-support"></i>
+            Support                    </a>
+                    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-avatar dark">A</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">Arjun Kapoor</div>
+                <div class="sidebar-user-role">client</div>
+            </div>
+        </div>
+        <a href="login.html" class="btn btn-ghost w-full sidebar-signout" style="justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px;">
+            <i class='bx bx-log-out' style="font-size:18px;"></i>
+            Sign Out
+        </a>
+    </div>
+</aside>
+
+<!-- ── Main content ──────────────────────────────────────────── -->
+<div class="main-content">
+
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-left">
+        <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar">
+            <i class='bx bx-menu'></i>
+        </button>
+        <div class="topbar-breadcrumb">
+            <a href="dashboard.html">Home</a>
+                        <span class="sep">/</span>
+            <span>Deposit</span>
+                    </div>
+    </div>
+    <div class="topbar-right">
+        <!-- Theme toggle -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle dark mode">
+            <i class='bx bx-moon' id="themeIcon"></i>
+        </button>
+                <a href="dashboard.html" class="notif-btn" aria-label="0 notifications">
+            <i class='bx bx-bell'></i>
+                    </a>
+                <a href="profile.html"
+           class="btn btn-ghost btn-sm" aria-label="Profile" style="gap:8px;">
+            <div class="avatar avatar-sm" style="background:var(--bg-muted);color:var(--text-primary);font-size:11px;">A</div>
+            <span style="font-size:13px;font-weight:500;color:var(--text-secondary);">Arjun Kapoor</span>
+        </a>
+    </div>
+</header>
+<!-- end topbar -->
+
+<div class="page-content">
+    <div class="page-header">
+        <h1>Deposit Funds</h1>
+        <p>Add money to your account safely and instantly.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:460px 1fr;gap:24px;align-items:start;">
+
+        <!-- Form -->
+        <div>
+            <!-- Balance card -->
+            <div class="stat-card reveal" style="margin-bottom:20px;">
+                <div class="stat-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </div>
+                <div class="stat-card-label">Current Balance</div>
+                <div class="stat-card-value" style="color:var(--green);">৳ 77,999.50</div>
+                <div class="stat-card-sub">Account: 10000000001</div>
+            </div>
+
+            <div class="card reveal">
+                <div class="card-header">
+                    <h4>Make a Deposit</h4>
+                    <span class="badge badge-success">
+                        <span class="status-dot green"></span> Instant
+                    </span>
+                </div>
+                <div class="card-body">
+                    
+                    <form method="POST" action="#" data-loading>
+                        <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">
+                        <!-- Amount with quick presets -->
+                        <div class="form-group">
+                            <label class="form-label" for="amount">Amount <span class="required">*</span></label>
+                            <div class="input-group">
+                                <span class="input-icon" style="font-weight:600;font-size:15px;color:var(--ink-muted);">৳</span>
+                                <input type="number" id="amount" name="amount" class="form-control" step="0.01" min="1" max="1000000"
+                                       value="" placeholder="0.00" required>
+                            </div>
+                            <div class="form-helper">Min: ৳1 | Max: ৳10,00,000 per transaction</div>
+                        </div>
+
+                        <!-- Quick amount buttons -->
+                        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+                                                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('amount').value=500">
+                                ৳500                            </button>
+                                                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('amount').value=1000">
+                                ৳1,000                            </button>
+                                                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('amount').value=2000">
+                                ৳2,000                            </button>
+                                                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('amount').value=5000">
+                                ৳5,000                            </button>
+                                                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('amount').value=10000">
+                                ৳10,000                            </button>
+                                                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('amount').value=25000">
+                                ৳25,000                            </button>
+                                                    </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="method">Deposit Method</label>
+                            <select id="method" name="method" class="form-control">
+                                <option value="cash">Cash Deposit</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="online">Online Transfer</option>
+                                <option value="agent">Agent Banking</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="description">Description / Note</label>
+                            <input type="text" id="description" name="description" class="form-control"
+                                   value="Cash Deposit" maxlength="255"
+                                   placeholder="e.g. Monthly savings">
+                        </div>
+
+                        <!-- Summary -->
+                        <div id="depositSummary" style="display:none;background:var(--green-light);border:1px solid #c8e6c9;border-radius:12px;padding:16px;margin-bottom:20px;">
+                            <div style="font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--green);margin-bottom:10px;">Transaction Summary</div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                <span style="font-size:13px;color:var(--ink-muted);">Deposit Amount</span>
+                                <span style="font-size:13px;font-weight:600;" id="summaryAmount">৳0</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                <span style="font-size:13px;color:var(--ink-muted);">Processing Fee</span>
+                                <span style="font-size:13px;font-weight:600;color:var(--green);">Free</span>
+                            </div>
+                            <div style="height:1px;background:#c8e6c9;margin:10px 0;"></div>
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="font-size:13px;font-weight:600;">New Balance</span>
+                                <span style="font-size:15px;font-weight:700;color:var(--green);" id="summaryBalance">৳77,999.50</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full btn-lg">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                            Confirm Deposit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="card reveal">
+            <div class="card-header">
+                <h4>Deposit History</h4>
+            </div>
+                        <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Reference</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                                                <tr>
+                            <td>29 Sep 2026<br><span style="font-size:11px;color:var(--ink-faint);">3:23 AM</span></td>
+                            <td><strong style="color:var(--green);">+৳ 50,000.00</strong></td>
+                            <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Initial Account Opening Deposit</td>
+                            <td><code style="font-size:12px;color:var(--ink-muted);">DEP-10001</code></td>
+                            <td><span class="badge badge-success">Completed</span></td>
+                        </tr>
+                                            </tbody>
+                </table>
+            </div>
+                    </div>
+    </div>
+</div>
+
+<script>
+const balanceVal = 77999.5;
+const amountInput = document.getElementById('amount');
+const summary = document.getElementById('depositSummary');
+const summaryAmount = document.getElementById('summaryAmount');
+const summaryBalance = document.getElementById('summaryBalance');
+
+amountInput.addEventListener('input', function() {
+    const val = parseFloat(this.value) || 0;
+    if (val > 0) {
+        summary.style.display = 'block';
+        summaryAmount.textContent = '৳' + val.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+        summaryBalance.textContent = '৳' + (balanceVal + val).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+    } else {
+        summary.style.display = 'none';
+    }
+});
+</script>
+
+</div><!-- .main-content -->
+</div><!-- .app-layout -->
+
+<script src="../assets/js/main.js"></script>
+
+<script src="demo-app.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const amtInput = document.getElementById('amount') || document.querySelector('input[name="amount"]') || document.querySelector('input[type="number"]');
+      const amt = parseFloat(amtInput?.value || 0);
+      const refInput = document.getElementById('reference') || document.querySelector('input[name="reference"]');
+      const ref = refInput?.value || 'MFS' + Math.floor(100000 + Math.random()*900000);
+
+      if (!amt || amt <= 0) {
+        window.BMS.showToast('Invalid Amount', 'Please enter a valid deposit amount.', 'danger');
+        return;
+      }
+
+      window.BMS.addTransaction({
+        type: 'MFS Deposit',
+        desc: `Deposit Credited (TrxID: ${ref})`,
+        amount: amt,
+        direction: 'in'
+      });
+
+      window.BMS.showToast('Deposit Credited', `Successfully deposited ${window.BMS.formatBDT(amt)} to your account.`, 'success');
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 900);
+    });
+  }
+});
+</script>
+</body>
+
+</html>

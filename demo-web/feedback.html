@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Feedback &amp; Support — Asha Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="alternate icon" href="../favicon.svg">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body>
+
+<!-- Toast container (Bottom-Right) -->
+<div id="toastContainer" class="toast-container"></div>
+
+
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Desktop Only Portal</h2>
+        <p class="desktop-gate-desc">
+            Asha Bank's banking portals, interactive dashboards, and account management are currently designed exclusively for desktop displays for enterprise security and multi-column workspace clarity.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Enterprise Multi-Column View</strong>
+                    <span>Full financial ledgers, statement exports & real-time analytics</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Workstation Security Session</strong>
+                    <span>Hardware-backed 256-bit encryption & two-factor authentication</span>
+                </div>
+            </div>
+        </div>
+        <a href="../index.html" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- App layout -->
+<div class="app-layout">
+
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <!-- Logo -->
+    <a href="../index.html" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+        </div>
+        <div>
+            <div class="sidebar-logo-text">Asha Bank</div>
+            <span class="sidebar-logo-sub">Client Portal</span>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" aria-label="Navigation">
+                <div class="sidebar-section-label">Main</div>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bxs-dashboard"></i>
+            Dashboard                    </a>
+                <a href="deposit.html"
+           class=""
+           >
+            <i class="bx bx-log-in-circle"></i>
+            Deposit                    </a>
+                <a href="withdraw.html"
+           class=""
+           >
+            <i class="bx bx-log-out-circle"></i>
+            Withdraw                    </a>
+                <a href="transfer.html"
+           class=""
+           >
+            <i class="bx bx-transfer"></i>
+            Transfer                    </a>
+                        <div class="sidebar-section-label">Account</div>
+                <a href="cards.html"
+           class=""
+           >
+            <i class="bx bx-credit-card"></i>
+            My Cards                    </a>
+                <a href="profile.html"
+           class=""
+           >
+            <i class="bx bx-user"></i>
+            Profile                    </a>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bx-bell"></i>
+            Notifications                    </a>
+                <a href="feedback.html"
+           class="active"
+           aria-current="page">
+            <i class="bx bx-support"></i>
+            Support                    </a>
+                    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-avatar dark">A</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">Arjun Kapoor</div>
+                <div class="sidebar-user-role">client</div>
+            </div>
+        </div>
+        <a href="login.html" class="btn btn-ghost w-full sidebar-signout" style="justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px;">
+            <i class='bx bx-log-out' style="font-size:18px;"></i>
+            Sign Out
+        </a>
+    </div>
+</aside>
+
+<!-- ── Main content ──────────────────────────────────────────── -->
+<div class="main-content">
+
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-left">
+        <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar">
+            <i class='bx bx-menu'></i>
+        </button>
+        <div class="topbar-breadcrumb">
+            <a href="dashboard.html">Home</a>
+                        <span class="sep">/</span>
+            <span>Feedback &amp; Support</span>
+                    </div>
+    </div>
+    <div class="topbar-right">
+        <!-- Theme toggle -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle dark mode">
+            <i class='bx bx-moon' id="themeIcon"></i>
+        </button>
+                <a href="dashboard.html" class="notif-btn" aria-label="0 notifications">
+            <i class='bx bx-bell'></i>
+                    </a>
+                <a href="profile.html"
+           class="btn btn-ghost btn-sm" aria-label="Profile" style="gap:8px;">
+            <div class="avatar avatar-sm" style="background:var(--bg-muted);color:var(--text-primary);font-size:11px;">A</div>
+            <span style="font-size:13px;font-weight:500;color:var(--text-secondary);">Arjun Kapoor</span>
+        </a>
+    </div>
+</header>
+<!-- end topbar -->
+
+<div class="page-content">
+
+    <!-- Page Header -->
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>Feedback &amp; Customer Support</h1>
+            <p>We value your experience. Submit an inquiry, suggestion, or complaint and our support team will respond promptly.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge badge-outline" style="font-size:12px;padding:6px 12px;">
+                <i class='bx bx-support'></i> 24/7 Digital Desk
+            </span>
+        </div>
+    </div>
+
+    <!-- Layout Grid -->
+    <div class="feedback-layout-grid" style="display:grid;grid-template-columns:minmax(320px, 440px) 1fr;gap:28px;align-items:start;">
+
+        <!-- Left Column: Submit Ticket Form -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="card reveal" style="padding:0;overflow:hidden;border:1px solid var(--border);">
+                <div class="card-header" style="background:var(--bg-subtle);padding:16px 20px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:32px;height:32px;border-radius:8px;background:var(--bg-base);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-primary);">
+                            <i class='bx bx-message-square-edit'></i>
+                        </div>
+                        <div>
+                            <h3 style="margin:0;font-size:15px;font-weight:600;">Submit a Support Ticket</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding:22px 20px;">
+                    <form id="feedbackForm" method="POST" action="#">
+                        <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                        <input type="hidden" name="submit_feedback" value="1">
+
+                        <!-- Ticket Type -->
+                        <div class="form-group">
+                            <label class="form-label" for="feedbackType">Category <span class="required">*</span></label>
+                            <select class="form-control" id="feedbackType" name="type" required>
+                                <option value="feedback">General Feedback &amp; Suggestion</option>
+                                <option value="complaint">Complaint &amp; Transaction Issue</option>
+                                <option value="inquiry">Account &amp; Service Inquiry</option>
+                            </select>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="form-group">
+                            <label class="form-label" for="feedbackSubject">Subject <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="feedbackSubject" name="subject" 
+                                   placeholder="Brief summary of your question or issue" 
+                                   maxlength="200" required>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="form-group">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-2);">
+                                <label class="form-label" for="feedbackMessage" style="margin:0;">Description <span class="required">*</span></label>
+                                <span class="char-count" id="charCount" style="font-size:11px;color:var(--text-muted);">0 / 500</span>
+                            </div>
+                            <textarea class="form-control" id="feedbackMessage" name="message" rows="5" 
+                                      placeholder="Please explain the details of what happened, what you need assistance with, or how we can improve..." 
+                                      maxlength="500" required style="resize:vertical;min-height:110px;"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="feedbackSubmitBtn" class="btn btn-primary w-full" style="justify-content:center;margin-top:12px;">
+                            <i class='bx bx-send'></i> Submit Ticket
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Channels Box -->
+            <div class="card" style="padding:18px 20px;background:var(--bg-subtle);border:1px solid var(--border);">
+                <div style="font-weight:600;font-size:13px;margin-bottom:10px;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                    <i class='bx bx-phone-call' style="font-size:16px;color:var(--blue);"></i> Direct Support Helplines
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;justify-content:space-between;">
+                        <span>Customer Care:</span>
+                        <span class="mono" style="font-weight:600;color:var(--text-primary);">16216 / 09612-000000</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span>Official Support Email:</span>
+                        <span style="font-weight:500;color:var(--text-primary);">help@ashabank.com</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span>Card Blocking Desk:</span>
+                        <span class="mono" style="font-weight:600;color:var(--danger);">09612-999999 (24/7)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Support Ticket History -->
+        <div>
+            <div class="card reveal" style="padding:0;overflow:hidden;border:1px solid var(--border);">
+                <div class="card-header" style="background:var(--bg-subtle);padding:16px 22px;display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:32px;height:32px;border-radius:8px;background:var(--bg-base);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-primary);">
+                            <i class='bx bx-history'></i>
+                        </div>
+                        <h3 style="margin:0;font-size:15px;font-weight:600;">Your Ticket History</h3>
+                    </div>
+                    <span class="badge badge-outline" style="font-size:11px;padding:3px 8px;">
+                        1 Record                    </span>
+                </div>
+
+                <div class="card-body" style="padding:22px;">
+                    
+                    <!-- Ticket List -->
+                    <div style="display:flex;flex-direction:column;gap:18px;">
+                                                <div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--r);padding:18px;transition:box-shadow var(--dur);">
+                            
+                            <!-- Header Row -->
+                            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
+                                <div>
+                                    <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">
+                                        Impressive Mobile Banking Speed                                    </div>
+                                    <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;">
+                                        <span class="badge badge-outline" style="font-size:10px;padding:1px 6px;">Suggestion</span>
+                                        <span>Oct 8, 2026 · Oct 08, 2026</span>
+                                    </div>
+                                </div>
+                                <span class="badge badge-success" style="font-size:11px;padding:3px 8px;">
+                                    <i class='bx bx-check-circle'></i> Resolved                                </span>
+                            </div>
+
+                            <!-- Customer Message -->
+                            <div style="font-size:13.5px;color:var(--text-secondary);line-height:1.55;background:var(--bg-subtle);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border-soft);">
+                                Fund transfers to other banks via NPSB reflect within seconds. Fantastic experience!                            </div>
+
+                            <!-- Staff / Admin Response Box -->
+                                                        <div style="margin-top:14px;background:var(--bg-muted);border-left:3px solid var(--success);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:12px 14px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                    <div style="font-size:12px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+                                        <i class='bx bx-headphone' style="color:var(--success);"></i>
+                                        Asha Bank Support Officer
+                                    </div>
+                                                                        <span style="font-size:11px;color:var(--text-muted);">1d ago</span>
+                                                                    </div>
+                                <div style="font-size:13px;color:var(--text-primary);line-height:1.5;">
+                                    Thank you, Sir. Please keep us in your prayers.                                </div>
+                            </div>
+                            
+                        </div>
+                                            </div>
+                                    </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</div><!-- .main-content -->
+</div><!-- .app-layout -->
+
+<script src="../assets/js/main.js"></script>
+<script>// Live character counter
+const msgInput = document.getElementById('feedbackMessage');
+const charCounter = document.getElementById('charCount');
+if (msgInput && charCounter) {
+    const updateCount = () => {
+        const len = msgInput.value.length;
+        charCounter.textContent = len + ' / 500';
+        if (len > 450) {
+            charCounter.style.color = 'var(--danger)';
+        } else {
+            charCounter.style.color = 'var(--text-muted)';
+        }
+    };
+    msgInput.addEventListener('input', updateCount);
+    updateCount();
+}
+
+// Seamless AJAX submission enhancement with graceful fallback
+const form = document.getElementById('feedbackForm');
+const btn = document.getElementById('feedbackSubmitBtn');
+if (form) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Submitting...";
+        btn.disabled = true;
+
+        const sub = document.getElementById('subject')?.value || 'Service Feedback';
+        const msg = document.getElementById('message')?.value || 'Everything running smoothly.';
+        const cat = document.getElementById('feedbackType')?.value || 'General Feedback';
+
+        if (window.BMS) {
+            window.BMS.state.feedbackTickets.unshift({
+                id: 'TKT-' + Math.floor(100 + Math.random()*900),
+                customer: window.BMS.state.user.name,
+                subject: sub,
+                category: cat,
+                status: 'Pending',
+                date: 'Today',
+                message: msg,
+                reply: ''
+            });
+            window.BMS.saveState();
+            window.BMS.showToast('Ticket Created', 'Your support ticket has been queued for Staff review.', 'success');
+        }
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            form.reset();
+            if (charCounter) charCounter.textContent = '0 / 500';
+            window.location.reload();
+        }, 600);
+    });
+}</script>
+
+<script src="demo-app.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const sub = document.getElementById('subject')?.value || 'Service Feedback';
+      const msg = document.getElementById('message')?.value || 'Everything running smoothly.';
+      window.BMS.state.feedbackTickets.unshift({
+        id: 'TKT-' + Math.floor(100 + Math.random()*900),
+        customer: window.BMS.state.user.name,
+        subject: sub,
+        category: 'Support',
+        status: 'Pending',
+        date: 'Today',
+        message: msg,
+        reply: ''
+      });
+      window.BMS.saveState();
+      window.BMS.showToast('Feedback Received', 'Your ticket has been queued for Staff review.', 'success');
+      setTimeout(() => window.location.reload(), 700);
+    });
+  }
+});
+</script>
+</body>
+
+</html>

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Profile &amp; Account Management — Asha Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="alternate icon" href="../favicon.svg">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body>
+
+<!-- Toast container (Bottom-Right) -->
+<div id="toastContainer" class="toast-container"></div>
+
+
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Desktop Only Portal</h2>
+        <p class="desktop-gate-desc">
+            Asha Bank's banking portals, interactive dashboards, and account management are currently designed exclusively for desktop displays for enterprise security and multi-column workspace clarity.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Enterprise Multi-Column View</strong>
+                    <span>Full financial ledgers, statement exports & real-time analytics</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Workstation Security Session</strong>
+                    <span>Hardware-backed 256-bit encryption & two-factor authentication</span>
+                </div>
+            </div>
+        </div>
+        <a href="../index.html" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- App layout -->
+<div class="app-layout">
+
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <!-- Logo -->
+    <a href="../index.html" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+        </div>
+        <div>
+            <div class="sidebar-logo-text">Asha Bank</div>
+            <span class="sidebar-logo-sub">Client Portal</span>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" aria-label="Navigation">
+                <div class="sidebar-section-label">Main</div>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bxs-dashboard"></i>
+            Dashboard                    </a>
+                <a href="deposit.html"
+           class=""
+           >
+            <i class="bx bx-log-in-circle"></i>
+            Deposit                    </a>
+                <a href="withdraw.html"
+           class=""
+           >
+            <i class="bx bx-log-out-circle"></i>
+            Withdraw                    </a>
+                <a href="transfer.html"
+           class=""
+           >
+            <i class="bx bx-transfer"></i>
+            Transfer                    </a>
+                        <div class="sidebar-section-label">Account</div>
+                <a href="cards.html"
+           class=""
+           >
+            <i class="bx bx-credit-card"></i>
+            My Cards                    </a>
+                <a href="profile.html"
+           class="active"
+           aria-current="page">
+            <i class="bx bx-user"></i>
+            Profile                    </a>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bx-bell"></i>
+            Notifications                    </a>
+                <a href="feedback.html"
+           class=""
+           >
+            <i class="bx bx-support"></i>
+            Support                    </a>
+                    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-avatar dark">A</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">Arjun Kapoor</div>
+                <div class="sidebar-user-role">client</div>
+            </div>
+        </div>
+        <a href="login.html" class="btn btn-ghost w-full sidebar-signout" style="justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px;">
+            <i class='bx bx-log-out' style="font-size:18px;"></i>
+            Sign Out
+        </a>
+    </div>
+</aside>
+
+<!-- ── Main content ──────────────────────────────────────────── -->
+<div class="main-content">
+
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-left">
+        <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar">
+            <i class='bx bx-menu'></i>
+        </button>
+        <div class="topbar-breadcrumb">
+            <a href="dashboard.html">Home</a>
+                        <span class="sep">/</span>
+            <span>Profile &amp; Account Management</span>
+                    </div>
+    </div>
+    <div class="topbar-right">
+        <!-- Theme toggle -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle dark mode">
+            <i class='bx bx-moon' id="themeIcon"></i>
+        </button>
+                <a href="dashboard.html" class="notif-btn" aria-label="0 notifications">
+            <i class='bx bx-bell'></i>
+                    </a>
+                <a href="profile.html"
+           class="btn btn-ghost btn-sm" aria-label="Profile" style="gap:8px;">
+            <div class="avatar avatar-sm" style="background:var(--bg-muted);color:var(--text-primary);font-size:11px;">A</div>
+            <span style="font-size:13px;font-weight:500;color:var(--text-secondary);">Arjun Kapoor</span>
+        </a>
+    </div>
+</header>
+<!-- end topbar -->
+
+<div class="page-content">
+    <!-- Page Header with User Overview -->
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+        <div>
+            <h1 style="margin:0 0 4px;font-size:24px;font-weight:700;">Profile & Account Settings</h1>
+            <p style="margin:0;font-size:14px;color:var(--text-muted);">Manage your personal identity, linked accounts, servicing branch, product tier, and security credentials.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge badge-success">
+                <i class='bx bx-check-circle'></i>
+                Active Client            </span>
+            <span class="badge badge-success">
+                <i class='bx bx-check-shield'></i>
+                KYC Verified            </span>
+        </div>
+    </div>
+
+    
+    <!-- Client Header Card -->
+    <div class="card reveal" style="margin-bottom:24px;padding:24px;border-radius:16px;background:var(--bg-card);border:1px solid var(--border-subtle);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+            <div style="display:flex;align-items:center;gap:18px;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg, var(--primary) 0%, #0F52BA 100%);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;box-shadow:0 8px 16px rgba(24,95,165,0.25);">
+                    AK                </div>
+                <div>
+                    <h2 style="margin:0 0 4px;font-size:20px;font-weight:700;color:var(--text-primary);">
+                        Arjun Kapoor                    </h2>
+                    <div style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <span><i class='bx bx-user'></i> Customer ID: <strong>#1</strong></span>
+                        <span>&bull;</span>
+                        <span><i class='bx bx-envelope'></i> arjun.kapoor@gmail.com</span>
+                        <span>&bull;</span>
+                        <span><i class='bx bx-calendar'></i> Member since Oct 2026</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Card -->
+                        <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:12px;">
+                <div>
+                    <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);">Referral Code</div>
+                    <div style="font-family:'SF Mono','Fira Code',monospace;font-weight:700;font-size:15px;color:var(--primary);">REF1001</div>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('REF1001'); if(typeof showToast==='function') showToast('Referral code copied!', 'success');" title="Copy code">
+                    <i class='bx bx-copy'></i>
+                </button>
+            </div>
+                    </div>
+    </div>
+
+    <!-- 2-Column Grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;" class="transaction-page-grid">
+
+        <!-- Left Column: Account Management & Changing Options -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+
+            <!-- ── Account Overview & Switcher ────────────────────── -->
+            <div class="card reveal" style="border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border-subtle);">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(24,95,165,0.1);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:19px;">
+                            <i class='bx bx-credit-card-front'></i>
+                        </div>
+                        <div>
+                            <h4 style="margin:0;font-size:16px;font-weight:700;">Account Settings & Changing Options</h4>
+                            <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);">Manage your linked bank accounts, plan tiers, and branch</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('openAccountModal').style.display='flex';" style="display:inline-flex;align-items:center;gap:4px;">
+                        <i class='bx bx-plus'></i> New Account
+                    </button>
+                </div>
+
+                <div class="card-body" style="padding:24px;">
+                    
+                                        <!-- Active Account Highlight Card -->
+                    <div style="background:linear-gradient(135deg, rgba(24,95,165,0.08) 0%, rgba(24,95,165,0.02) 100%);border:1px solid rgba(24,95,165,0.2);border-radius:14px;padding:18px 20px;margin-bottom:22px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+                            <div>
+                                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600;">Active Account Number</span>
+                                <div style="font-family:'SF Mono','Fira Code',monospace;font-size:18px;font-weight:700;color:var(--text-primary);letter-spacing:0.04em;">
+                                    10000000001                                </div>
+                            </div>
+                            <span class="badge badge-success" style="font-size:11.5px;">
+                                <i class='bx bx-check'></i> Active                            </span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+                            <div>
+                                <span style="color:var(--text-muted);font-size:12px;">Current Balance</span>
+                                <div style="font-weight:700;font-size:16px;color:#16A34A;">৳ 77,999.50</div>
+                            </div>
+                            <div>
+                                <span style="color:var(--text-muted);font-size:12px;">Current Plan</span>
+                                <div style="font-weight:600;color:var(--text-primary);">Asha Classic Savings (0% Interest · 0.001% fee)</div>
+                            </div>
+                            <div style="grid-column:span 2;">
+                                <span style="color:var(--text-muted);font-size:12px;">Assigned Branch</span>
+                                <div style="font-weight:500;color:var(--text-primary);">Motijheel Corporate Head Branch (ASHA0001001)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Update Account Form (Branch & Plan Change) -->
+                    <form method="POST" action="#">
+                        <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                        <input type="hidden" name="action" value="update_account_settings">
+                        <input type="hidden" name="account_number" value="10000000001">
+
+                        <div class="form-group" style="margin-bottom:18px;">
+                            <label class="form-label" for="product_id">
+                                <i class='bx bx-package' style="color:var(--primary);"></i> Change Account Type / Upgrade Plan
+                            </label>
+                            <select id="product_id" name="product_id" class="form-control" style="font-size:13.5px;" onchange="updatePlanPreview()">
+                                                                <option value="1"
+                                        data-interest="0.00"
+                                        data-min="৳ 1,000.00"
+                                        data-desc="Everyday digital savings account with free debit card and 24/7 internet banking."
+                                        selected>
+                                    Asha Classic Savings — Savings (0% Interest · 0.001% fee)
+                                </option>
+                                                                <option value="2"
+                                        data-interest="0.00"
+                                        data-min="৳ 10,000.00"
+                                        data-desc="Premium account for high balances with tiered interest and airport lounge perks."
+                                        >
+                                    Asha Platinum High-Yield — Savings (0% Interest · 0.001% fee)
+                                </option>
+                                                                <option value="3"
+                                        data-interest="0.00"
+                                        data-min="৳ 5,000.00"
+                                        data-desc="Seamless corporate transactions with zero charges on digital bulk salary payouts."
+                                        >
+                                    Asha Business Current Pro — Current (0% Interest · 0.001% fee)
+                                </option>
+                                                                <option value="4"
+                                        data-interest="0.00"
+                                        data-min="৳ 100.00"
+                                        data-desc="Zero balance maintenance and subsidized fee for students aged 18 to 25."
+                                        >
+                                    Asha Student Smart Account — Student (0% Interest · 0.001% fee)
+                                </option>
+                                                                <option value="5"
+                                        data-interest="0.00"
+                                        data-min="৳ 50,000.00"
+                                        data-desc="Guaranteed return investment scheme with monthly or maturity profit payout."
+                                        >
+                                    Asha Term Deposit (FDR) — Fixed Deposit (0% Interest · 0.001% fee)
+                                </option>
+                                                            </select>
+                            <div id="planHelp" class="form-helper" style="font-size:12px;margin-top:6px;color:var(--text-muted);">
+                                Asha Bank provides 0% interest accounts with a nominal 0.001% annual storage and custody fee.
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:22px;">
+                            <label class="form-label" for="branch_id">
+                                <i class='bx bx-buildings' style="color:var(--primary);"></i> Change Servicing Branch
+                            </label>
+                            <select id="branch_id" name="branch_id" class="form-control" style="font-size:13.5px;">
+                                                                <option value="3" >
+                                    Agrabad Commercial Branch — Chittagong (Code: ASHA0002001)
+                                </option>
+                                                                <option value="2" >
+                                    Gulshan Premium Branch — Dhaka (Code: ASHA0001002)
+                                </option>
+                                                                <option value="5" >
+                                    KDA Avenue Branch — Khulna (Code: ASHA0004001)
+                                </option>
+                                                                <option value="1" selected>
+                                    Motijheel Corporate Head Branch — Dhaka (Code: ASHA0001001)
+                                </option>
+                                                                <option value="4" >
+                                    Zindabazar Metro Branch — Sylhet (Code: ASHA0003001)
+                                </option>
+                                                            </select>
+                            <div class="form-helper" style="font-size:12px;margin-top:6px;color:var(--text-muted);">
+                                Transfer this account's primary counter, cheque clearance, and locker servicing branch.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+                            <i class='bx bx-check-shield'></i> Save Account Changes
+                        </button>
+                    </form>
+                                    </div>
+            </div>
+
+            <!-- ── Personal & Contact Information ────────────────── -->
+            <div class="card reveal" style="border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+                <div class="card-header" style="display:flex;align-items:center;gap:10px;padding:18px 24px;border-bottom:1px solid var(--border-subtle);">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(2,132,199,0.1);color:#0284C7;display:flex;align-items:center;justify-content:center;font-size:19px;">
+                        <i class='bx bx-user-pin'></i>
+                    </div>
+                    <div>
+                        <h4 style="margin:0;font-size:16px;font-weight:700;">Personal Information</h4>
+                        <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);">Update your registered phone, email, and billing address</p>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding:24px;">
+                    <form method="POST" action="#">
+                        <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                        <input type="hidden" name="action" value="update_profile">
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" value="Arjun" disabled style="background:var(--bg-muted);cursor:not-allowed;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" value="Kapoor" disabled style="background:var(--bg-muted);cursor:not-allowed;">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label">National ID (NID)</label>
+                            <input type="text" class="form-control" value="1992269548100001" disabled style="background:var(--bg-muted);cursor:not-allowed;">
+                            <div class="form-helper" style="font-size:11.5px;">Name and NID can only be modified at branch counter with verified KYC documentation.</div>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                            <div class="form-group">
+                                <label class="form-label" for="phone">Phone Number <span class="required">*</span></label>
+                                <input type="text" id="phone" name="phone" class="form-control" value="01710000101" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="email">Email Address <span class="required">*</span></label>
+                                <input type="email" id="email" name="email" class="form-control" value="arjun.kapoor@gmail.com" required>
+                            </div>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px;">
+                            <div class="form-group">
+                                <label class="form-label" for="address">Street Address</label>
+                                <input type="text" id="address" name="address" class="form-control" value="42 Gulshan Avenue, Road 71" placeholder="House, Road, Area">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="city">City</label>
+                                <input type="text" id="city" name="city" class="form-control" value="Dhaka" placeholder="City">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+                            <i class='bx bx-save'></i> Save Profile Details
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Security, PIN, Nominee, KYC -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+
+            <!-- ── Transaction PIN Management ────────────────────── -->
+            <div class="card reveal" style="border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border-subtle);">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,0.1);color:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:19px;">
+                            <i class='bx bx-key'></i>
+                        </div>
+                        <div>
+                            <h4 style="margin:0;font-size:16px;font-weight:700;">Transaction Security PIN</h4>
+                            <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);">Required to authorize withdrawals and transfers</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-success">
+                        PIN Active                    </span>
+                </div>
+
+                <div class="card-body" style="padding:24px;">
+                    <form method="POST" action="#">
+                        <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                        <input type="hidden" name="action" value="update_pin">
+
+                                                <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label" for="current_pin">Current 4-Digit PIN <span class="required">*</span></label>
+                            <input type="password" id="current_pin" name="current_pin" class="form-control" maxlength="6" inputmode="numeric" placeholder="••••" required>
+                        </div>
+                        
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+                            <div class="form-group">
+                                <label class="form-label" for="new_pin">New PIN (4-6 digits) <span class="required">*</span></label>
+                                <input type="password" id="new_pin" name="new_pin" class="form-control" maxlength="6" inputmode="numeric" placeholder="••••" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="confirm_pin">Confirm New PIN <span class="required">*</span></label>
+                                <input type="password" id="confirm_pin" name="confirm_pin" class="form-control" maxlength="6" inputmode="numeric" placeholder="••••" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+                            <i class='bx bx-lock-alt'></i> Update Transaction PIN                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── Change Login Password ────────────────────────── -->
+            <div class="card reveal" style="border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+                <div class="card-header" style="display:flex;align-items:center;gap:10px;padding:18px 24px;border-bottom:1px solid var(--border-subtle);">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,0.1);color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:19px;">
+                        <i class='bx bx-lock-open-alt'></i>
+                    </div>
+                    <div>
+                        <h4 style="margin:0;font-size:16px;font-weight:700;">Change Login Password</h4>
+                        <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);">Update your digital banking portal sign-in password</p>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding:24px;">
+                    <form method="POST" action="#">
+                        <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                        <input type="hidden" name="action" value="change_password">
+
+                        <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label" for="current_password">Current Password <span class="required">*</span></label>
+                            <input type="password" id="current_password" name="current_password" class="form-control" placeholder="••••••••" required>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+                            <div class="form-group">
+                                <label class="form-label" for="new_password">New Password <span class="required">*</span></label>
+                                <input type="password" id="new_password" name="new_password" class="form-control" placeholder="Min. 6 chars" minlength="6" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="confirm_password">Confirm New Password <span class="required">*</span></label>
+                                <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-outline" style="display:inline-flex;align-items:center;gap:6px;">
+                            <i class='bx bx-refresh'></i> Update Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── Nominee Information ──────────────────────────── -->
+            <div class="card reveal" style="border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border-subtle);">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(147,51,234,0.1);color:#9333EA;display:flex;align-items:center;justify-content:center;font-size:19px;">
+                            <i class='bx bx-group'></i>
+                        </div>
+                        <div>
+                            <h4 style="margin:0;font-size:16px;font-weight:700;">Account Nominee</h4>
+                            <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);">Legal beneficiary for this banking account</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding:24px;">
+                    <form method="POST" action="#">
+                        <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                        <input type="hidden" name="action" value="update_nominee">
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                            <div class="form-group">
+                                <label class="form-label" for="nominee_name">Nominee Full Name <span class="required">*</span></label>
+                                <input type="text" id="nominee_name" name="nominee_name" class="form-control" value="Sita Kapoor" placeholder="Full Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="nominee_relation">Relationship <span class="required">*</span></label>
+                                <select id="nominee_relation" name="nominee_relation" class="form-control">
+                                                                        <option value="Spouse" selected>Spouse</option>
+                                                                        <option value="Child" >Child</option>
+                                                                        <option value="Parent" >Parent</option>
+                                                                        <option value="Sibling" >Sibling</option>
+                                                                        <option value="Other" >Other</option>
+                                                                    </select>
+                            </div>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+                            <div class="form-group">
+                                <label class="form-label" for="nominee_phone">Nominee Contact Phone</label>
+                                <input type="text" id="nominee_phone" name="nominee_phone" class="form-control" value="01710000201" placeholder="Phone number">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="nominee_address">Nominee Address</label>
+                                <input type="text" id="nominee_address" name="nominee_address" class="form-control" value="42 Gulshan Avenue, Dhaka" placeholder="Address">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-outline" style="display:inline-flex;align-items:center;gap:6px;">
+                            <i class='bx bx-user-check'></i> Save Nominee Details
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── KYC Verification ─────────────────────────────── -->
+            <div class="card reveal" style="border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border-subtle);">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(22,163,74,0.1);color:#16A34A;display:flex;align-items:center;justify-content:center;font-size:19px;">
+                            <i class='bx bx-badge-check'></i>
+                        </div>
+                        <div>
+                            <h4 style="margin:0;font-size:16px;font-weight:700;">KYC Identity Verification</h4>
+                            <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);">Compliance with Bangladesh Bank regulations</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-success">
+                        Verified                    </span>
+                </div>
+
+                <div class="card-body" style="padding:24px;">
+                                        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);border-radius:12px;color:#16A34A;">
+                        <i class='bx bx-check-shield' style="font-size:26px;"></i>
+                        <div>
+                            <div style="font-weight:700;font-size:14px;">Your identity has been fully verified</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">All limits, international transactions, and full digital services are unlocked.</div>
+                        </div>
+                    </div>
+                                    </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal: Open Additional Account -->
+<div id="openAccountModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:18px;max-width:480px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.25);overflow:hidden;animation:modalIn 0.2s cubic-bezier(0.16,1,0.3,1);">
+        <div style="background:linear-gradient(135deg, var(--primary) 0%, #0F52BA 100%);padding:22px;color:#FFFFFF;position:relative;">
+            <button type="button" onclick="document.getElementById('openAccountModal').style.display='none';" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#FFFFFF;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">
+                <i class='bx bx-x'></i>
+            </button>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <div style="width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bx-plus' style="font-size:14px;"></i>
+                </div>
+                <span style="font-weight:700;font-size:14px;letter-spacing:-0.01em;">Asha Bank</span>
+            </div>
+            <h3 style="margin:0 0 2px;color:#FFFFFF;font-size:18px;font-weight:700;">Open Additional Account</h3>
+            <div style="font-size:12px;color:rgba(255,255,255,0.75);">Add a secondary savings, current, or term deposit account</div>
+        </div>
+
+        <div style="padding:24px;">
+            <form method="POST" action="#">
+                <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                <input type="hidden" name="action" value="open_additional_account">
+
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label class="form-label" for="new_product_id">Select Account Product <span class="required">*</span></label>
+                    <select id="new_product_id" name="new_product_id" class="form-control" required>
+                                                <option value="1">
+                            Asha Classic Savings (Savings — 0% Interest)
+                        </option>
+                                                <option value="2">
+                            Asha Platinum High-Yield (Savings — 0% Interest)
+                        </option>
+                                                <option value="3">
+                            Asha Business Current Pro (Current — 0% Interest)
+                        </option>
+                                                <option value="4">
+                            Asha Student Smart Account (Student — 0% Interest)
+                        </option>
+                                                <option value="5">
+                            Asha Term Deposit (FDR) (Fixed Deposit — 0% Interest)
+                        </option>
+                                            </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label class="form-label" for="new_branch_id">Servicing Branch <span class="required">*</span></label>
+                    <select id="new_branch_id" name="new_branch_id" class="form-control" required>
+                                                <option value="3" >
+                            Agrabad Commercial Branch (Chittagong)
+                        </option>
+                                                <option value="2" >
+                            Gulshan Premium Branch (Dhaka)
+                        </option>
+                                                <option value="5" >
+                            KDA Avenue Branch (Khulna)
+                        </option>
+                                                <option value="1" selected>
+                            Motijheel Corporate Head Branch (Dhaka)
+                        </option>
+                                                <option value="4" >
+                            Zindabazar Metro Branch (Sylhet)
+                        </option>
+                                            </select>
+                </div>
+
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('openAccountModal').style.display='none';">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+                        <i class='bx bx-check'></i> Open Account Instantly
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePlanPreview() {
+    const sel = document.getElementById('product_id');
+    const opt = sel.options[sel.selectedIndex];
+    const minBal = opt.getAttribute('data-min');
+    document.getElementById('planHelp').textContent = '0% Interest Banking | 0.001% Safekeeping & Storage Fee | Minimum Reserve: ' + minBal;
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('openAccountModal');
+        if (modal) modal.style.display = 'none';
+    }
+});
+</script>
+
+</div><!-- .main-content -->
+</div><!-- .app-layout -->
+
+<script src="../assets/js/main.js"></script>
+
+<script src="demo-app.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('form').forEach(f => {
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      window.BMS.showToast('Profile Updated', 'Your profile and account details have been saved.', 'success');
+      const modal = document.getElementById('openAccountModal');
+      if (modal) modal.style.display = 'none';
+    });
+  });
+});
+</script>
+</body>
+
+</html>

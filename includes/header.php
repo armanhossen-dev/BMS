@@ -161,6 +161,50 @@ window.__FLASH_TOAST__ = <?= json_encode($toast) ?>;
 </script>
 <?php endif; ?>
 
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Desktop Only Portal</h2>
+        <p class="desktop-gate-desc">
+            Asha Bank's banking portals, interactive dashboards, and account management are currently designed exclusively for desktop displays for enterprise security and multi-column workspace clarity.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Enterprise Multi-Column View</strong>
+                    <span>Full financial ledgers, statement exports & real-time analytics</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Workstation Security Session</strong>
+                    <span>Hardware-backed 256-bit encryption & two-factor authentication</span>
+                </div>
+            </div>
+        </div>
+        <a href="<?= $rootUrl ?>index.php" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
+
 <!-- Sidebar overlay (mobile) -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 

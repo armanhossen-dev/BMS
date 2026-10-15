@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open an account — Asha Bank</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="alternate icon" href="../favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg:       #FAFAFA;
+            --surface:  #FFFFFF;
+            --ink:      #09090B;
+            --muted:    #52525B;
+            --faint:    #71717A;
+            --line:     #E4E4E7;
+            --brand:    #09090B;
+            --brand-2:  #27272A;
+            --gold:     #F6BA42;
+            --gold-dark:#EAA023;
+            --danger:   #DC2626;
+            --danger-bg:#FEF2F2;
+            --display:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            --body:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--body); font-size: 15px; line-height: 1.5;
+            background: var(--bg); color: var(--ink); min-height: 100vh; min-height: 100dvh;
+            display: grid; grid-template-columns: minmax(360px, 5fr) 7fr;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ---------- Brand panel (sticky, holds the live card) ---------- */
+        .brand {
+            background: #09090B; color: #fff; padding: 44px 48px;
+            position: sticky; top: 0; height: 100vh; height: 100dvh;
+            display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .brand::before {
+            content: ''; position: absolute; right: -240px; top: 22%; width: 560px; height: 560px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(246, 186, 66, 0.06) 0%, transparent 70%);
+            box-shadow: 0 0 0 60px rgba(255,255,255,.02), 0 0 0 120px rgba(255,255,255,.015);
+        }
+        .logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; position: relative; z-index: 1; }
+        .logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); display: grid; place-items: center; box-shadow: 0 2px 6px rgba(234, 160, 35, 0.25); }
+        .logo-mark svg { width: 22px; height: 22px; }
+        .logo-name { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -.02em; }
+        .brand-main { position: relative; z-index: 1; }
+        .brand h2 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 3vw, 42px); line-height: 1.1; letter-spacing: -.03em; max-width: 13ch; margin-bottom: 14px; }
+        .brand p { color: rgba(255,255,255,.65); max-width: 34ch; font-size: 15.5px; line-height: 1.6; }
+
+        .card-visual {
+            margin-top: 40px; width: min(100%, 340px); aspect-ratio: 1.586; border-radius: 16px; padding: 22px 24px;
+            background: linear-gradient(135deg, #18181B 0%, #27272A 50%, #09090B 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            transform: rotate(-3deg); box-shadow: 0 24px 48px -12px rgba(0,0,0,.6);
+            display: flex; flex-direction: column; justify-content: space-between;
+            transition: transform .4s cubic-bezier(.16,1,.3,1);
+        }
+        .card-visual.bump { transform: rotate(-1.5deg) scale(1.02); }
+        .card-top { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+        .chip { width: 36px; height: 26px; border-radius: 6px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .card-num { font-family: var(--display); font-size: 18px; letter-spacing: .12em; font-weight: 500; font-variant-numeric: tabular-nums; }
+        .card-bottom { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.7); }
+        .card-bottom span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .card-type { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,.6); min-height: 20px; }
+        .brand-foot { position: relative; z-index: 1; font-size: 13px; color: rgba(255,255,255,.45); }
+
+        /* ---------- Form side ---------- */
+        .panel { padding: 40px 40px 72px; display: flex; justify-content: center; background: var(--bg); }
+        .wrap { width: 100%; max-width: 600px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; font-size: 14px; color: var(--muted); }
+        .topbar a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+        .mobile-logo { display: none; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+        .mobile-logo .logo-mark { width: 32px; height: 32px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); border-radius: 9px; display: grid; place-items: center; }
+        .mobile-logo .logo-mark svg { width: 18px; height: 18px; }
+        .mobile-logo .logo-mark svg * { stroke: #09090B; }
+        .mobile-logo .logo-name { font-family: var(--display); font-weight: 700; font-size: 18px; }
+
+        h1 { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: -.03em; line-height: 1.15; margin-bottom: 6px; }
+        .lede { color: var(--muted); margin-bottom: 24px; font-size: 14.5px; }
+
+        /* progress */
+        .progress { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+        .progress i { height: 4px; border-radius: 4px; background: #E4E4E7; transition: background .25s; }
+        .progress i.on { background: var(--brand); }
+        .progress-label { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--muted); margin-bottom: 24px; }
+        .progress-label strong { color: var(--ink); font-weight: 600; }
+
+        .alert { background: var(--danger-bg); color: var(--danger); border: 1px solid #FECACA; border-radius: 8px; padding: 12px 14px; font-size: 14px; margin-bottom: 24px; }
+        .alert strong { display: block; margin-bottom: 4px; }
+        .alert ul { padding-left: 18px; }
+
+        .step { display: none; }
+        .step.current { display: block; animation: swap .25s ease both; }
+        @keyframes swap { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+        .step h2 { font-family: var(--display); font-size: 20px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 4px; }
+        .step .hint { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 14px; }
+        .span-2 { grid-column: 1 / -1; }
+        .field label, .legend { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: var(--ink); }
+        .opt { color: var(--faint); font-weight: 400; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="password"], select, textarea {
+            width: 100%; height: 46px; padding: 0 14px; font: 400 15px var(--body); color: var(--ink);
+            background: var(--surface); border: 1px solid var(--line); border-radius: 8px; appearance: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        textarea { height: auto; padding: 10px 14px; resize: vertical; min-height: 80px; }
+        select { padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371717A' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+        input:hover, select:hover, textarea:hover { border-color: #A1A1AA; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08); }
+        .is-error { border-color: var(--danger) !important; }
+        .msg { font-size: 13px; color: var(--danger); margin-top: 4px; }
+        .note { font-size: 13px; color: var(--faint); margin-top: 4px; }
+        .pw-wrap { position: relative; }
+        .pw-wrap input { padding-right: 48px; }
+        .eye { position: absolute; right: 6px; top: 6px; width: 34px; height: 34px; border: 0; background: none; border-radius: 6px; color: var(--faint); cursor: pointer; display: grid; place-items: center; }
+        .eye:hover { color: var(--ink); background: #F4F4F5; }
+        .eye svg { width: 18px; height: 18px; }
+
+        /* gender pills */
+        .pills { display: flex; gap: 8px; }
+        .pill { flex: 1; position: relative; }
+        .pill input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+        .pill span { display: grid; place-items: center; height: 46px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 14.5px; color: var(--muted); transition: all .15s; }
+        .pill input:checked + span { border-color: var(--brand); background: var(--brand); color: #FFFFFF; font-weight: 600; }
+        .pill input:focus-visible + span { box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.1); }
+        .pills.is-error span { border-color: var(--danger); }
+
+        /* account type */
+        .products { display: grid; gap: 10px; margin-bottom: 22px; }
+        .product { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 16px; padding: 16px 18px; background: #fff; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+        .product:hover { border-color: #A1A1AA; }
+        .product input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+        .product:has(input:checked) { border-color: var(--brand); background: #FAFAFA; box-shadow: 0 0 0 1px var(--brand); }
+        .product:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.1); }
+        .p-name { font-weight: 600; font-size: 15.5px; }
+        .p-min  { font-size: 13.5px; color: var(--muted); }
+        .p-rate { grid-row: 1 / span 2; grid-column: 2; text-align: right; font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1; }
+        .p-rate small { display: block; font: 400 12px var(--body); color: var(--muted); margin-top: 4px; }
+        .products.is-error .product { border-color: var(--danger); }
+
+        /* terms */
+        .agree { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; background: #fff; border: 1px solid var(--line); border-radius: 8px; margin-top: 22px; }
+        .agree.is-error { border-color: var(--danger); }
+        .agree input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--brand); cursor: pointer; }
+        .agree label { font-size: 14px; color: var(--muted); cursor: pointer; }
+        .agree a { color: var(--ink); font-weight: 600; text-decoration: underline; }
+
+        /* strength */
+        .meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; }
+        .meter i { height: 4px; border-radius: 4px; background: var(--line); transition: background .25s; }
+        .meter[data-s="1"] i:nth-child(-n+1) { background: var(--danger); }
+        .meter[data-s="2"] i:nth-child(-n+2) { background: #D97706; }
+        .meter[data-s="3"] i:nth-child(-n+3) { background: #2563EB; }
+        .meter[data-s="4"] i:nth-child(-n+4) { background: #16A34A; }
+        .meter-text { font-size: 13px; color: var(--muted); margin-top: 4px; min-height: 18px; }
+
+        /* nav buttons */
+        .actions { display: flex; gap: 10px; margin-top: 28px; }
+        .btn { height: 46px; padding: 0 24px; border-radius: 8px; font: 600 15px var(--body); cursor: pointer; border: 0; transition: background .15s, transform .1s; }
+        .btn:active { transform: scale(.99); }
+        .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+        .btn-primary { flex: 1; background: var(--brand); color: #fff; }
+        .btn-primary:hover { background: var(--brand-2); }
+        .btn-primary:disabled { opacity: .75; cursor: progress; }
+        .btn-ghost { background: #FFFFFF; color: var(--ink); border: 1px solid var(--line); }
+        .btn-ghost:hover { background: #F4F4F5; border-color: #D4D4D8; }
+        .foot { text-align: center; margin-top: 22px; color: var(--muted); font-size: 14px; }
+        .foot a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+        .desktop-only-gate { display: none !important; }
+
+        @media (max-width: 1024px) {
+            body { display: block !important; background: #09090B !important; }
+            .brand, .panel { display: none !important; }
+            .desktop-only-gate {
+                display: flex !important;
+                position: fixed;
+                inset: 0;
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                background: radial-gradient(circle at 50% 15%, rgba(246, 186, 66, 0.09) 0%, transparent 60%), #09090B !important;
+                color: #FFFFFF !important;
+                z-index: 99999999;
+                align-items: center;
+                justify-content: center;
+                padding: 24px 16px;
+                box-sizing: border-box;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .desktop-gate-card {
+                background: rgba(24, 24, 27, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 24px;
+                padding: 34px 24px 28px;
+                max-width: 440px;
+                width: 100%;
+                text-align: center;
+                box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(246, 186, 66, 0.15);
+                box-sizing: border-box;
+                margin: auto;
+            }
+            .desktop-gate-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                padding: 5px 13px;
+                border-radius: 999px;
+                background: rgba(246, 186, 66, 0.12);
+                border: 1px solid rgba(246, 186, 66, 0.35);
+                color: #F6BA42;
+                font-size: 11.5px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 20px;
+            }
+            .desktop-gate-badge i { font-size: 15px; }
+            .desktop-gate-icon-wrap { position: relative; width: 76px; height: 76px; margin: 0 auto 20px; }
+            .gate-icon-circle {
+                width: 76px; height: 76px; border-radius: 22px;
+                background: linear-gradient(135deg, rgba(246, 186, 66, 0.22) 0%, rgba(24, 24, 27, 0.9) 100%);
+                border: 1.5px solid rgba(246, 186, 66, 0.45);
+                display: grid; place-items: center; font-size: 38px; color: #F6BA42;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+            }
+            .gate-icon-mini-tag {
+                position: absolute; bottom: -4px; right: -6px; width: 28px; height: 28px;
+                border-radius: 8px; background: #09090B; border: 1.5px solid rgba(255, 255, 255, 0.2);
+                display: grid; place-items: center; font-size: 14px; color: #E4E4E7;
+            }
+            .desktop-gate-title {
+                font-family: var(--display); font-size: 22px; font-weight: 800; color: #FFFFFF;
+                letter-spacing: -0.025em; margin-bottom: 10px; line-height: 1.25;
+            }
+            .desktop-gate-desc { font-size: 13.5px; line-height: 1.55; color: #A1A1AA; margin-bottom: 22px; }
+            .desktop-gate-features {
+                background: rgba(9, 9, 11, 0.7); border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 16px; padding: 14px 16px; margin-bottom: 24px;
+                display: flex; flex-direction: column; gap: 10px; text-align: left;
+            }
+            .feature-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: #D4D4D8; line-height: 1.4; }
+            .feature-bullet {
+                width: 18px; height: 18px; border-radius: 6px; background: rgba(34, 197, 94, 0.15);
+                color: #22C55E; display: grid; place-items: center; font-size: 12px; flex-shrink: 0; margin-top: 1px;
+            }
+            .feature-item strong { display: block; color: #FFFFFF; font-weight: 600; font-size: 13px; }
+            .gate-btn-home {
+                display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+                width: 100%; height: 46px; border-radius: 12px;
+                background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
+                color: #09090B; font-weight: 700; font-size: 14px; text-decoration: none;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+                box-shadow: 0 4px 14px rgba(234, 160, 35, 0.28); box-sizing: border-box;
+            }
+            .gate-btn-home:hover, .gate-btn-home:active {
+                transform: translateY(-1px); box-shadow: 0 6px 18px rgba(234, 160, 35, 0.4);
+            }
+            .desktop-gate-hint { font-size: 11.5px; color: #71717A; margin-top: 14px; line-height: 1.45; }
+            .desktop-gate-hint b { color: #D4D4D8; }
+        }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+    </style>
+</head>
+<body>
+
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-id-card'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Registration Available on Desktop Only</h2>
+        <p class="desktop-gate-desc">
+            To complete identity verification, NID document scans, and multi-tier account compliance, our digital registration portal is currently optimized for desktop and laptop computers.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Secure KYC Document Submission</strong>
+                    <span>High-resolution document uploads and cryptographic selfie validation</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Virtual & Physical Debit Card Setup</strong>
+                    <span>Instant PIN configuration & spending limit customization</span>
+                </div>
+            </div>
+        </div>
+        <a href="../index.html" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
+
+<!-- Brand panel with live card -->
+<aside class="brand" aria-hidden="true">
+    <a href="../index.html" class="logo" tabindex="-1">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg></span>
+        <span class="logo-name">Asha Bank</span>
+    </a>
+
+    <div class="brand-main">
+        <h2>Open an account in about three minutes.</h2>
+        <p>No paperwork and no queue. Your virtual debit card is ready the moment you finish.</p>
+
+        <div class="card-visual" id="card">
+            <div class="card-top"><span>Asha Bank</span><span class="chip"></span></div>
+            <div class="card-num">4••• &nbsp;•••• &nbsp;•••• &nbsp;••••</div>
+            <div class="card-bottom"><span id="cardName">Your name here</span><span id="cardExp">10/30</span></div>
+        </div>
+        <div class="card-type" id="cardType"></div>
+    </div>
+
+    <p class="brand-foot">&copy; 2026 Asha Bank. Regulated by Bangladesh Bank.</p>
+</aside>
+
+<main class="panel">
+    <div class="wrap">
+        <div class="topbar">
+            <a href="../index.html" class="mobile-logo" style="color:var(--ink);font-weight:400">
+                <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg></span>
+                <span class="logo-name">Asha Bank</span>
+            </a>
+            <span>Already a customer? <a href="login.html">Sign in</a></span>
+        </div>
+
+        <h1>Open your account</h1>
+        <p class="lede">Three short steps. You can go back and change anything before you submit.</p>
+
+        <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="progress-label"><span id="stepName"><strong>About you</strong></span><span id="stepCount">Step 1 of 3</span></div>
+
+        
+        <form method="POST" action="#" id="registerForm" novalidate>
+            <input type="hidden" name="_csrf" value="fd33adf16768508719c23df446b123f3e349dc7a9dd78ab78df76dc232711794"><input type="hidden" name="csrf_token" value="fd33adf16768508719c23df446b123f3e349dc7a9dd78ab78df76dc232711794">
+            <!-- Step 1: About you -->
+            <section class="step" data-step="1" data-name="About you">
+                <h2>About you</h2>
+                <p class="hint">We use these details to verify your identity.</p>
+
+                <div style="margin-bottom: 16px;">
+                  <button type="button" id="demoAutoFillBtn" style="background: #f4f4f5; border: 1px dashed #71717a; color: #18181b; font-size: 12.5px; font-weight: 600; padding: 7px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s;">
+                    ⚡ Auto-Fill Demo Details (1-Click Test)
+                  </button>
+                </div>
+
+                <div class="grid">
+                    <div class="field">
+                        <label for="first_name">First name</label>
+                        <input type="text" id="first_name" name="first_name" value="" autocomplete="given-name" required class="">
+                                            </div>
+                    <div class="field">
+                        <label for="last_name">Last name</label>
+                        <input type="text" id="last_name" name="last_name" value="" autocomplete="family-name" required class="">
+                                            </div>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="" autocomplete="email" placeholder="you@example.com" required class="">
+                                            </div>
+                    <div class="field">
+                        <label for="phone">Mobile number</label>
+                        <input type="tel" id="phone" name="phone" value="" autocomplete="tel" placeholder="01712345678" required class="">
+                                            </div>
+                    <div class="field">
+                        <label for="dob">Date of birth</label>
+                        <input type="date" id="dob" name="dob" value="" max="2008-10-15" autocomplete="bday" required class="">
+                                            </div>
+                    <div class="field">
+                        <span class="legend" id="genderLegend">Gender</span>
+                        <div class="pills " role="radiogroup" aria-labelledby="genderLegend">
+                                                        <label class="pill"><input type="radio" name="gender" value="Male" ><span>Male</span></label>
+                                                        <label class="pill"><input type="radio" name="gender" value="Female" ><span>Female</span></label>
+                                                        <label class="pill"><input type="radio" name="gender" value="Other" ><span>Other</span></label>
+                                                    </div>
+                                            </div>
+                    <div class="field">
+                        <label for="nid">National ID or passport number</label>
+                        <input type="text" id="nid" name="nid" value="" inputmode="numeric" required class="">
+                                            </div>
+                    <div class="field">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" value="" autocomplete="address-level2" placeholder="Dhaka" required class="">
+                                            </div>
+                    <div class="field span-2">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address" rows="2" autocomplete="street-address" placeholder="House, road, area" required class=""></textarea>
+                                            </div>
+                </div>
+            </section>
+
+            <!-- Step 2: Account -->
+            <section class="step" data-step="2" data-name="Your account">
+                <h2>Choose your account</h2>
+                <p class="hint">Your opening balance is the minimum for the account you pick.</p>
+
+                <div id="productsBox" class="products " role="radiogroup" aria-label="Account type">
+                                        <label class="product">
+                        <input type="radio" name="product_id" value="1" data-label="Asha Classic Savings" checked>
+                        <span class="p-name">Asha Classic Savings</span>
+                        <span class="p-min">Minimum balance ৳1,000</span>
+                        <span class="p-rate">0%<small>interest · 0.001% custody fee</small></span>
+                    </label>
+                                        <label class="product">
+                        <input type="radio" name="product_id" value="2" data-label="Asha Platinum High-Yield" >
+                        <span class="p-name">Asha Platinum High-Yield</span>
+                        <span class="p-min">Minimum balance ৳10,000</span>
+                        <span class="p-rate">0%<small>interest · 0.001% custody fee</small></span>
+                    </label>
+                                        <label class="product">
+                        <input type="radio" name="product_id" value="3" data-label="Asha Business Current Pro" >
+                        <span class="p-name">Asha Business Current Pro</span>
+                        <span class="p-min">Minimum balance ৳5,000</span>
+                        <span class="p-rate">0%<small>interest · 0.001% custody fee</small></span>
+                    </label>
+                                        <label class="product">
+                        <input type="radio" name="product_id" value="4" data-label="Asha Student Smart Account" >
+                        <span class="p-name">Asha Student Smart Account</span>
+                        <span class="p-min">Minimum balance ৳100</span>
+                        <span class="p-rate">0%<small>interest · 0.001% custody fee</small></span>
+                    </label>
+                                        <label class="product">
+                        <input type="radio" name="product_id" value="5" data-label="Asha Term Deposit (FDR)" >
+                        <span class="p-name">Asha Term Deposit (FDR)</span>
+                        <span class="p-min">Minimum balance ৳50,000</span>
+                        <span class="p-rate">0%<small>interest · 0.001% custody fee</small></span>
+                    </label>
+                                    </div>
+                
+                <div class="field">
+                    <label for="branch_id">Home branch</label>
+                    <select id="branch_id" name="branch_id" required class="">
+                        <option value="">Select a branch</option>
+                                                <option value="3" >Agrabad Commercial Branch, Chittagong</option>
+                                                <option value="2" >Gulshan Premium Branch, Dhaka</option>
+                                                <option value="5" >KDA Avenue Branch, Khulna</option>
+                                                <option value="1" >Motijheel Corporate Head Branch, Dhaka</option>
+                                                <option value="4" >Zindabazar Metro Branch, Sylhet</option>
+                                            </select>
+                                    </div>
+            </section>
+
+            <!-- Step 3: Security -->
+            <section class="step" data-step="3" data-name="Sign-in details">
+                <h2>Set up your sign-in</h2>
+                <p class="hint">You'll use the username and password to sign in, and the PIN to approve transactions.</p>
+                <div class="grid">
+                    <div class="field span-2">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" value="" autocomplete="username" autocapitalize="none" spellcheck="false" required class="">
+                        <div class="note">At least 4 characters. Letters, numbers, dots and underscores.</div>                    </div>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <div class="pw-wrap">
+                            <input type="password" id="password" name="password" autocomplete="new-password" required class="">
+                            <button type="button" class="eye" data-for="password" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                        </div>
+                        <div class="meter" id="meter" data-s="0"><i></i><i></i><i></i><i></i></div>
+                        <div class="meter-text" id="meterText">8 or more characters, with a capital letter and a number.</div>
+                                            </div>
+                    <div class="field">
+                        <label for="confirm_pw">Confirm password</label>
+                        <div class="pw-wrap">
+                            <input type="password" id="confirm_pw" name="confirm_pw" autocomplete="new-password" required class="">
+                            <button type="button" class="eye" data-for="confirm_pw" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                        </div>
+                        <div class="msg" id="matchMsg" style="display:none">Passwords don't match yet.</div>
+                                            </div>
+                    <div class="field span-2">
+                        <label for="pin">Transaction PIN</label>
+                        <input type="password" id="pin" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" required style="max-width:200px;letter-spacing:.3em" class="">
+                        <div class="note">4 to 6 digits. Keep it different from your password.</div>                    </div>
+                </div>
+
+                <div class="agree ">
+                    <input type="checkbox" id="agree" name="agree" >
+                    <label for="agree">I agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a>, and confirm the details I gave are accurate.</label>
+                </div>
+                            </section>
+
+            <div class="actions">
+                <button type="button" class="btn btn-ghost" id="backBtn" hidden>Back</button>
+                <button type="button" class="btn btn-primary" id="nextBtn">Continue</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn" hidden>Create account</button>
+            </div>
+        </form>
+
+        <p class="foot">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+</main>
+
+<script>
+(function () {
+    const form   = document.getElementById('registerForm');
+    const steps  = [...form.querySelectorAll('.step')];
+    const bars   = [...document.querySelectorAll('#progress i')];
+    const back   = document.getElementById('backBtn');
+    const next   = document.getElementById('nextBtn');
+    const submit = document.getElementById('submitBtn');
+    const stepName  = document.getElementById('stepName');
+    const stepCount = document.getElementById('stepCount');
+    let current = 1;
+
+    function show(n, focus) {
+        current = n;
+        steps.forEach((s, i) => s.classList.toggle('current', i === n - 1));
+        bars.forEach((b, i) => b.classList.toggle('on', i < n));
+        back.hidden   = n === 1;
+        next.hidden   = n === steps.length;
+        submit.hidden = n !== steps.length;
+        stepName.innerHTML  = '<strong>' + steps[n - 1].dataset.name + '</strong>';
+        stepCount.textContent = 'Step ' + n + ' of ' + steps.length;
+        if (focus) {
+            const first = steps[n - 1].querySelector('.is-error, input:not([type=radio]):not([type=checkbox]), select, textarea');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            first && setTimeout(() => first.focus({ preventScroll: true }), 50);
+        }
+    }
+
+    function flag(el, message) {
+        el.classList.add('is-error');
+        const target = el.closest('.pw-wrap') || el;
+        let m = target.parentElement.querySelector('.js-msg');
+        if (!m) { m = document.createElement('div'); m.className = 'msg js-msg'; target.insertAdjacentElement('afterend', m); }
+        m.textContent = message;
+    }
+    function clearFlag(el) {
+        el.classList.remove('is-error');
+        const target = el.closest('.pw-wrap') || el;
+        const m = target.parentElement.querySelector('.js-msg');
+        if (m) m.remove();
+    }
+
+    // Returns the first invalid element in a step, flagging all of them
+    function validate(n) {
+        const sec = steps[n - 1];
+        let firstBad = null;
+        const bad = (el, msg) => { flag(el, msg); firstBad = firstBad || el; };
+
+        sec.querySelectorAll('input[required]:not([type=radio]), select[required], textarea[required]').forEach(el => {
+            clearFlag(el);
+            if (!el.value.trim()) return bad(el, 'Fill in this field.');
+            if (el.type === 'email' && !el.checkValidity()) return bad(el, 'Enter a valid email address.');
+            if (el.id === 'phone' && !/^[0-9+]{10,14}$/.test(el.value)) return bad(el, 'Enter 10 to 14 digits, for example 01712345678.');
+            if (el.id === 'username' && !/^[A-Za-z0-9._]{4,}$/.test(el.value)) return bad(el, 'Use at least 4 letters, numbers, dots or underscores.');
+            if (el.id === 'password' && !(el.value.length >= 8 && /[A-Z]/.test(el.value) && /[0-9]/.test(el.value))) return bad(el, 'Use 8 or more characters with a capital letter and a number.');
+            if (el.id === 'confirm_pw' && el.value !== document.getElementById('password').value) return bad(el, 'Passwords don\'t match.');
+            if (el.id === 'pin' && !/^[0-9]{4,6}$/.test(el.value)) return bad(el, 'Enter 4 to 6 digits.');
+            if (el.id === 'dob') {
+                if (!el.value || el.value > el.max) return bad(el, 'You must be at least 18 years old.');
+            }
+        });
+
+        const pills = sec.querySelector('.pills');
+        if (pills) { clearFlag(pills); if (!pills.querySelector('input:checked')) bad(pills, 'Select a gender.'); }
+        const prods = sec.querySelector('.products');
+        if (prods) { clearFlag(prods); if (!prods.querySelector('input:checked')) bad(prods, 'Select an account type.'); }
+        const agree = sec.querySelector('#agree');
+        if (agree) { const box = agree.closest('.agree'); clearFlag(box); if (!agree.checked) bad(box, 'Accept the terms to continue.'); }
+
+        return firstBad;
+    }
+
+    function goNext() {
+        const bad = validate(current);
+        if (bad) { (bad.querySelector('input') || bad).focus({ preventScroll: false }); return; }
+        show(current + 1, true);
+    }
+    next.addEventListener('click', goNext);
+    back.addEventListener('click', () => show(current - 1, true));
+
+    // Enter moves forward on steps 1 and 2 instead of submitting a partial form
+    form.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && current < steps.length) { e.preventDefault(); goNext(); }
+    });
+
+    // Standalone Interactive Submission Handler
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        for (let n = 1; n <= steps.length; n++) {
+            const bad = validate(n);
+            if (bad) {
+                show(n, true);
+                return;
+            }
+        }
+
+        submit.disabled = true;
+        submit.textContent = 'Provisioning Account...';
+
+        const fn = (document.getElementById('first_name')?.value || 'Arjun').trim();
+        const ln = (document.getElementById('last_name')?.value || 'Kapoor').trim();
+        const email = (document.getElementById('email')?.value || 'client@ashabank.com').trim();
+        const phone = (document.getElementById('phone')?.value || '+880 1712-345678').trim();
+        const nid = (document.getElementById('nid')?.value || '5912837461928').trim();
+        const sel = form.querySelector('input[name=product_id]:checked');
+        const accType = sel ? (sel.dataset.label || 'Savings') + ' Account' : 'Savings Account';
+        const initDeposit = parseFloat(document.getElementById('initial_deposit')?.value) || 50000;
+        const pin = document.getElementById('pin')?.value || '4920';
+        const newAccNo = '019' + Math.floor(1000000 + Math.random() * 9000000);
+        const fullName = fn + ' ' + ln;
+
+        if (window.BMS) {
+            window.BMS.state.user.name = fullName;
+            window.BMS.state.user.firstName = fn;
+            window.BMS.state.user.lastName = ln;
+            window.BMS.state.user.email = email;
+            window.BMS.state.user.phone = phone;
+            window.BMS.state.user.nid = nid;
+            window.BMS.state.user.accountNumber = newAccNo;
+            window.BMS.state.user.accountType = accType;
+            window.BMS.state.user.balance = initDeposit;
+            window.BMS.state.user.tier = window.BMS.getTier(initDeposit);
+            window.BMS.state.card.name = fullName.toUpperCase();
+            window.BMS.state.card.pin = pin;
+
+            window.BMS.state.transactions.unshift({
+                id: 'DEP-' + Math.floor(10000 + Math.random() * 90000),
+                type: 'Initial Deposit',
+                desc: `Initial ${accType} Opening Deposit`,
+                date: 'Today, Just now',
+                amount: initDeposit,
+                direction: 'in',
+                status: 'Completed',
+                ref: 'INIT-' + Math.floor(1000000 + Math.random() * 9000000)
+            });
+
+            window.BMS.state.notifications.unshift({
+                id: Date.now(),
+                title: 'Account Opened Successfully',
+                message: `Welcome to Asha Bank, ${fn}! Account No: ${newAccNo}`,
+                time: 'Just now',
+                read: false,
+                type: 'success'
+            });
+
+            window.BMS.saveState();
+        }
+
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 600);
+    });
+
+    // Auto-fill demo button
+    const afBtn = document.getElementById('demoAutoFillBtn');
+    if (afBtn) {
+        afBtn.addEventListener('click', () => {
+            document.getElementById('first_name').value = 'Tanvir';
+            document.getElementById('last_name').value = 'Ahmed';
+            document.getElementById('phone').value = '01712345678';
+            document.getElementById('email').value = 'tanvir.ahmed@example.com';
+            document.getElementById('dob').value = '1998-05-12';
+            const male = document.querySelector('input[name="gender"][value="Male"]');
+            if (male) male.checked = true;
+            document.getElementById('nid').value = '19982692847291823';
+            document.getElementById('city').value = 'Dhaka';
+            document.getElementById('address').value = 'House 14, Road 8, Dhanmondi, Dhaka';
+            updateName();
+            document.querySelectorAll('.is-error').forEach(el => clearFlag(el));
+        });
+    }
+
+    // Auto-select product from URL query params (?type=...)
+    try {
+        const pUrl = new URLSearchParams(window.location.search);
+        const pType = pUrl.get('type');
+        if (pType) {
+            const r = form.querySelector(`input[name="product_id"][value="${pType}"]`);
+            if (r) {
+                r.checked = true;
+                r.dispatchEvent(new Event('change'));
+            }
+        }
+    } catch(err) {}
+
+    // Clear a field's error as soon as the person edits it
+    form.addEventListener('input', e => { if (e.target.classList.contains('is-error')) clearFlag(e.target); });
+    form.addEventListener('change', e => {
+        const g = e.target.closest('.pills, .products'); if (g) clearFlag(g);
+        const a = e.target.closest('.agree'); if (a) clearFlag(a);
+    });
+
+    // Live card preview
+    const card = document.getElementById('card'), cardName = document.getElementById('cardName'), cardType = document.getElementById('cardType');
+    const fn = document.getElementById('first_name'), ln = document.getElementById('last_name');
+    function updateName() {
+        const n = (fn.value + ' ' + ln.value).trim();
+        cardName.textContent = n || 'Your name here';
+    }
+    fn.addEventListener('input', updateName); ln.addEventListener('input', updateName); updateName();
+    function updateType() {
+        const sel = form.querySelector('input[name=product_id]:checked');
+        cardType.textContent = sel ? sel.dataset.label + ' account' : '';
+        card.classList.add('bump'); setTimeout(() => card.classList.remove('bump'), 350);
+    }
+    form.querySelectorAll('input[name=product_id]').forEach(r => r.addEventListener('change', updateType));
+    (function () { const sel = form.querySelector('input[name=product_id]:checked'); if (sel) cardType.textContent = sel.dataset.label + ' account'; })();
+
+    // Password strength + match hint
+    const pw = document.getElementById('password'), cpw = document.getElementById('confirm_pw');
+    const meter = document.getElementById('meter'), meterText = document.getElementById('meterText'), matchMsg = document.getElementById('matchMsg');
+    const labels = ['8 or more characters, with a capital letter and a number.', 'Weak', 'Fair', 'Good', 'Strong'];
+    pw.addEventListener('input', () => {
+        const v = pw.value; let s = 0;
+        if (v.length >= 8) s++; if (/[A-Z]/.test(v)) s++; if (/[0-9]/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v)) s++;
+        if (!v) s = 0;
+        meter.dataset.s = s; meterText.textContent = labels[s]; checkMatch();
+    });
+    function checkMatch() { matchMsg.style.display = cpw.value && cpw.value !== pw.value ? 'block' : 'none'; }
+    cpw.addEventListener('input', checkMatch);
+
+    // PIN: digits only
+    document.getElementById('pin').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, ''); });
+
+    // Show / hide password buttons
+    const EYE = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    const EYE_OFF = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/>';
+    document.querySelectorAll('.eye').forEach(btn => btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.for), show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.querySelector('svg').innerHTML = show ? EYE_OFF : EYE;
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    }));
+
+    show(current, false);
+})();
+</script>
+<script src="demo-app.js"></script>
+</body>
+</html>

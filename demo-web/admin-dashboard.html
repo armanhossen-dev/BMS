@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Panel — Asha Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="alternate icon" href="../favicon.svg">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body>
+
+<!-- Toast container (Bottom-Right) -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script>
+window.__LOGIN_NOTIFICATIONS__ = [{"title":"Login Successful","message":"Welcome back, admin!","type":"success"}];
+</script>
+
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Desktop Only Portal</h2>
+        <p class="desktop-gate-desc">
+            Asha Bank's banking portals, interactive dashboards, and account management are currently designed exclusively for desktop displays for enterprise security and multi-column workspace clarity.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Enterprise Multi-Column View</strong>
+                    <span>Full financial ledgers, statement exports & real-time analytics</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Workstation Security Session</strong>
+                    <span>Hardware-backed 256-bit encryption & two-factor authentication</span>
+                </div>
+            </div>
+        </div>
+        <a href="../index.html" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- App layout -->
+<div class="app-layout">
+
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <!-- Logo -->
+    <a href="../index.html" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+        </div>
+        <div>
+            <div class="sidebar-logo-text">Asha Bank</div>
+            <span class="sidebar-logo-sub">Admin Portal</span>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" aria-label="Navigation">
+                <div class="sidebar-section-label">Main</div>
+                <a href="admin-dashboard.html"
+           class="active"
+           aria-current="page">
+            <i class="bx bxs-dashboard"></i>
+            Dashboard                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-group"></i>
+            Customers                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-trending-up"></i>
+            Transactions                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-credit-card"></i>
+            Accounts                    </a>
+                        <div class="sidebar-section-label">Management</div>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-briefcase"></i>
+            Staff                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-map-pin"></i>
+            Branches                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-bell"></i>
+            Notify All                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-message-dots"></i>
+            Feedback                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-shield-quarter"></i>
+            KYC Requests                    </a>
+                <a href="admin-dashboard.html"
+           class=""
+           >
+            <i class="bx bx-bar-chart-alt-2"></i>
+            Reports                    </a>
+                    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-avatar dark">A</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">admin</div>
+                <div class="sidebar-user-role">admin</div>
+            </div>
+        </div>
+        <a href="login.html" class="btn btn-ghost w-full sidebar-signout" style="justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px;">
+            <i class='bx bx-log-out' style="font-size:18px;"></i>
+            Sign Out
+        </a>
+    </div>
+</aside>
+
+<!-- ── Main content ──────────────────────────────────────────── -->
+<div class="main-content">
+
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-left">
+        <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar">
+            <i class='bx bx-menu'></i>
+        </button>
+        <div class="topbar-breadcrumb">
+            <a href="admin-dashboard.html">Home</a>
+                        <span class="sep">/</span>
+            <span>Admin Panel</span>
+                    </div>
+    </div>
+    <div class="topbar-right">
+        <!-- Theme toggle -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle dark mode">
+            <i class='bx bx-moon' id="themeIcon"></i>
+        </button>
+                <a href="admin-dashboard.html"
+           class="btn btn-ghost btn-sm" aria-label="Profile" style="gap:8px;">
+            <div class="avatar avatar-sm" style="background:var(--bg-muted);color:var(--text-primary);font-size:11px;">A</div>
+            <span style="font-size:13px;font-weight:500;color:var(--text-secondary);">admin</span>
+        </a>
+    </div>
+</header>
+<!-- end topbar -->
+
+<div class="page-content">
+
+<!-- Page header -->
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+    <div>
+        <h1>Admin Dashboard</h1>
+        <p>Monitor and manage all banking operations.</p>
+    </div>
+    <div style="font-size:13px;color:var(--ink-muted);">
+        Thursday, 15 October 2026 &bull; 6:09 PM    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+        <a href="?tab=dashboard" class="tab-link active">
+        <i class="bx bxs-dashboard"></i>        Dashboard            </a>
+        <a href="?tab=customers" class="tab-link ">
+        <i class="bx bx-user"></i>        Customers            </a>
+        <a href="?tab=accounts" class="tab-link ">
+        <i class="bx bx-credit-card"></i>        Accounts            </a>
+        <a href="?tab=transactions" class="tab-link ">
+        <i class="bx bx-trending-up"></i>        Transactions            </a>
+        <a href="?tab=staff" class="tab-link ">
+        <i class="bx bx-briefcase"></i>        Staff            </a>
+        <a href="?tab=branches" class="tab-link ">
+        <i class="bx bx-map-pin"></i>        Branches            </a>
+        <a href="?tab=kyc" class="tab-link ">
+        <i class="bx bx-shield-quarter"></i>        KYC Requests            </a>
+        <a href="?tab=feedback" class="tab-link ">
+        <i class="bx bx-message-dots"></i>        Feedback            </a>
+        <a href="?tab=notifications" class="tab-link ">
+        <i class="bx bx-bell"></i>        Notifications            </a>
+        <a href="?tab=reports" class="tab-link ">
+        <i class="bx bx-bar-chart-alt-2"></i>        Reports            </a>
+    </div>
+
+<div class="stats-grid reveal" style="margin-bottom:24px;">
+        <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(37,99,235,0.08);">
+            <i class='bx bx-group' style="font-size:20px;color:#2563EB;"></i>
+        </div>
+        <div class="stat-card-label">Total Customers</div>
+        <div class="stat-card-value">5</div>
+        <div class="stat-card-sub">Active accounts</div>
+    </div>
+        <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(22,163,74,0.08);">
+            <i class='bx bx-trending-up' style="font-size:20px;color:#16A34A;"></i>
+        </div>
+        <div class="stat-card-label">Total Deposits</div>
+        <div class="stat-card-value">৳ 758,699.50</div>
+        <div class="stat-card-sub">Across all accounts</div>
+    </div>
+        <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(217,119,6,0.08);">
+            <i class='bx bx-transfer-alt' style="font-size:20px;color:#D97706;"></i>
+        </div>
+        <div class="stat-card-label">Txns Today</div>
+        <div class="stat-card-value">0</div>
+        <div class="stat-card-sub">৳ 0.00 volume</div>
+    </div>
+        <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(220,38,38,0.08);">
+            <i class='bx bx-shield-quarter' style="font-size:20px;color:#DC2626;"></i>
+        </div>
+        <div class="stat-card-label">Pending KYC</div>
+        <div class="stat-card-value">0</div>
+        <div class="stat-card-sub">Awaiting review</div>
+    </div>
+        <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(113,113,122,0.1);">
+            <i class='bx bx-briefcase' style="font-size:20px;color:#71717A;"></i>
+        </div>
+        <div class="stat-card-label">Active Staff</div>
+        <div class="stat-card-value">2</div>
+        <div class="stat-card-sub">Employees</div>
+    </div>
+        <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(2,132,199,0.08);">
+            <i class='bx bx-map-pin' style="font-size:20px;color:#0284C7;"></i>
+        </div>
+        <div class="stat-card-label">Branches</div>
+        <div class="stat-card-value">5</div>
+        <div class="stat-card-sub">Network locations</div>
+    </div>
+    </div>
+
+<!-- Recent transactions -->
+<div class="card reveal">
+    <div class="card-header">
+        <h4>Recent Transactions</h4>
+        <a href="?tab=transactions" class="btn btn-ghost btn-sm">View all →</a>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Reference</th><th>From</th><th>To</th><th>Type</th><th>Amount</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                                <tr>
+                    <td>12 Oct 2026, 3:23 AM</td>
+                    <td><code style="font-size:12px;">FEE-50001</code></td>
+                    <td>Arjun Kapoor</td>
+                    <td>—</td>
+                    <td><span class="badge badge-info">Withdrawal</span></td>
+                    <td><strong>৳ 0.50</strong></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+                                <tr>
+                    <td>11 Oct 2026, 3:23 AM</td>
+                    <td><code style="font-size:12px;">BIL-40001</code></td>
+                    <td>Arjun Kapoor</td>
+                    <td>—</td>
+                    <td><span class="badge badge-info">Bill Payment</span></td>
+                    <td><strong>৳ 3,250.00</strong></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+                                <tr>
+                    <td>10 Oct 2026, 3:23 AM</td>
+                    <td><code style="font-size:12px;">TXN-20002</code></td>
+                    <td>Kiran Bose</td>
+                    <td>Tanvir Ahmed</td>
+                    <td><span class="badge badge-info">Transfer</span></td>
+                    <td><strong>৳ 15,000.00</strong></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+                                <tr>
+                    <td>08 Oct 2026, 3:23 AM</td>
+                    <td><code style="font-size:12px;">DEP-10002</code></td>
+                    <td>—</td>
+                    <td>Kiran Bose</td>
+                    <td><span class="badge badge-info">Deposit</span></td>
+                    <td><strong>৳ 150,000.00</strong></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+                                <tr>
+                    <td>06 Oct 2026, 3:23 AM</td>
+                    <td><code style="font-size:12px;">WDL-30001</code></td>
+                    <td>Sanya Malhotra</td>
+                    <td>—</td>
+                    <td><span class="badge badge-info">Withdrawal</span></td>
+                    <td><strong>৳ 5,000.00</strong></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+                                <tr>
+                    <td>03 Oct 2026, 3:23 AM</td>
+                    <td><code style="font-size:12px;">TXN-20001</code></td>
+                    <td>Arjun Kapoor</td>
+                    <td>Sanya Malhotra</td>
+                    <td><span class="badge badge-info">Transfer</span></td>
+                    <td><strong>৳ 12,000.00</strong></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+                                <tr>
+                    <td>29 Sep 2026, 3:23 AM</td>
+                    <td><code style="font-size:12px;">DEP-10001</code></td>
+                    <td>—</td>
+                    <td>Arjun Kapoor</td>
+                    <td><span class="badge badge-info">Deposit</span></td>
+                    <td><strong>৳ 50,000.00</strong></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+                            </tbody>
+        </table>
+    </div>
+</div>
+
+</div><!-- .page-content -->
+
+<!-- ── Add Staff Modal ──────────────────────────────────────── -->
+<div id="addStaffModal" class="modal-overlay" style="display:none;">
+    <div class="modal" style="max-width:520px;background:#FFFFFF;border-radius:16px;box-shadow:var(--shadow-xl);border:1px solid var(--border);overflow:hidden;" role="dialog" aria-modal="true" aria-labelledby="addStaffModalTitle">
+        <div class="modal-header" style="background:#FFFFFF;border-bottom:1px solid var(--border);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:#F4F4F5;display:flex;align-items:center;justify-content:center;color:#09090B;font-size:20px;flex-shrink:0;">
+                    <i class='bx bx-user-plus'></i>
+                </div>
+                <div>
+                    <h3 id="addStaffModalTitle" style="margin:0;font-size:16px;font-weight:700;color:#09090B;">Add New Staff Member</h3>
+                    <div style="font-size:12px;color:var(--text-muted);">Create credentials and assign departmental role</div>
+                </div>
+            </div>
+            <button class="modal-close" type="button" data-modal-close="addStaffModal" aria-label="Close" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">&times;</button>
+        </div>
+        <form method="POST" action="#" style="margin:0;">
+            <input type="hidden" name="_csrf" value="9a7a7c3b62c45f221ebcce200abdac8b50211b5c1e8c070fffc27921d8263b64"><input type="hidden" name="csrf_token" value="9a7a7c3b62c45f221ebcce200abdac8b50211b5c1e8c070fffc27921d8263b64">            <div class="modal-body" style="padding:22px 24px;background:#FFFFFF;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">First Name <span class="required" style="color:#DC2626;">*</span></label>
+                        <input type="text" name="first_name" class="form-control" required placeholder="John">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Last Name <span class="required" style="color:#DC2626;">*</span></label>
+                        <input type="text" name="last_name" class="form-control" required placeholder="Doe">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Email Address <span class="required" style="color:#DC2626;">*</span></label>
+                    <input type="email" name="email" class="form-control" required placeholder="john.doe@ashabank.com">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Username <span class="required" style="color:#DC2626;">*</span></label>
+                        <input type="text" name="username" class="form-control" required placeholder="johndoe">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Phone</label>
+                        <input type="text" name="phone" class="form-control" placeholder="+8801700000000">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Password <span class="required" style="color:#DC2626;">*</span></label>
+                    <input type="password" name="password" class="form-control" required placeholder="Minimum 6 characters">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Role</label>
+                        <select name="role" class="form-control">
+                            <option value="officer">Officer</option>
+                            <option value="teller">Teller</option>
+                            <option value="manager">Manager</option>
+                            <option value="support">Support</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-weight:600;font-size:13px;color:#09090B;margin-bottom:6px;display:block;">Department</label>
+                        <input type="text" name="department" class="form-control" placeholder="Operations" value="Operations">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:16px 24px;display:flex;justify-content:flex-end;gap:10px;background:#FAFAFA;border-top:1px solid var(--border);">
+                <button type="button" class="btn btn-outline" data-modal-close="addStaffModal">Cancel</button>
+                <button type="submit" name="add_staff" value="1" class="btn btn-primary" style="background:#09090B;color:#FFFFFF;border-color:#09090B;">Create Staff</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const titleInput = document.getElementById('notif_title');
+    const msgInput   = document.getElementById('notif_message');
+    const typeSelect = document.getElementById('notif_type');
+    const charCount  = document.getElementById('notifCharCount');
+    const reviewBtn  = document.getElementById('reviewBroadcastBtn');
+    const form       = document.getElementById('broadcastForm');
+
+    if (msgInput && charCount) {
+        const updateCount = () => {
+            charCount.textContent = msgInput.value.length + ' character' + (msgInput.value.length === 1 ? '' : 's');
+        };
+        msgInput.addEventListener('input', updateCount);
+        updateCount();
+    }
+
+    if (reviewBtn && form) {
+        reviewBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!form.reportValidity()) return;
+
+            const title = titleInput.value.trim();
+            const msg   = msgInput.value.trim();
+            const type  = typeSelect ? typeSelect.value : 'info';
+
+            const previewBox   = document.getElementById('broadcastPreviewBox');
+            const previewBadge = document.getElementById('broadcastPreviewBadge');
+            const previewTitle = document.getElementById('broadcastPreviewTitle');
+            const previewMsg   = document.getElementById('broadcastPreviewMsg');
+
+            if (previewTitle) previewTitle.textContent = title;
+            if (previewMsg)   previewMsg.textContent   = msg;
+
+            if (previewBox) {
+                previewBox.className = 'confirm-preview-box type-' + type;
+            }
+            if (previewBadge) {
+                previewBadge.className = 'badge badge-' + (type === 'danger' ? 'danger' : (type === 'warning' ? 'warning' : (type === 'success' ? 'success' : 'info')));
+                previewBadge.textContent = type;
+            }
+
+            if (window.Modal) {
+                Modal.open('broadcastConfirmModal');
+            } else {
+                const m = document.getElementById('broadcastConfirmModal');
+                if (m) {
+                    m.classList.add('active');
+                    m.style.display = 'flex';
+                }
+            }
+        });
+
+        const sendBtn = document.getElementById('confirmBroadcastSendBtn');
+        if (sendBtn) {
+            sendBtn.addEventListener('click', () => {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Broadcasting...";
+                form.submit();
+            });
+        }
+    }
+});
+</script>
+
+</div><!-- .main-content -->
+</div><!-- .app-layout -->
+
+<script src="../assets/js/main.js"></script>
+
+<script src="demo-app.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Wire up Customer Freeze / Unfreeze toggle buttons in admin
+  document.querySelectorAll('button, a').forEach(btn => {
+    if (btn.textContent.includes('Deactivate') || btn.textContent.includes('Activate') || btn.textContent.includes('Freeze')) {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        const isFreeze = btn.textContent.includes('Deactivate') || btn.textContent.includes('Freeze');
+        btn.innerHTML = `<i class='bx ${isFreeze ? 'bx-check-circle' : 'bx-block'}'></i> ${isFreeze ? 'Activate' : 'Deactivate'}`;
+        btn.className = `btn btn-xs ${isFreeze ? 'btn-success' : 'btn-danger'}`;
+        window.BMS.showToast(isFreeze ? 'Account Deactivated' : 'Account Re-activated', 'Customer status updated with administrative audit trail.', isFreeze ? 'warning' : 'success');
+      };
+    }
+  });
+
+  // Emergency Broadcast Form
+  const bcastForm = document.querySelector('form');
+  if (bcastForm) {
+    bcastForm.onsubmit = (e) => {
+      e.preventDefault();
+      const txt = bcastForm.querySelector('textarea, input[type="text"]')?.value || 'Important Advisory';
+      window.BMS.addNotification({
+        title: 'Bank-Wide Executive Broadcast',
+        message: txt,
+        type: 'warning'
+      });
+      window.BMS.showToast('Broadcast Transmitted', 'Push notification dispatched to 125,005 active customer accounts.', 'success');
+      bcastForm.reset();
+    };
+  }
+});
+</script>
+</body>
+
+</html>

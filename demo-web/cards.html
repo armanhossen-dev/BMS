@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>My Cards — Asha Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="alternate icon" href="../favicon.svg">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body>
+
+<!-- Toast container (Bottom-Right) -->
+<div id="toastContainer" class="toast-container"></div>
+
+
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Desktop Only Portal</h2>
+        <p class="desktop-gate-desc">
+            Asha Bank's banking portals, interactive dashboards, and account management are currently designed exclusively for desktop displays for enterprise security and multi-column workspace clarity.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Enterprise Multi-Column View</strong>
+                    <span>Full financial ledgers, statement exports & real-time analytics</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Workstation Security Session</strong>
+                    <span>Hardware-backed 256-bit encryption & two-factor authentication</span>
+                </div>
+            </div>
+        </div>
+        <a href="../index.html" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- App layout -->
+<div class="app-layout">
+
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <!-- Logo -->
+    <a href="../index.html" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+        </div>
+        <div>
+            <div class="sidebar-logo-text">Asha Bank</div>
+            <span class="sidebar-logo-sub">Client Portal</span>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" aria-label="Navigation">
+                <div class="sidebar-section-label">Main</div>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bxs-dashboard"></i>
+            Dashboard                    </a>
+                <a href="deposit.html"
+           class=""
+           >
+            <i class="bx bx-log-in-circle"></i>
+            Deposit                    </a>
+                <a href="withdraw.html"
+           class=""
+           >
+            <i class="bx bx-log-out-circle"></i>
+            Withdraw                    </a>
+                <a href="transfer.html"
+           class=""
+           >
+            <i class="bx bx-transfer"></i>
+            Transfer                    </a>
+                        <div class="sidebar-section-label">Account</div>
+                <a href="cards.html"
+           class="active"
+           aria-current="page">
+            <i class="bx bx-credit-card"></i>
+            My Cards                    </a>
+                <a href="profile.html"
+           class=""
+           >
+            <i class="bx bx-user"></i>
+            Profile                    </a>
+                <a href="dashboard.html"
+           class=""
+           >
+            <i class="bx bx-bell"></i>
+            Notifications                    </a>
+                <a href="feedback.html"
+           class=""
+           >
+            <i class="bx bx-support"></i>
+            Support                    </a>
+                    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-avatar dark">A</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">Arjun Kapoor</div>
+                <div class="sidebar-user-role">client</div>
+            </div>
+        </div>
+        <a href="login.html" class="btn btn-ghost w-full sidebar-signout" style="justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px;">
+            <i class='bx bx-log-out' style="font-size:18px;"></i>
+            Sign Out
+        </a>
+    </div>
+</aside>
+
+<!-- ── Main content ──────────────────────────────────────────── -->
+<div class="main-content">
+
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-left">
+        <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar">
+            <i class='bx bx-menu'></i>
+        </button>
+        <div class="topbar-breadcrumb">
+            <a href="dashboard.html">Home</a>
+                        <span class="sep">/</span>
+            <span>My Cards</span>
+                    </div>
+    </div>
+    <div class="topbar-right">
+        <!-- Theme toggle -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle dark mode">
+            <i class='bx bx-moon' id="themeIcon"></i>
+        </button>
+                <a href="dashboard.html" class="notif-btn" aria-label="0 notifications">
+            <i class='bx bx-bell'></i>
+                    </a>
+                <a href="profile.html"
+           class="btn btn-ghost btn-sm" aria-label="Profile" style="gap:8px;">
+            <div class="avatar avatar-sm" style="background:var(--bg-muted);color:var(--text-primary);font-size:11px;">A</div>
+            <span style="font-size:13px;font-weight:500;color:var(--text-secondary);">Arjun Kapoor</span>
+        </a>
+    </div>
+</header>
+<!-- end topbar -->
+
+<div class="page-content">
+
+    <!-- Page Header -->
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>Cards &amp; Virtual Wallets</h1>
+            <p>Manage physical and virtual debit cards, modify spending limits, and reveal sensitive card details.</p>
+        </div>
+        <button type="button" class="btn btn-primary" data-modal-open="requestCardModal">
+            <i class='bx bx-plus-circle'></i> Issue Virtual Card
+        </button>
+    </div>
+
+    
+    <!-- Cards List -->
+    <div style="display:flex;flex-direction:column;gap:32px;">
+                <div class="card reveal" style="padding:0;overflow:hidden;border:1px solid var(--border);">
+            
+            <!-- Card Meta Banner -->
+            <div style="padding:16px 24px;background:var(--bg-subtle);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:var(--bg-base);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text-primary);">
+                        <i class='bx bx-credit-card'></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:600;font-size:15px;">
+                            Debit Card 
+                            <span style="font-weight:400;color:var(--text-muted);font-size:13px;">(Ends in 4325)</span>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-muted);">
+                            Linked to Account 10000000001 · Asha Classic Savings                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="badge badge-success" style="font-size:12px;padding:4px 10px;">
+                        <i class='bx bx-check-circle'></i>
+                        Active                    </span>
+                    <span class="badge badge-outline" style="font-size:12px;padding:4px 10px;">
+                        Silver Tier
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body" style="padding:28px 24px;">
+                <div class="cards-layout-grid">
+                    
+                    <!-- Left Column: Visual Bank Card Mockup & Quick Actions -->
+                    <div>
+                        <!-- Interactive Bank Card -->
+                        <div class="bank-card tier-silver" 
+                             style="cursor:pointer;position:relative;margin:0 auto;"
+                             data-modal-open="revealModal-6"
+                             title="Click to view full card details &amp; CVV">
+                            
+                            <!-- Specular Shine Overlays -->
+                            <div style="position:absolute;top:-40%;right:-20%;width:220px;height:220px;background:radial-gradient(circle,rgba(255,255,255,0.14) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+                            <div style="position:absolute;bottom:-40%;left:-20%;width:180px;height:180px;background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+                            <!-- Card Header: Brand & Contactless Icon -->
+                            <div class="bank-card-header">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" width="16" height="16"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+                                    </div>
+                                    <span class="bank-card-logo">Asha Bank</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <i class='bx bx-rfid' style="font-size:22px;color:rgba(255,255,255,0.85);transform:rotate(90deg);" title="Contactless Active"></i>
+                                </div>
+                            </div>
+
+                            <!-- EMV Chip & Monospace Number -->
+                            <div style="margin:6px 0 14px;">
+                                <div class="bank-card-chip" style="width:40px;height:28px;border-radius:6px;background:linear-gradient(135deg,#FFE382 0%,#D4A843 50%,#9E751D 100%);border:1px solid rgba(0,0,0,0.25);position:relative;overflow:hidden;box-shadow:inset 0 1px 2px rgba(255,255,255,0.4);">
+                                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(0,0,0,0.15) 10px,rgba(0,0,0,0.15) 12px);opacity:0.6;"></div>
+                                    <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,0.25);"></div>
+                                </div>
+                                <div class="bank-card-number" style="font-size:18px;letter-spacing:0.18em;margin-top:14px;color:#FFFFFF;text-shadow:0 1px 2px rgba(0,0,0,0.6);">
+                                    •••• •••• •••• 4325                                </div>
+                            </div>
+
+                            <!-- Card Footer: Cardholder, Expiry, Brand Network -->
+                            <div class="bank-card-footer">
+                                <div>
+                                    <div class="bank-card-label">Card Holder</div>
+                                    <div class="bank-card-value">ARJUN KAPOOR</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div class="bank-card-label">Expires</div>
+                                    <div class="bank-card-value" style="font-family:var(--font-mono);font-size:12px;">10/31</div>
+                                </div>
+                                <div class="bank-card-network" style="opacity:0.95;">
+                                    <i class='bx bxl-visa' style="font-size:36px;line-height:1;"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div style="display:flex;gap:10px;margin-top:18px;justify-content:center;flex-wrap:wrap;">
+                            <button type="button" class="btn btn-outline btn-sm" data-modal-open="revealModal-6" style="flex:1;min-width:130px;justify-content:center;">
+                                <i class='bx bx-show'></i> Reveal Details
+                            </button>
+
+                            <button type="button" class="btn btn-secondary btn-sm" data-modal-open="limitModal-6" style="flex:1;min-width:110px;justify-content:center;">
+                                <i class='bx bx-slider-alt'></i> Limits
+                            </button>
+
+                            <!-- Toggle Freeze Form -->
+                            <form method="POST" style="margin:0;">
+                                <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                                <input type="hidden" name="card_id" value="6">
+                                <button type="submit" name="toggle_card" class="btn btn-sm btn-danger"
+                                        data-confirm="Are you sure you want to freeze this card? POS transactions, ATM withdrawals, and recurring payments will be instantly paused."
+                                        data-confirm-title="Freeze Card"
+                                        data-confirm-btn="Yes, Freeze Card"
+                                        data-confirm-class="btn-danger"
+                                        data-confirm-icon="bx-credit-card"
+                                        style="min-width:105px;justify-content:center;">
+                                    <i class='bx bx-lock-alt'></i>
+                                    Freeze                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Card Details, Spending Limit & Security Safeguards -->
+                    <div>
+                        <!-- Overview Grid -->
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;">
+                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Available Linked Balance</div>
+                                <div style="font-size:18px;font-weight:700;color:var(--text-primary);">৳ 77,999.50</div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Account: 10000000001</div>
+                            </div>
+
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;">
+                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Daily Transaction Limit</div>
+                                <div style="font-size:18px;font-weight:700;color:var(--text-primary);">৳ 100,000.00</div>
+                                <div style="font-size:11px;color:var(--success);margin-top:2px;">
+                                    <i class='bx bx-check-circle'></i> Configured &amp; Active
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Daily Limit Progress Bar -->
+                        <div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:24px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <span style="font-size:13px;font-weight:600;color:var(--text-primary);">Daily Spending Allocation</span>
+                                <span style="font-size:12px;color:var(--text-muted);">Max ৳ 100,000.00</span>
+                            </div>
+                            <div style="height:8px;background:var(--bg-muted);border-radius:999px;overflow:hidden;position:relative;">
+                                <div style="width:15%;height:100%;background:linear-gradient(90deg, #10B981, #059669);border-radius:999px;"></div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:var(--text-muted);">
+                                <span>Used today: ৳ 0.00</span>
+                                <span>Remaining: ৳ 100,000.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Security & Feature Controls -->
+                        <div>
+                            <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px;">Card Security Parameters</div>
+                            
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:12px;">
+                                <!-- Item 1 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-globe' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">Online Purchases</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">Active</span>
+                                </div>
+
+                                <!-- Item 2 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-rfid' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">Contactless (NFC)</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">Active</span>
+                                </div>
+
+                                <!-- Item 3 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-money' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">ATM Cash Access</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">Active</span>
+                                </div>
+
+                                <!-- Item 4 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-shield-quarter' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">Fraud Protection</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">24/7 Monitored</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Modal: Reveal Sensitive Card Details ───────────────── -->
+        <div class="modal-overlay" id="revealModal-6" style="display:none;">
+            <div class="modal" style="max-width:480px;" role="dialog" aria-modal="true">
+                <div class="modal-header">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:34px;height:34px;border-radius:8px;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:18px;">
+                            <i class='bx bx-shield-alt-2'></i>
+                        </div>
+                        <h3 style="margin:0;font-size:16px;">Card Credentials &amp; Details</h3>
+                    </div>
+                    <button class="modal-close" type="button" data-modal-close="revealModal-6">&times;</button>
+                </div>
+                
+                <div class="modal-body" style="padding:var(--sp-6);">
+                    <!-- Mini Card Preview -->
+                    <div class="bank-card tier-silver" style="margin-bottom:22px;">
+                        <div class="bank-card-header">
+                            <div class="bank-card-logo">Asha Bank</div>
+                            <i class='bx bx-rfid' style="font-size:20px;transform:rotate(90deg);"></i>
+                        </div>
+                        <div class="bank-card-number" style="font-size:17px;letter-spacing:0.18em;margin-bottom:12px;">
+                            4280 9079 7174 4325                         </div>
+                        <div class="bank-card-footer">
+                            <div>
+                                <div class="bank-card-label">Card Holder</div>
+                                <div class="bank-card-value">ARJUN KAPOOR</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="bank-card-label">Expires</div>
+                                <div class="bank-card-value" style="font-family:var(--font-mono);font-size:12px;">10/31</div>
+                            </div>
+                            <div class="bank-card-network"><i class='bx bxl-visa' style="font-size:32px;"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- Sensitive Data Grid -->
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        <!-- Full Card Number -->
+                        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                            <div>
+                                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">16-Digit Card Number</div>
+                                <div style="font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--text-primary);letter-spacing:0.08em;margin-top:2px;">
+                                    4280 9079 7174 4325                                 </div>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-sm copy-btn" data-copy="4280907971744325" title="Copy to clipboard">
+                                <i class='bx bx-copy'></i> Copy
+                            </button>
+                        </div>
+
+                        <!-- CVV & Expiry -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Security Code (CVV)</div>
+                                    <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--text-primary);margin-top:2px;">
+                                        243                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline btn-sm copy-btn" data-copy="243" title="Copy CVV">
+                                    <i class='bx bx-copy'></i>
+                                </button>
+                            </div>
+
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;">
+                                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Valid Thru</div>
+                                <div style="font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--text-primary);margin-top:2px;">
+                                    10 / 2031                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account & Security Info -->
+                        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--text-secondary);">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                <span>Linked Account:</span>
+                                <span class="mono" style="font-weight:600;color:var(--text-primary);">10000000001</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;">
+                                <span>Billing Postal Address:</span>
+                                <span style="font-weight:500;color:var(--text-primary);">Dhaka</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="padding:var(--sp-4) var(--sp-6);display:flex;justify-content:flex-end;">
+                    <button type="button" class="btn btn-primary btn-sm" data-modal-close="revealModal-6">Done</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Modal: Update Daily Spending Limit ─────────────────── -->
+        <div class="modal-overlay" id="limitModal-6" style="display:none;">
+            <div class="modal" style="max-width:440px;" role="dialog" aria-modal="true">
+                <div class="modal-header">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:34px;height:34px;border-radius:8px;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:18px;">
+                            <i class='bx bx-slider'></i>
+                        </div>
+                        <h3 style="margin:0;font-size:16px;">Adjust Daily Spending Limit</h3>
+                    </div>
+                    <button class="modal-close" type="button" data-modal-close="limitModal-6">&times;</button>
+                </div>
+
+                <form method="POST">
+                    <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                    <input type="hidden" name="card_id" value="6">
+                    
+                    <div class="modal-body" style="padding:var(--sp-6);">
+                        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">
+                            Modify the maximum expenditure limit for card ending in <strong>4325</strong> across POS, ATMs, and online gateways.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label" for="daily_limit_6">New Limit (BDT ৳)</label>
+                            <input type="number" id="daily_limit_6" name="daily_limit" class="form-control"
+                                   min="5000" max="1000000" step="5000" value="100000" required>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Allowable range: ৳5,000 to ৳10,00,000.</div>
+                        </div>
+
+                        <!-- Presets -->
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_6" data-val="50000">৳50k</button>
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_6" data-val="100000">৳100k</button>
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_6" data-val="200000">৳200k</button>
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_6" data-val="500000">৳500k</button>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer" style="padding:var(--sp-4) var(--sp-6);display:flex;justify-content:flex-end;gap:10px;">
+                        <button type="button" class="btn btn-outline btn-sm" data-modal-close="limitModal-6">Cancel</button>
+                        <button type="submit" name="update_limit" class="btn btn-primary btn-sm">Save Limit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+                <div class="card reveal" style="padding:0;overflow:hidden;border:1px solid var(--border);">
+            
+            <!-- Card Meta Banner -->
+            <div style="padding:16px 24px;background:var(--bg-subtle);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:var(--bg-base);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text-primary);">
+                        <i class='bx bx-credit-card'></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:600;font-size:15px;">
+                            Debit Card 
+                            <span style="font-weight:400;color:var(--text-muted);font-size:13px;">(Ends in 9012)</span>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-muted);">
+                            Linked to Account 10000000001 · Asha Classic Savings                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="badge badge-danger" style="font-size:12px;padding:4px 10px;">
+                        <i class='bx bx-lock-alt'></i>
+                        Blocked                    </span>
+                    <span class="badge badge-outline" style="font-size:12px;padding:4px 10px;">
+                        Silver Tier
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body" style="padding:28px 24px;">
+                <div class="cards-layout-grid">
+                    
+                    <!-- Left Column: Visual Bank Card Mockup & Quick Actions -->
+                    <div>
+                        <!-- Interactive Bank Card -->
+                        <div class="bank-card tier-silver" 
+                             style="cursor:pointer;position:relative;margin:0 auto;"
+                             data-modal-open="revealModal-1"
+                             title="Click to view full card details &amp; CVV">
+                            
+                            <!-- Specular Shine Overlays -->
+                            <div style="position:absolute;top:-40%;right:-20%;width:220px;height:220px;background:radial-gradient(circle,rgba(255,255,255,0.14) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+                            <div style="position:absolute;bottom:-40%;left:-20%;width:180px;height:180px;background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+                            <!-- Card Header: Brand & Contactless Icon -->
+                            <div class="bank-card-header">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" width="16" height="16"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+                                    </div>
+                                    <span class="bank-card-logo">Asha Bank</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <i class='bx bx-rfid' style="font-size:22px;color:rgba(255,255,255,0.85);transform:rotate(90deg);" title="Contactless Active"></i>
+                                </div>
+                            </div>
+
+                            <!-- EMV Chip & Monospace Number -->
+                            <div style="margin:6px 0 14px;">
+                                <div class="bank-card-chip" style="width:40px;height:28px;border-radius:6px;background:linear-gradient(135deg,#FFE382 0%,#D4A843 50%,#9E751D 100%);border:1px solid rgba(0,0,0,0.25);position:relative;overflow:hidden;box-shadow:inset 0 1px 2px rgba(255,255,255,0.4);">
+                                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(0,0,0,0.15) 10px,rgba(0,0,0,0.15) 12px);opacity:0.6;"></div>
+                                    <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,0.25);"></div>
+                                </div>
+                                <div class="bank-card-number" style="font-size:18px;letter-spacing:0.18em;margin-top:14px;color:#FFFFFF;text-shadow:0 1px 2px rgba(0,0,0,0.6);">
+                                    •••• •••• •••• 9012                                </div>
+                            </div>
+
+                            <!-- Card Footer: Cardholder, Expiry, Brand Network -->
+                            <div class="bank-card-footer">
+                                <div>
+                                    <div class="bank-card-label">Card Holder</div>
+                                    <div class="bank-card-value">ARJUN KAPOOR</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div class="bank-card-label">Expires</div>
+                                    <div class="bank-card-value" style="font-family:var(--font-mono);font-size:12px;">10/31</div>
+                                </div>
+                                <div class="bank-card-network" style="opacity:0.95;">
+                                    <i class='bx bxl-visa' style="font-size:36px;line-height:1;"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div style="display:flex;gap:10px;margin-top:18px;justify-content:center;flex-wrap:wrap;">
+                            <button type="button" class="btn btn-outline btn-sm" data-modal-open="revealModal-1" style="flex:1;min-width:130px;justify-content:center;">
+                                <i class='bx bx-show'></i> Reveal Details
+                            </button>
+
+                            <button type="button" class="btn btn-secondary btn-sm" data-modal-open="limitModal-1" style="flex:1;min-width:110px;justify-content:center;">
+                                <i class='bx bx-slider-alt'></i> Limits
+                            </button>
+
+                            <!-- Toggle Freeze Form -->
+                            <form method="POST" style="margin:0;">
+                                <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                                <input type="hidden" name="card_id" value="1">
+                                <button type="submit" name="toggle_card" class="btn btn-sm btn-primary"
+                                        data-confirm="Are you sure you want to unblock and restore all transactions for this card?"
+                                        data-confirm-title="Unblock Card"
+                                        data-confirm-btn="Yes, Unblock"
+                                        data-confirm-class="btn-primary"
+                                        data-confirm-icon="bx-credit-card"
+                                        style="min-width:105px;justify-content:center;">
+                                    <i class='bx bx-lock-open-alt'></i>
+                                    Unblock                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Card Details, Spending Limit & Security Safeguards -->
+                    <div>
+                        <!-- Overview Grid -->
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;">
+                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Available Linked Balance</div>
+                                <div style="font-size:18px;font-weight:700;color:var(--text-primary);">৳ 77,999.50</div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Account: 10000000001</div>
+                            </div>
+
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;">
+                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Daily Transaction Limit</div>
+                                <div style="font-size:18px;font-weight:700;color:var(--text-primary);">৳ 500,000.00</div>
+                                <div style="font-size:11px;color:var(--success);margin-top:2px;">
+                                    <i class='bx bx-check-circle'></i> Configured &amp; Active
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Daily Limit Progress Bar -->
+                        <div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:24px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <span style="font-size:13px;font-weight:600;color:var(--text-primary);">Daily Spending Allocation</span>
+                                <span style="font-size:12px;color:var(--text-muted);">Max ৳ 500,000.00</span>
+                            </div>
+                            <div style="height:8px;background:var(--bg-muted);border-radius:999px;overflow:hidden;position:relative;">
+                                <div style="width:15%;height:100%;background:linear-gradient(90deg, #10B981, #059669);border-radius:999px;"></div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:var(--text-muted);">
+                                <span>Used today: ৳ 0.00</span>
+                                <span>Remaining: ৳ 500,000.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Security & Feature Controls -->
+                        <div>
+                            <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px;">Card Security Parameters</div>
+                            
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:12px;">
+                                <!-- Item 1 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-globe' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">Online Purchases</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">Active</span>
+                                </div>
+
+                                <!-- Item 2 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-rfid' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">Contactless (NFC)</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">Active</span>
+                                </div>
+
+                                <!-- Item 3 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-money' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">ATM Cash Access</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">Active</span>
+                                </div>
+
+                                <!-- Item 4 -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class='bx bx-shield-quarter' style="font-size:18px;color:var(--text-secondary);"></i>
+                                        <span style="font-size:13px;color:var(--text-primary);">Fraud Protection</span>
+                                    </div>
+                                    <span class="badge badge-success" style="font-size:10px;">24/7 Monitored</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Modal: Reveal Sensitive Card Details ───────────────── -->
+        <div class="modal-overlay" id="revealModal-1" style="display:none;">
+            <div class="modal" style="max-width:480px;" role="dialog" aria-modal="true">
+                <div class="modal-header">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:34px;height:34px;border-radius:8px;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:18px;">
+                            <i class='bx bx-shield-alt-2'></i>
+                        </div>
+                        <h3 style="margin:0;font-size:16px;">Card Credentials &amp; Details</h3>
+                    </div>
+                    <button class="modal-close" type="button" data-modal-close="revealModal-1">&times;</button>
+                </div>
+                
+                <div class="modal-body" style="padding:var(--sp-6);">
+                    <!-- Mini Card Preview -->
+                    <div class="bank-card tier-silver" style="margin-bottom:22px;">
+                        <div class="bank-card-header">
+                            <div class="bank-card-logo">Asha Bank</div>
+                            <i class='bx bx-rfid' style="font-size:20px;transform:rotate(90deg);"></i>
+                        </div>
+                        <div class="bank-card-number" style="font-size:17px;letter-spacing:0.18em;margin-bottom:12px;">
+                            4532 1234 5678 9012                         </div>
+                        <div class="bank-card-footer">
+                            <div>
+                                <div class="bank-card-label">Card Holder</div>
+                                <div class="bank-card-value">ARJUN KAPOOR</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="bank-card-label">Expires</div>
+                                <div class="bank-card-value" style="font-family:var(--font-mono);font-size:12px;">10/31</div>
+                            </div>
+                            <div class="bank-card-network"><i class='bx bxl-visa' style="font-size:32px;"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- Sensitive Data Grid -->
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        <!-- Full Card Number -->
+                        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                            <div>
+                                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">16-Digit Card Number</div>
+                                <div style="font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--text-primary);letter-spacing:0.08em;margin-top:2px;">
+                                    4532 1234 5678 9012                                 </div>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-sm copy-btn" data-copy="4532123456789012" title="Copy to clipboard">
+                                <i class='bx bx-copy'></i> Copy
+                            </button>
+                        </div>
+
+                        <!-- CVV & Expiry -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Security Code (CVV)</div>
+                                    <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--text-primary);margin-top:2px;">
+                                        123                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline btn-sm copy-btn" data-copy="123" title="Copy CVV">
+                                    <i class='bx bx-copy'></i>
+                                </button>
+                            </div>
+
+                            <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;">
+                                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Valid Thru</div>
+                                <div style="font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--text-primary);margin-top:2px;">
+                                    10 / 2031                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account & Security Info -->
+                        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--text-secondary);">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                <span>Linked Account:</span>
+                                <span class="mono" style="font-weight:600;color:var(--text-primary);">10000000001</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;">
+                                <span>Billing Postal Address:</span>
+                                <span style="font-weight:500;color:var(--text-primary);">Dhaka</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="padding:var(--sp-4) var(--sp-6);display:flex;justify-content:flex-end;">
+                    <button type="button" class="btn btn-primary btn-sm" data-modal-close="revealModal-1">Done</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Modal: Update Daily Spending Limit ─────────────────── -->
+        <div class="modal-overlay" id="limitModal-1" style="display:none;">
+            <div class="modal" style="max-width:440px;" role="dialog" aria-modal="true">
+                <div class="modal-header">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:34px;height:34px;border-radius:8px;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:18px;">
+                            <i class='bx bx-slider'></i>
+                        </div>
+                        <h3 style="margin:0;font-size:16px;">Adjust Daily Spending Limit</h3>
+                    </div>
+                    <button class="modal-close" type="button" data-modal-close="limitModal-1">&times;</button>
+                </div>
+
+                <form method="POST">
+                    <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">                    <input type="hidden" name="card_id" value="1">
+                    
+                    <div class="modal-body" style="padding:var(--sp-6);">
+                        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">
+                            Modify the maximum expenditure limit for card ending in <strong>9012</strong> across POS, ATMs, and online gateways.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label" for="daily_limit_1">New Limit (BDT ৳)</label>
+                            <input type="number" id="daily_limit_1" name="daily_limit" class="form-control"
+                                   min="5000" max="1000000" step="5000" value="500000" required>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Allowable range: ৳5,000 to ৳10,00,000.</div>
+                        </div>
+
+                        <!-- Presets -->
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_1" data-val="50000">৳50k</button>
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_1" data-val="100000">৳100k</button>
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_1" data-val="200000">৳200k</button>
+                            <button type="button" class="btn btn-outline btn-xs limit-preset" data-target="daily_limit_1" data-val="500000">৳500k</button>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer" style="padding:var(--sp-4) var(--sp-6);display:flex;justify-content:flex-end;gap:10px;">
+                        <button type="button" class="btn btn-outline btn-sm" data-modal-close="limitModal-1">Cancel</button>
+                        <button type="submit" name="update_limit" class="btn btn-primary btn-sm">Save Limit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+            </div>
+    
+</div>
+
+<!-- ── Modal: Request New / Virtual Card ──────────────────────── -->
+<div class="modal-overlay" id="requestCardModal" style="display:none;">
+    <div class="modal" style="max-width:480px;" role="dialog" aria-modal="true">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:8px;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:18px;">
+                    <i class='bx bx-credit-card-front'></i>
+                </div>
+                <h3 style="margin:0;font-size:16px;">Issue New Debit Card</h3>
+            </div>
+            <button class="modal-close" type="button" data-modal-close="requestCardModal">&times;</button>
+        </div>
+
+        <form method="POST">
+            <input type="hidden" name="_csrf" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79"><input type="hidden" name="csrf_token" value="3032b7c8d085d9b5fc8a99ca374fccf5ddf5300d046bf5982eee627fa7030e79">            <div class="modal-body" style="padding:var(--sp-6);">
+                <p style="font-size:14px;color:var(--text-secondary);margin-bottom:18px;">
+                    Generate an instant Virtual Visa Debit Card linked directly to one of your active savings or current accounts.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label" for="account_number">Select Linked Account <span class="required">*</span></label>
+                    <select id="account_number" name="account_number" class="form-control" required>
+                                                <option value="10000000001">
+                            10000000001 — Asha Classic Savings (৳ 77,999.50)
+                        </option>
+                                            </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="card_type">Card Type</label>
+                    <select id="card_type" name="card_type" class="form-control">
+                        <option value="Debit">Virtual Visa Debit (Instant Activation)</option>
+                        <option value="Prepaid">Virtual Prepaid Wallet</option>
+                    </select>
+                </div>
+
+                <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-top:16px;font-size:12px;color:var(--text-muted);display:flex;gap:10px;align-items:flex-start;">
+                    <i class='bx bx-info-circle' style="font-size:18px;color:var(--blue);flex-shrink:0;margin-top:1px;"></i>
+                    <div>
+                        Virtual cards are generated instantly with a unique 16-digit card number, CVV, and 5-year expiration date. No physical issuance charge applied.
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="padding:var(--sp-4) var(--sp-6);display:flex;justify-content:flex-end;gap:10px;">
+                <button type="button" class="btn btn-outline btn-sm" data-modal-close="requestCardModal">Cancel</button>
+                <button type="submit" name="request_new_card" class="btn btn-primary btn-sm">
+                    <i class='bx bx-check'></i> Generate Card
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</div><!-- .main-content -->
+</div><!-- .app-layout -->
+
+<script src="../assets/js/main.js"></script>
+<script>// Handle preset limit clicks
+document.querySelectorAll('.limit-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const input = document.getElementById(targetId);
+        if (input) {
+            input.value = btn.dataset.val;
+            input.focus();
+        }
+    });
+});
+
+// Handle clipboard copy
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const text = btn.dataset.copy;
+        if (!text) return;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            if (typeof Toast !== 'undefined' && Toast.show) {
+                Toast.show('Copied ' + text + ' to clipboard!', 'success', 2000, 'Copied');
+            } else {
+                alert('Copied to clipboard!');
+            }
+        }).catch(() => {
+            prompt('Copy to clipboard: Ctrl+C, Enter', text);
+        });
+    });
+});</script>
+
+<script src="demo-app.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('form').forEach(f => f.addEventListener('submit', e => e.preventDefault()));
+  const card = window.BMS.state.card;
+  
+  // Find freeze button or add handler
+  document.querySelectorAll('button, a').forEach(el => {
+    if (el.textContent.includes('Freeze') || el.textContent.includes('Unfreeze')) {
+      el.onclick = (e) => {
+        e.preventDefault();
+        const st = window.BMS.toggleCardFreeze();
+        el.innerHTML = `<i class='bx ${st === 'Active' ? 'bx-lock' : 'bx-lock-open'}'></i> ${st === 'Active' ? 'Freeze Card' : 'Unfreeze Card'}`;
+        document.querySelectorAll('.badge').forEach(b => {
+          if (b.textContent.includes('Active') || b.textContent.includes('Frozen')) {
+            b.textContent = st;
+            b.className = 'badge badge-' + (st === 'Active' ? 'success' : 'danger');
+          }
+        });
+      };
+    }
+  });
+
+  // Reveal PIN / CVV buttons
+  document.querySelectorAll('button, a').forEach(el => {
+    if (el.textContent.includes('Reveal') || el.textContent.includes('View PIN') || el.textContent.includes('PIN')) {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert(`🔒 Asha Bank Security Verification\n\nCard Number: ${card.rawNumber}\nCVV Code: ${card.cvv}\nATM PIN: ${card.pin}\nCard Status: ${card.status}`);
+      });
+    }
+  });
+});
+</script>
+</body>
+
+</html>
