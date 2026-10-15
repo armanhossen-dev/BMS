@@ -2402,16 +2402,29 @@ details[open] summary::after{transform:rotate(45deg);color:var(--ink)}
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const bdt = n => '৳' + Math.round(n).toLocaleString('en-BD');
 
-  /* Theme */
+  /* Theme - White mode is always default */
   const root = document.documentElement, tb = $('#themeBtn');
-  const setTheme = t => {
+  const setTheme = (t, persist = false) => {
     root.dataset.theme = t;
-    try { localStorage.setItem('asha-theme', t); } catch (e) {}
-    tb.innerHTML = t === 'dark' ? "<i class='bx bx-sun'></i>" : "<i class='bx bx-moon'></i>";
+    if (persist) {
+      try { localStorage.setItem('asha-landing-theme', t); } catch (e) {}
+    }
+    if (tb) {
+      tb.innerHTML = t === 'dark' ? "<i class='bx bx-sun'></i>" : "<i class='bx bx-moon'></i>";
+      tb.setAttribute('aria-label', t === 'dark' ? 'Switch to white mode' : 'Switch to dark mode');
+      tb.setAttribute('title', t === 'dark' ? 'Switch to white mode' : 'Switch to dark mode');
+    }
   };
-  let saved = null; try { saved = localStorage.getItem('asha-theme'); } catch (e) {}
-  setTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-  tb.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
+  let saved = null;
+  try { saved = localStorage.getItem('asha-landing-theme'); } catch (e) {}
+  // Always default to white mode ('light'). Only switch to dark if the user explicitly clicked and chose dark mode.
+  setTheme(saved === 'dark' ? 'dark' : 'light', false);
+  if (tb) {
+    tb.addEventListener('click', () => {
+      const nextTheme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      setTheme(nextTheme, true);
+    });
+  }
 
   /* Mobile menu with full-page blur backdrop */
   const burger = $('#burger'), nav = $('#nav'), navBackdrop = $('#navBackdrop');

@@ -509,58 +509,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.notif-count')) {
         setInterval(() => Notifications.refresh(), 60000);
     }
-
-    // Auto-mount Desktop Only Mode Gate for all dashboard app layouts
-    if (document.querySelector('.app-layout') && !document.querySelector('.desktop-only-gate')) {
-        const isDemo = window.location.pathname.includes('/demo-web/');
-        const homeUrl = isDemo ? '../index.html' : (window.location.pathname.includes('/admin/') || window.location.pathname.includes('/staff/') ? '../index.php' : 'index.php');
-        const gate = document.createElement('div');
-        gate.className = 'desktop-only-gate';
-        gate.setAttribute('aria-live', 'polite');
-        gate.innerHTML = `
-            <div class="desktop-gate-card">
-                <div class="desktop-gate-badge">
-                    <i class='bx bx-desktop'></i>
-                    <span>Desktop Mode Required</span>
-                </div>
-                <div class="desktop-gate-icon-wrap">
-                    <div class="gate-icon-circle">
-                        <i class='bx bx-laptop'></i>
-                    </div>
-                    <div class="gate-icon-mini-tag">
-                        <i class='bx bx-shield-quarter'></i>
-                    </div>
-                </div>
-                <h2 class="desktop-gate-title">Desktop Only Portal</h2>
-                <p class="desktop-gate-desc">
-                    Asha Bank's banking portals, interactive dashboards, and account management are currently designed exclusively for desktop displays for enterprise security and multi-column workspace clarity.
-                </p>
-                <div class="desktop-gate-features">
-                    <div class="feature-item">
-                        <div class="feature-bullet"><i class='bx bx-check'></i></div>
-                        <div>
-                            <strong>Enterprise Multi-Column View</strong>
-                            <span>Full financial ledgers, statement exports & real-time analytics</span>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-bullet"><i class='bx bx-check'></i></div>
-                        <div>
-                            <strong>Workstation Security Session</strong>
-                            <span>Hardware-backed 256-bit encryption & two-factor authentication</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="${homeUrl}" class="gate-btn-home">
-                    <i class='bx bx-left-arrow-alt'></i> Return to Homepage
-                </a>
-                <p class="desktop-gate-hint">
-                    💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
-                </p>
-            </div>
-        `;
-        document.body.prepend(gate);
-    }
 });
 
 // Expose globals
@@ -570,4 +518,70 @@ window.Modal         = Modal;
 window.ConfirmDialog = ConfirmDialog;
 window.Sidebar       = Sidebar;
 window.Theme         = Theme;
+
+// Ensure Desktop-Only Gate is rendered for mobile/responsive protection
+(function ensureDesktopGate() {
+    function injectGate() {
+        if (document.querySelector('.desktop-only-gate')) return;
+        const path = window.location.pathname;
+        if (path.endsWith('index.html') || path.endsWith('index.php') || path.endsWith('/BMS/') || path.endsWith('/demo-web/') || path === '/' || path === '') {
+            return;
+        }
+        const isDemo = path.includes('/demo-web/');
+        const homeUrl = isDemo ? 'index.html' : ((window.__ROOT_URL__ || '') + 'index.php');
+        
+        const gate = document.createElement('div');
+        gate.className = 'desktop-only-gate';
+        gate.setAttribute('aria-hidden', 'true');
+        gate.innerHTML = `
+          <div class="dog-backdrop"></div>
+          <div class="dog-card">
+            <div class="dog-header">
+              <div class="dog-logo">
+                <span class="dog-logo-mark">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M12 3l9 7H3l9-7z"/>
+                  </svg>
+                </span>
+                <span class="dog-logo-text">Asha Bank</span>
+              </div>
+              <span class="dog-badge"><i class='bx bx-desktop'></i> Desktop Only</span>
+            </div>
+
+            <div class="dog-icon-circle">
+              <div class="dog-icon-glow"></div>
+              <svg class="dog-screen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+            </div>
+
+            <h2 class="dog-title">Desktop Mode Required</h2>
+            <p class="dog-desc">Asha Bank's portal dashboards, secure operations, and account management are currently available in desktop mode only.</p>
+            
+            <div class="dog-hint">
+              <i class='bx bx-info-circle'></i>
+              <span>Please open this portal on a laptop or desktop computer (width 1024px or higher) to access your dashboard.</span>
+            </div>
+
+            <div class="dog-actions">
+              <a href="${homeUrl}" class="dog-btn dog-btn-primary">
+                <i class='bx bx-arrow-back'></i>
+                <span>Return to Homepage</span>
+              </a>
+            </div>
+          </div>
+        `;
+        if (document.body) {
+            document.body.appendChild(gate);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectGate);
+    } else {
+        injectGate();
+    }
+})();
 

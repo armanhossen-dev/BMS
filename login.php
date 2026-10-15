@@ -157,7 +157,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -288,100 +287,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .demo button:hover { border-color: var(--ink); color: var(--ink); background: #F4F4F5; }
         .demo button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
-        .desktop-only-gate { display: none !important; }
-
+        /* Desktop Only Gate for Responsive Mode */
+        .desktop-only-gate { display: none; }
         @media (max-width: 1024px) {
-            body { display: block !important; background: #09090B !important; }
+            body {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                background: #09090B !important;
+                color: #F4F4F5 !important;
+                min-height: 100vh !important;
+                min-height: 100dvh !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                grid-template-columns: 1fr !important;
+                overflow: hidden !important;
+            }
             .brand, .panel { display: none !important; }
             .desktop-only-gate {
                 display: flex !important;
-                position: fixed;
-                inset: 0;
-                width: 100vw;
-                height: 100vh;
-                height: 100dvh;
-                background: radial-gradient(circle at 50% 15%, rgba(246, 186, 66, 0.09) 0%, transparent 60%), #09090B !important;
-                color: #FFFFFF !important;
-                z-index: 99999999;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                padding: 24px 16px;
-                box-sizing: border-box;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            .desktop-gate-card {
-                background: rgba(24, 24, 27, 0.95);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 24px;
-                padding: 34px 24px 28px;
-                max-width: 440px;
                 width: 100%;
-                text-align: center;
-                box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(246, 186, 66, 0.15);
+                min-height: 100vh;
+                min-height: 100dvh;
+                padding: 24px 20px;
                 box-sizing: border-box;
-                margin: auto;
+                position: relative;
+                z-index: 99999;
+                background: #09090B;
             }
-            .desktop-gate-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 7px;
-                padding: 5px 13px;
-                border-radius: 999px;
-                background: rgba(246, 186, 66, 0.12);
-                border: 1px solid rgba(246, 186, 66, 0.35);
-                color: #F6BA42;
-                font-size: 11.5px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin-bottom: 20px;
+            .dog-backdrop {
+                position: absolute; inset: 0;
+                background: radial-gradient(circle at 50% 15%, rgba(246, 186, 66, 0.12) 0%, transparent 60%),
+                            radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+                pointer-events: none;
             }
-            .desktop-gate-badge i { font-size: 15px; }
-            .desktop-gate-icon-wrap { position: relative; width: 76px; height: 76px; margin: 0 auto 20px; }
-            .gate-icon-circle {
-                width: 76px; height: 76px; border-radius: 22px;
-                background: linear-gradient(135deg, rgba(246, 186, 66, 0.22) 0%, rgba(24, 24, 27, 0.9) 100%);
-                border: 1.5px solid rgba(246, 186, 66, 0.45);
-                display: grid; place-items: center; font-size: 38px; color: #F6BA42;
-                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+            .dog-card {
+                position: relative; width: 100%; max-width: 440px;
+                background: #18181B; border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 24px; padding: 34px 26px;
+                box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.04);
+                display: flex; flex-direction: column; align-items: center; text-align: center; box-sizing: border-box;
             }
-            .gate-icon-mini-tag {
-                position: absolute; bottom: -4px; right: -6px; width: 28px; height: 28px;
-                border-radius: 8px; background: #09090B; border: 1.5px solid rgba(255, 255, 255, 0.2);
-                display: grid; place-items: center; font-size: 14px; color: #E4E4E7;
+            .dog-header {
+                display: flex; align-items: center; justify-content: space-between; width: 100%;
+                margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             }
-            .desktop-gate-title {
-                font-family: var(--display); font-size: 22px; font-weight: 800; color: #FFFFFF;
-                letter-spacing: -0.025em; margin-bottom: 10px; line-height: 1.25;
-            }
-            .desktop-gate-desc { font-size: 13.5px; line-height: 1.55; color: #A1A1AA; margin-bottom: 22px; }
-            .desktop-gate-features {
-                background: rgba(9, 9, 11, 0.7); border: 1px solid rgba(255, 255, 255, 0.07);
-                border-radius: 16px; padding: 14px 16px; margin-bottom: 24px;
-                display: flex; flex-direction: column; gap: 10px; text-align: left;
-            }
-            .feature-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: #D4D4D8; line-height: 1.4; }
-            .feature-bullet {
-                width: 18px; height: 18px; border-radius: 6px; background: rgba(34, 197, 94, 0.15);
-                color: #22C55E; display: grid; place-items: center; font-size: 12px; flex-shrink: 0; margin-top: 1px;
-            }
-            .feature-item strong { display: block; color: #FFFFFF; font-weight: 600; font-size: 13px; }
-            .gate-btn-home {
-                display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-                width: 100%; height: 46px; border-radius: 12px;
+            .dog-logo { display: inline-flex; align-items: center; gap: 10px; }
+            .dog-logo-mark {
+                width: 32px; height: 32px; border-radius: 9px;
                 background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
-                color: #09090B; font-weight: 700; font-size: 14px; text-decoration: none;
-                transition: transform 0.15s ease, box-shadow 0.15s ease;
-                box-shadow: 0 4px 14px rgba(234, 160, 35, 0.28); box-sizing: border-box;
+                display: grid; place-items: center; box-shadow: 0 2px 8px rgba(234, 160, 35, 0.35);
             }
-            .gate-btn-home:hover, .gate-btn-home:active {
-                transform: translateY(-1px); box-shadow: 0 6px 18px rgba(234, 160, 35, 0.4);
+            .dog-logo-mark svg { width: 18px; height: 18px; }
+            .dog-logo-text { font-family: var(--display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: #FFFFFF; }
+            .dog-badge {
+                display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px;
+                background: rgba(234, 160, 35, 0.14); border: 1px solid rgba(234, 160, 35, 0.35);
+                color: #F6BA42; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
             }
-            .desktop-gate-hint { font-size: 11.5px; color: #71717A; margin-top: 14px; line-height: 1.45; }
-            .desktop-gate-hint b { color: #D4D4D8; }
+            .dog-icon-circle {
+                position: relative; width: 76px; height: 76px; border-radius: 22px;
+                background: linear-gradient(135deg, #27272A 0%, #18181B 100%);
+                border: 1px solid rgba(255, 255, 255, 0.12); display: grid; place-items: center;
+                margin-bottom: 20px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+            }
+            .dog-icon-glow {
+                position: absolute; inset: -10px;
+                background: radial-gradient(circle, rgba(234, 160, 35, 0.28) 0%, transparent 70%);
+                border-radius: 50%; filter: blur(8px); pointer-events: none;
+            }
+            .dog-screen-icon { width: 38px; height: 38px; color: #F6BA42; position: relative; z-index: 1; }
+            .dog-title {
+                font-family: var(--display); font-size: 22px; font-weight: 800; letter-spacing: -0.025em;
+                color: #FFFFFF; margin: 0 0 10px; line-height: 1.25;
+            }
+            .dog-desc {
+                font-family: var(--body); font-size: 14px; line-height: 1.6;
+                color: #A1A1AA; margin: 0 0 20px;
+            }
+            .dog-hint {
+                display: flex; align-items: flex-start; gap: 10px;
+                background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.5;
+                color: #D4D4D8; text-align: left; margin-bottom: 24px; width: 100%; box-sizing: border-box;
+            }
+            .dog-hint svg { width: 18px; height: 18px; color: #F6BA42; flex-shrink: 0; margin-top: 1px; }
+            .dog-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+            .dog-btn {
+                display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+                width: 100%; height: 46px; border-radius: 12px; font-size: 14px; font-weight: 600;
+                text-decoration: none; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box;
+            }
+            .dog-btn-primary {
+                background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
+                color: #09090B !important; border: none; box-shadow: 0 4px 14px rgba(234, 160, 35, 0.3);
+            }
+            .dog-btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+            .dog-btn-primary:active { transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
         .spin { animation: spin .8s linear infinite; }
@@ -390,48 +396,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
-<!-- Desktop Only Mode Gate for Mobile/Responsive -->
-<div class="desktop-only-gate" aria-live="polite">
-    <div class="desktop-gate-card">
-        <div class="desktop-gate-badge">
-            <i class='bx bx-desktop'></i>
-            <span>Desktop Mode Required</span>
-        </div>
-        <div class="desktop-gate-icon-wrap">
-            <div class="gate-icon-circle">
-                <i class='bx bx-laptop'></i>
-            </div>
-            <div class="gate-icon-mini-tag">
-                <i class='bx bx-lock-alt'></i>
-            </div>
-        </div>
-        <h2 class="desktop-gate-title">Sign In Available on Desktop Only</h2>
-        <p class="desktop-gate-desc">
-            For advanced customer data protection, two-factor authentication, and secure session management, our sign-in portal is currently accessible only from desktop and laptop displays.
-        </p>
-        <div class="desktop-gate-features">
-            <div class="feature-item">
-                <div class="feature-bullet"><i class='bx bx-check'></i></div>
-                <div>
-                    <strong>256-Bit SSL Encrypted Sign-In</strong>
-                    <span>Protected banking session with biometric & token validation</span>
-                </div>
-            </div>
-            <div class="feature-item">
-                <div class="feature-bullet"><i class='bx bx-check'></i></div>
-                <div>
-                    <strong>Role-Based Account Portal</strong>
-                    <span>Client, Staff and Admin authorization consoles</span>
-                </div>
-            </div>
-        </div>
-        <a href="index.php" class="gate-btn-home">
-            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
-        </a>
-        <p class="desktop-gate-hint">
-            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
-        </p>
+<!-- Desktop Only Gate (Shown on Responsive Mode: mobile & tablet) -->
+<div class="desktop-only-gate" aria-hidden="true">
+  <div class="dog-backdrop"></div>
+  <div class="dog-card">
+    <div class="dog-header">
+      <div class="dog-logo">
+        <span class="dog-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M2 20h20"/></svg>
+        </span>
+        <span class="dog-logo-text">Asha Bank</span>
+      </div>
+      <span class="dog-badge">Desktop Only</span>
     </div>
+
+    <div class="dog-icon-circle">
+      <div class="dog-icon-glow"></div>
+      <svg class="dog-screen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+        <line x1="8" y1="21" x2="16" y2="21"></line>
+        <line x1="12" y1="17" x2="12" y2="21"></line>
+      </svg>
+    </div>
+
+    <h2 class="dog-title">Desktop Mode Required</h2>
+    <p class="dog-desc">Asha Bank's sign-in portal and account management are currently designed and optimized exclusively for desktop screens.</p>
+    
+    <div class="dog-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <span>Please access from a computer or laptop (screen width 1024px or higher) to sign in.</span>
+    </div>
+
+    <div class="dog-actions">
+      <a href="index.php" class="dog-btn dog-btn-primary">
+        <span>&larr; Return to Homepage</span>
+      </a>
+    </div>
+  </div>
 </div>
 
 <!-- Brand panel -->

@@ -326,6 +326,60 @@ class BMSDemoEngine {
     `;
     document.head.appendChild(style);
   }
+
+  injectDesktopGate() {
+    if (document.querySelector('.desktop-only-gate')) return;
+    const path = window.location.pathname;
+    if (path.endsWith('index.html') || path.endsWith('/BMS/') || path.endsWith('/demo-web/')) {
+      return;
+    }
+    const gate = document.createElement('div');
+    gate.className = 'desktop-only-gate';
+    gate.setAttribute('aria-hidden', 'true');
+    gate.innerHTML = `
+      <div class="dog-backdrop"></div>
+      <div class="dog-card">
+        <div class="dog-header">
+          <div class="dog-logo">
+            <span class="dog-logo-mark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M12 3l9 7H3l9-7z"/>
+              </svg>
+            </span>
+            <span class="dog-logo-text">Asha Bank</span>
+          </div>
+          <span class="dog-badge"><i class='bx bx-desktop'></i> Desktop Only</span>
+        </div>
+
+        <div class="dog-icon-circle">
+          <div class="dog-icon-glow"></div>
+          <svg class="dog-screen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+        </div>
+
+        <h2 class="dog-title">Desktop Mode Required</h2>
+        <p class="dog-desc">Asha Bank's portal dashboards, authentication, and registration features are currently available in desktop mode only.</p>
+        
+        <div class="dog-hint">
+          <i class='bx bx-info-circle'></i>
+          <span>Please open this page on a laptop or desktop computer (width 1024px or higher) to use this feature.</span>
+        </div>
+
+        <div class="dog-actions">
+          <a href="index.html" class="dog-btn dog-btn-primary">
+            <i class='bx bx-arrow-back'></i>
+            <span>Return to Homepage</span>
+          </a>
+        </div>
+      </div>
+    `;
+    if (document.body) {
+      document.body.appendChild(gate);
+    }
+  }
 }
 
 // Global instance
@@ -333,4 +387,6 @@ window.BMS = new BMSDemoEngine();
 
 document.addEventListener('DOMContentLoaded', () => {
   window.BMS.injectDemoHeader();
+  window.BMS.injectDesktopGate();
 });
+
