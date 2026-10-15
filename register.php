@@ -181,6 +181,7 @@ $selProduct = (int)($form['product_id'] ?? ($products[0]['ProductID'] ?? 1));
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -349,20 +350,149 @@ $selProduct = (int)($form['product_id'] ?? ($products[0]['ProductID'] ?? 1));
         .foot { text-align: center; margin-top: 22px; color: var(--muted); font-size: 14px; }
         .foot a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
-        @media (max-width: 960px) {
-            body { grid-template-columns: 1fr; }
-            .brand { display: none; }
-            .panel { padding: 24px 20px 56px; }
-            .mobile-logo { display: inline-flex; }
-        }
-        @media (max-width: 560px) {
-            .grid { grid-template-columns: 1fr; }
-            h1 { font-size: 26px; }
+        .desktop-only-gate { display: none !important; }
+
+        @media (max-width: 1024px) {
+            body { display: block !important; background: #09090B !important; }
+            .brand, .panel { display: none !important; }
+            .desktop-only-gate {
+                display: flex !important;
+                position: fixed;
+                inset: 0;
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                background: radial-gradient(circle at 50% 15%, rgba(246, 186, 66, 0.09) 0%, transparent 60%), #09090B !important;
+                color: #FFFFFF !important;
+                z-index: 99999999;
+                align-items: center;
+                justify-content: center;
+                padding: 24px 16px;
+                box-sizing: border-box;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .desktop-gate-card {
+                background: rgba(24, 24, 27, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 24px;
+                padding: 34px 24px 28px;
+                max-width: 440px;
+                width: 100%;
+                text-align: center;
+                box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(246, 186, 66, 0.15);
+                box-sizing: border-box;
+                margin: auto;
+            }
+            .desktop-gate-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                padding: 5px 13px;
+                border-radius: 999px;
+                background: rgba(246, 186, 66, 0.12);
+                border: 1px solid rgba(246, 186, 66, 0.35);
+                color: #F6BA42;
+                font-size: 11.5px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 20px;
+            }
+            .desktop-gate-badge i { font-size: 15px; }
+            .desktop-gate-icon-wrap { position: relative; width: 76px; height: 76px; margin: 0 auto 20px; }
+            .gate-icon-circle {
+                width: 76px; height: 76px; border-radius: 22px;
+                background: linear-gradient(135deg, rgba(246, 186, 66, 0.22) 0%, rgba(24, 24, 27, 0.9) 100%);
+                border: 1.5px solid rgba(246, 186, 66, 0.45);
+                display: grid; place-items: center; font-size: 38px; color: #F6BA42;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+            }
+            .gate-icon-mini-tag {
+                position: absolute; bottom: -4px; right: -6px; width: 28px; height: 28px;
+                border-radius: 8px; background: #09090B; border: 1.5px solid rgba(255, 255, 255, 0.2);
+                display: grid; place-items: center; font-size: 14px; color: #E4E4E7;
+            }
+            .desktop-gate-title {
+                font-family: var(--display); font-size: 22px; font-weight: 800; color: #FFFFFF;
+                letter-spacing: -0.025em; margin-bottom: 10px; line-height: 1.25;
+            }
+            .desktop-gate-desc { font-size: 13.5px; line-height: 1.55; color: #A1A1AA; margin-bottom: 22px; }
+            .desktop-gate-features {
+                background: rgba(9, 9, 11, 0.7); border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 16px; padding: 14px 16px; margin-bottom: 24px;
+                display: flex; flex-direction: column; gap: 10px; text-align: left;
+            }
+            .feature-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: #D4D4D8; line-height: 1.4; }
+            .feature-bullet {
+                width: 18px; height: 18px; border-radius: 6px; background: rgba(34, 197, 94, 0.15);
+                color: #22C55E; display: grid; place-items: center; font-size: 12px; flex-shrink: 0; margin-top: 1px;
+            }
+            .feature-item strong { display: block; color: #FFFFFF; font-weight: 600; font-size: 13px; }
+            .gate-btn-home {
+                display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+                width: 100%; height: 46px; border-radius: 12px;
+                background: linear-gradient(135deg, #F6BA42 0%, #EAA023 100%);
+                color: #09090B; font-weight: 700; font-size: 14px; text-decoration: none;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+                box-shadow: 0 4px 14px rgba(234, 160, 35, 0.28); box-sizing: border-box;
+            }
+            .gate-btn-home:hover, .gate-btn-home:active {
+                transform: translateY(-1px); box-shadow: 0 6px 18px rgba(234, 160, 35, 0.4);
+            }
+            .desktop-gate-hint { font-size: 11.5px; color: #71717A; margin-top: 14px; line-height: 1.45; }
+            .desktop-gate-hint b { color: #D4D4D8; }
         }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
     </style>
 </head>
 <body>
+
+<!-- Desktop Only Mode Gate for Mobile/Responsive -->
+<div class="desktop-only-gate" aria-live="polite">
+    <div class="desktop-gate-card">
+        <div class="desktop-gate-badge">
+            <i class='bx bx-desktop'></i>
+            <span>Desktop Mode Required</span>
+        </div>
+        <div class="desktop-gate-icon-wrap">
+            <div class="gate-icon-circle">
+                <i class='bx bx-laptop'></i>
+            </div>
+            <div class="gate-icon-mini-tag">
+                <i class='bx bx-id-card'></i>
+            </div>
+        </div>
+        <h2 class="desktop-gate-title">Registration Available on Desktop Only</h2>
+        <p class="desktop-gate-desc">
+            To complete identity verification, NID document scans, and multi-tier account compliance, our digital registration portal is currently optimized for desktop and laptop computers.
+        </p>
+        <div class="desktop-gate-features">
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Secure KYC Document Submission</strong>
+                    <span>High-resolution document uploads and cryptographic selfie validation</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-bullet"><i class='bx bx-check'></i></div>
+                <div>
+                    <strong>Virtual & Physical Debit Card Setup</strong>
+                    <span>Instant PIN configuration & spending limit customization</span>
+                </div>
+            </div>
+        </div>
+        <a href="index.php" class="gate-btn-home">
+            <i class='bx bx-left-arrow-alt'></i> Return to Homepage
+        </a>
+        <p class="desktop-gate-hint">
+            💡 <em>Tip: On a mobile browser, tap menu and select <b>"Request Desktop Site"</b> to preview.</em>
+        </p>
+    </div>
+</div>
 
 <!-- Brand panel with live card -->
 <aside class="brand" aria-hidden="true">
