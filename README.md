@@ -11,15 +11,60 @@ built responsive from desktop down to mobile.
 
 ## Table of Contents
 
-1. [Features](#-features)
-2. [File Structure](#-file-structure)
-3. [Requirements](#-requirements)
-4. [Setup](#-setup)
-5. [Demo Credentials](#-demo-credentials)
-6. [Database Overview](#-database-overview)
-7. [Design System](#-design-system)
-8. [Security](#-security-notes)
-9. [Known Limitations](#-known-limitations--next-steps)
+1. [Screenshots](#-screenshots)
+2. [Features](#-features)
+3. [File Structure](#-file-structure)
+4. [Requirements](#-requirements)
+5. [Setup](#-setup)
+6. [Demo Credentials](#-demo-credentials)
+7. [Database Overview](#-database-overview)
+8. [Design System](#-design-system)
+9. [Security](#-security-notes)
+10. [Known Limitations](#-known-limitations--next-steps)
+
+---
+
+## 📸 Screenshots
+
+### 📊 Core Banking Dashboards
+
+#### 1. Customer Banking Portal
+> Total balance summary, 7-day transaction analytics, tier-styled debit card preview, quick transfer/deposit/withdraw actions, account breakdown, and recent activity.
+
+[![Customer Dashboard](ss/client-dash.png)](ss/client-dash.png)
+
+<br>
+
+#### 2. Staff & Admin Portals
+
+| 🛡️ Staff Operations Portal | 👑 Administrator Command Center |
+| :---: | :---: |
+| **Pending KYC Queue, Feedback Inbox & Admin Escalations** | **Liquidity Reserves, 6-Month Flow, User Controls & Audits** |
+| [![Staff Dashboard](ss/staff-dash.png)](ss/staff-dash.png) | [![Admin Dashboard](ss/admin-dash.png)](ss/admin-dash.png) |
+
+---
+
+### 🔐 Authentication & Onboarding
+
+| Unified Portal Login (Client / Staff / Admin) | Customer Registration & Instant Card Issuance |
+| :---: | :---: |
+| [![Login Portal](ss/login.png)](ss/login.png) | [![Registration Page](ss/Register.png)](ss/Register.png) |
+
+---
+
+### 🌐 Landing Page & Brand Showcases
+
+> Responsive landing page with dark/gold aesthetics, banking service highlights, currency calculators, branch locator, and dual-language (English / বাংলা) support.
+
+| Dark Mode (English) | Dark Mode (বাংলা) |
+| :---: | :---: |
+| [![Landing Page - English Dark](ss/ashabank-eng-black.png)](ss/ashabank-eng-black.png) | [![Landing Page - Bangla Dark](ss/ashabank-ban-black.png)](ss/ashabank-ban-black.png) |
+
+<br>
+
+| Light Mode (Clean & Minimalist Showcase) |
+| :---: |
+| [![Landing Page - Light Mode](ss/white-ban.png)](ss/white-ban.png) |
 
 ---
 
@@ -101,6 +146,16 @@ BMS/
 ├── setup.php                    DB import helper
 ├── database.sql                 Full schema + seed data
 ├── README.md                    This file
+│
+├── ss/                          Application UI screenshots & preview assets
+│   ├── client-dash.png          Customer portal & financial overview
+│   ├── staff-dash.png           Staff operational workflow & KYC queue
+│   ├── admin-dash.png           System analytics & administrative controls
+│   ├── login.png                Unified 3-in-1 secure login interface
+│   ├── Register.png             Self-service customer onboarding
+│   ├── ashabank-eng-black.png   Full landing page (English / Dark Gold)
+│   ├── ashabank-ban-black.png   Full landing page (Bangla / Dark Gold)
+│   └── white-ban.png            Full landing page (Bangla / Light theme)
 │
 ├── config/
 │   ├── db.php                   PDO connection + BASE_URL constant
