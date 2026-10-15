@@ -29,42 +29,61 @@ built responsive from desktop down to mobile.
 ### 📊 Core Banking Dashboards
 
 #### 1. Customer Banking Portal
-> Total balance summary, 7-day transaction analytics, tier-styled debit card preview, quick transfer/deposit/withdraw actions, account breakdown, and recent activity.
+
+> **The Client Journey:** From the moment an account is opened, customers are welcomed into an intuitive wealth-management cockpit engineered for speed, transparency, and elegance. The interface prioritizes real-time financial situational awareness—combining total balance aggregation, 7-day transaction velocity analytics, and frictionless access to every banking service without paperwork or wait times.
 
 [![Customer Dashboard](ss/client-dash.png)](ss/client-dash.png)
+
+##### 💎 Key Client Capabilities:
+- **Financial Command Center:** Real-time balance aggregation across accounts, monthly inflow/outflow delta metrics, and an in-house Canvas-drawn 7-day transaction volume chart.
+- **Dynamic Tiered Debit Card:** Virtual debit card with automatic tier-based gradient styling (Classic → Silver → Gold → Platinum → Black Edition) calibrated to customer liquidity, complete with star ratings and instant freeze/unfreeze controls.
+- **Frictionless Money Movement:** Quick-action hubs for instant peer-to-peer bank transfers, multi-channel MFS deposits (bKash, Nagad, Rocket, Upay, Branch cash), and cash withdrawals.
+- **Integrated Digital Services:** Seamless access to personal and commercial loans with a live EMI calculator, utility bill payments (Electricity, Water, Gas, Mobile) with auto-pay support, and cheque book management.
 
 <br>
 
 #### 2. Staff & Admin Portals
+
+> **The Operational Story:** Behind every effortless customer transaction lies a synchronized two-tier governance backbone. Frontline **Staff Officers** act as the operational shield—evaluating citizen compliance, verifying identity submissions, and resolving client inquiries. Simultaneously, the **Executive Administrator** commands institutional governance—monitoring bank-wide liquidity reserves, tracking capital velocity, enforcing compliance holds, and broadcasting urgent bank-wide directives.
 
 | 🛡️ Staff Operations Portal | 👑 Administrator Command Center |
 | :---: | :---: |
 | **Pending KYC Queue, Feedback Inbox & Admin Escalations** | **Liquidity Reserves, 6-Month Flow, User Controls & Audits** |
 | [![Staff Dashboard](ss/staff-dash.png)](ss/staff-dash.png) | [![Admin Dashboard](ss/admin-dash.png)](ss/admin-dash.png) |
 
+##### 🛡️ Staff Operational Capabilities:
+- **KYC Compliance Pipeline:** Real-time queue to inspect National ID (NID) and citizen documents. Staff can approve or reject verification applications with audit-trailed reasons and automated customer alerts.
+- **Customer Feedback & Support Inbox:** Centralized desk to triage, review, and reply to client grievances, automatically advancing ticket lifecycles (`Pending` → `Replied` → `Resolved`).
+- **Internal Administrative Escalation:** Secure escalation channel allowing frontline staff to transmit field reports, flagged anomalies, and branch memos directly to Executive Administration.
+- **Daily Operations Snapshot:** Live status counters tracking pending KYC dossiers, unread client messages, and daily branch transaction volumes.
+
+##### 👑 Administrator Command & Control:
+- **Institutional Liquidity & Trend Analytics:** Real-time visibility into bank-wide reserve balances, customer counts, 7-day transaction velocity bars, and 6-month deposits-vs-withdrawals cashflow curves.
+- **Account Governance & Risk Controls:** Full executive authority to activate, freeze, or terminate customer accounts with automated push notifications.
+- **Reactivation Adjudication:** Compliance tribunal interface to review reactivation petitions submitted by frozen account holders, complete with resolution ETAs and administrative notes.
+- **Workforce Management:** Complete administration over bank staff credentials, department assignments, and operational permissions.
+- **System-Wide Broadcast Hub:** Emergency broadcast engine capable of delivering high-priority notices and policy advisories to all active customer dashboards simultaneously.
+
 ---
 
 ### 🔐 Authentication & Onboarding
+
+> **The First 3 Minutes:** Opening a bank account shouldn't feel like navigating a bureaucracy. Asha Bank's onboarding flow eliminates physical paperwork, instantly provisioning an account number, initial deposit credit, and a virtual debit card ready for use.
 
 | Unified Portal Login (Client / Staff / Admin) | Customer Registration & Instant Card Issuance |
 | :---: | :---: |
 | [![Login Portal](ss/login.png)](ss/login.png) | [![Registration Page](ss/Register.png)](ss/Register.png) |
 
+- **Intelligent 3-in-1 Authentication:** Single secure gateway routing Customers, Staff, and Administrators to their dedicated portals based on verified database roles, fortified with BCRYPT hashing and 5-attempt brute-force lockout safeguards.
+- **Instant Self-Service Onboarding:** 3-step registration gathering identity and contact information, automatically generating a unique account number and tiered virtual debit card immediately upon submission.
+
 ---
 
-### 🌐 Landing Page & Brand Showcases
+### 🌐 Landing Page & Brand Showcase
 
-> Responsive landing page with dark/gold aesthetics, banking service highlights, currency calculators, branch locator, and dual-language (English / বাংলা) support.
+> **The Public Face:** An elegant, responsive introduction to Asha Bank crafted with high-contrast typography, banking service highlights, currency calculators, branch locator, and seamless English / বাংলা dual-language switching.
 
-| Dark Mode (English) | Dark Mode (বাংলা) |
-| :---: | :---: |
-| [![Landing Page - English Dark](ss/ashabank-eng-black.png)](ss/ashabank-eng-black.png) | [![Landing Page - Bangla Dark](ss/ashabank-ban-black.png)](ss/ashabank-ban-black.png) |
-
-<br>
-
-| Light Mode (Clean & Minimalist Showcase) |
-| :---: |
-| [![Landing Page - Light Mode](ss/white-ban.png)](ss/white-ban.png) |
+[![Landing Page - Light Mode](ss/white-ban.png)](ss/white-ban.png)
 
 ---
 
@@ -153,9 +172,7 @@ BMS/
 │   ├── admin-dash.png           System analytics & administrative controls
 │   ├── login.png                Unified 3-in-1 secure login interface
 │   ├── Register.png             Self-service customer onboarding
-│   ├── ashabank-eng-black.png   Full landing page (English / Dark Gold)
-│   ├── ashabank-ban-black.png   Full landing page (Bangla / Dark Gold)
-│   └── white-ban.png            Full landing page (Bangla / Light theme)
+│   └── white-ban.png            Landing page showcase (Light theme)
 │
 ├── config/
 │   ├── db.php                   PDO connection + BASE_URL constant
