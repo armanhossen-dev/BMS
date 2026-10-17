@@ -3,10 +3,6 @@
 # 🏦 Asha Bank
 
 ### Banking that grows with your hope
-</div>
-
-A full-stack **PHP / MySQL** digital banking platform with three role-based portals —
-**Customer**, **Staff**, and **Admin** — wrapped in a dark, gold-accented, fully responsive UI.
 <p>
   <a href="https://www.php.net/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/PHP.svg?variant=secondary&size=sm&logo=php&logoColor=777BB4&mode=dark" /><img alt="PHP" src="https://shieldcn.dev/badge/PHP.svg?variant=secondary&size=sm&logo=php&logoColor=777BB4&mode=light" /></picture></a>
   <a href="https://www.mysql.com/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/MySQL.svg?variant=secondary&size=sm&logo=mysql&logoColor=4479A1&mode=dark" /><img alt="MySQL" src="https://shieldcn.dev/badge/MySQL.svg?variant=secondary&size=sm&logo=mysql&logoColor=4479A1&mode=light" /></picture></a>
@@ -14,7 +10,10 @@ A full-stack **PHP / MySQL** digital banking platform with three role-based port
   <a href="https://developer.mozilla.org/en-US/docs/Web/CSS"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/CSS.svg?variant=secondary&size=sm&logo=css&logoColor=1572B6&mode=dark" /><img alt="CSS3" src="https://shieldcn.dev/badge/CSS.svg?variant=secondary&size=sm&logo=css&logoColor=1572B6&mode=light" /></picture></a>
   <a href="https://github.com/armanhossen-dev/BMS"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Status-Demo_Project.svg?variant=secondary&size=sm&mode=dark" /><img alt="Status: Demo Project" src="https://shieldcn.dev/badge/Status-Demo_Project.svg?variant=secondary&size=sm&mode=light" /></picture></a>
 </p>
+</div>
 
+A full-stack **PHP / MySQL** digital banking platform with three role-based portals —
+**Customer**, **Staff**, and **Admin** — wrapped in a dark, gold-accented, fully responsive UI.
 
 [**Features**](#-features) ·
 [**Screenshots**](#-screenshots) ·
