@@ -7,14 +7,14 @@
 
 A full-stack **PHP / MySQL** digital banking platform with three role-based portals —
 **Customer**, **Staff**, and **Admin** — wrapped in a dark, gold-accented, fully responsive UI.
+<p>
+  <a href="https://www.php.net/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/PHP.svg?variant=secondary&size=sm&logo=php&logoColor=777BB4&mode=dark" /><img alt="PHP" src="https://shieldcn.dev/badge/PHP.svg?variant=secondary&size=sm&logo=php&logoColor=777BB4&mode=light" /></picture></a>
+  <a href="https://www.mysql.com/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/MySQL.svg?variant=secondary&size=sm&logo=mysql&logoColor=4479A1&mode=dark" /><img alt="MySQL" src="https://shieldcn.dev/badge/MySQL.svg?variant=secondary&size=sm&logo=mysql&logoColor=4479A1&mode=light" /></picture></a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/JavaScript.svg?variant=secondary&size=sm&logo=javascript&logoColor=F7DF1E&mode=dark" /><img alt="JavaScript" src="https://shieldcn.dev/badge/JavaScript.svg?variant=secondary&size=sm&logo=javascript&logoColor=F7DF1E&mode=light" /></picture></a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/CSS"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/CSS.svg?variant=secondary&size=sm&logo=css&logoColor=1572B6&mode=dark" /><img alt="CSS3" src="https://shieldcn.dev/badge/CSS.svg?variant=secondary&size=sm&logo=css&logoColor=1572B6&mode=light" /></picture></a>
+  <a href="https://github.com/armanhossen-dev/BMS"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Status-Demo_Project.svg?variant=secondary&size=sm&mode=dark" /><img alt="Status: Demo Project" src="https://shieldcn.dev/badge/Status-Demo_Project.svg?variant=secondary&size=sm&mode=light" /></picture></a>
+</p>
 
-<br>
-
-[![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
-[![MySQL](https://img.shields.io/badge/MySQL-5.7+-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![CSS3](https://img.shields.io/badge/CSS3-Custom_Design_System-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
-[![Status](https://img.shields.io/badge/Status-Demo_Project-d4a657?style=for-the-badge)](https://github.com/armanhossen-dev/BMS)
 
 [**Features**](#-features) ·
 [**Screenshots**](#-screenshots) ·
