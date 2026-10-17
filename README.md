@@ -15,13 +15,23 @@
 A full-stack **PHP / MySQL** digital banking platform with three role-based portals —
 **Customer**, **Staff**, and **Admin** — wrapped in a dark, gold-accented, fully responsive UI.
 
+<!--
 [**Features**](#-features) ·
 [**Screenshots**](#-screenshots) ·
 [**Quick Start**](#-quick-start) ·
 [**Demo Login**](#-demo-credentials) ·
 [**Database**](#-database) ·
 [**Roadmap**](#️-roadmap)
+-->
 
+<div align="center">
+  <a href="#-features"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Features.svg?variant=secondary&size=sm&mode=dark" /><img alt="Features" src="https://shieldcn.dev/badge/Features.svg?variant=secondary&size=sm&mode=light" /></picture></a> ·
+  <a href="#-screenshots"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Screenshots.svg?variant=secondary&size=sm&mode=dark" /><img alt="Screenshots" src="https://shieldcn.dev/badge/Screenshots.svg?variant=secondary&size=sm&mode=light" /></picture></a> ·
+  <a href="#-quick-start"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Quick_Start.svg?variant=secondary&size=sm&mode=dark" /><img alt="Quick Start" src="https://shieldcn.dev/badge/Quick_Start.svg?variant=secondary&size=sm&mode=light" /></picture></a> ·
+  <a href="#-demo-credentials"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Demo_Login.svg?variant=secondary&size=sm&mode=dark" /><img alt="Demo Login" src="https://shieldcn.dev/badge/Demo_Login.svg?variant=secondary&size=sm&mode=light" /></picture></a> ·
+  <a href="#-database"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Database.svg?variant=secondary&size=sm&mode=dark" /><img alt="Database" src="https://shieldcn.dev/badge/Database.svg?variant=secondary&size=sm&mode=light" /></picture></a> ·
+  <a href="#️-roadmap"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Roadmap.svg?variant=secondary&size=sm&mode=dark" /><img alt="Roadmap" src="https://shieldcn.dev/badge/Roadmap.svg?variant=secondary&size=sm&mode=light" /></picture></a>
+</div>
 
 ---
 
