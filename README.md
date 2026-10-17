@@ -3,6 +3,7 @@
 # 🏦 Asha Bank
 
 ### Banking that grows with your hope
+</div>
 
 A full-stack **PHP / MySQL** digital banking platform with three role-based portals —
 **Customer**, **Staff**, and **Admin** — wrapped in a dark, gold-accented, fully responsive UI.
@@ -22,7 +23,6 @@ A full-stack **PHP / MySQL** digital banking platform with three role-based port
 [**Database**](#-database) ·
 [**Roadmap**](#️-roadmap)
 
-</div>
 
 ---
 
